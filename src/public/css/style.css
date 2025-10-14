@@ -1,0 +1,17 @@
+:root {
+  --primary-color: #3945f2;
+  --secondary-color: #08128b;
+
+  --pink-color: #e73877;
+  --orange-light-color: #fcba85;
+  --beige-color: #f4e8d1;
+}
+
+html,
+body {
+  scroll-behavior: smooth;
+}
+
+.text-color {
+  color: var(--primary-color);
+}
