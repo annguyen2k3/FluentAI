@@ -1,0 +1,83 @@
+html,
+body {
+    scroll-behavior: smooth;
+}
+
+/* Utilities */
+.bg-gradient-light {
+    background: radial-gradient(
+            1200px 600px at 50% -100px,
+            rgba(57, 69, 242, 0.12),
+            transparent 60%
+        ),
+        radial-gradient(
+            1000px 500px at 120% 20%,
+            rgba(57, 69, 242, 0.08),
+            transparent 60%
+        ),
+        #f5f7ff;
+    min-height: 100vh;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+/* Login card */
+.login-card {
+    border-radius: var(--border-radius-lg);
+}
+
+.login-logo {
+    width: 300px;
+}
+
+.separator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 0 0.75rem;
+    color: #6c757d;
+    font-size: var(--font-size-base);
+}
+
+/* Style for letter */
+.letter-highlight {
+    color: #f59e0b;
+    font-weight: 600;
+    font-style: italic;
+}
+
+.letter-correct {
+    color: #00a824;
+    font-weight: 700;
+}
+
+.letter-incorrect {
+    color: #ff3704;
+    font-weight: 700;
+    text-decoration: line-through;
+}
+
+.letter-pink {
+    color: #e73877;
+    font-weight: 700;
+}
+
+/* Handle input invalid */
+.input-invalid {
+    display: none;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875em;
+    color: var(--bs-form-invalid-color);
+}

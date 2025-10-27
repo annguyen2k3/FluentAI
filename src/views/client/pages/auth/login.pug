@@ -1,5 +1,36 @@
-extend ../../layouts/default.pug
+extend ../../layouts/auth.pug
 
-block main 
-  h1 Đăng nhập 
-  p(class='text-color') Vui lòng nhập thông tin đăng nhập của bạn.
+block card-body 
+  div(class="text-center mb-4")
+    img(src="/img/logo.jpeg" alt="FluentAI" class="login-logo mb-2 w-50")
+
+  form(id="loginForm", novalidate)
+    div(class="mb-3")
+      label(for="email" class="form-label fw-semibold fs-6") Email
+      input(type="email" id="email" class="form-control form-control-lg fs-6" placeholder="Nhập email của bạn", required)
+      div(class="invalid-feedback" error="email") Vui lòng nhập email hợp lệ.
+    div(class="mb-1")
+      label(for="password" class="form-label fw-semibold fs-6") Mật khẩu
+      input(type="password" id="password" class="form-control form-control-lg fs-6" placeholder="Nhập mật khẩu" minlength="6" autocomplete="password", required)
+      div(class="invalid-feedback" error="password") Mật khẩu tối thiểu 6 ký tự.
+    div(class="text-end mb-3")
+      a(href="/auth/forgot-password.html" class="text-decoration-none small") Quên mật khẩu?
+
+    div(class="d-grid mb-3")
+      button(type="submit" class="btn btn-primary btn-lg fs-6", btn-submit-login) Đăng nhập
+
+    div(class="position-relative text-center my-3")
+      hr(class="text-muted")
+      span(class="separator") Hoặc
+
+    button(type="button" id="btnGoogle" class="btn btn-outline-secondary w-100 btn-lg d-flex align-items-center justify-content-center gap-2 fs-6")
+      svg(xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 533.5 544.3" aria-hidden="true")
+        path(fill="#4285F4" d="M533.5 278.4c0-17.4-1.6-34.1-4.7-50.3H272v95.1h147.1c-6.3 34.1-25 63-53.6 82.3v68.3h86.8c50.8-46.8 81.2-116 81.2-195.4z")
+        path(fill="#34A853" d="M272 544.3c72.9 0 134.1-24.1 178.8-65.5l-86.8-68.3c-24.1 16.2-55 25.8-92 25.8-70.7 0-130.7-47.7-152.1-111.7H31.8v69.9C76.1 486.2 166.6 544.3 272 544.3z")
+        path(fill="#FBBC05" d="M119.9 324.6c-10.6-31.7-10.6-65.9 0-97.6v-69.9H31.8c-38.2 76.4-38.2 161.1 0 237.4l88.1-69.9z")
+        path(fill="#EA4335" d="M272 106.1c39.6-.6 77.8 14.6 106.6 41.8l79.5-79.5C405.8 24.8 343.6-.1 272 0 166.6 0 76.1 57.9 31.8 150.1l88.1 69.9C141.3 153.9 201.3 106.1 272 106.1z")
+      span Đăng nhập với Google
+
+    div(class="text-center mt-4 small")
+      span Bạn chưa có tài khoản? 
+      a(href="./register.html" class="text-decoration-none") Đăng ký tài khoản mới
