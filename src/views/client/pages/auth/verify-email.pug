@@ -1,0 +1,45 @@
+extend ../../layouts/auth.pug
+
+block card-body 
+    div(class="text-center mb-4")
+        div(class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle" style="width: 96px; height: 96px;")
+            svg(xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary")
+                path(d="M4 4h16v16H4z")
+                polyline(points="22,6 12,13 2,6")
+
+    h1(class="text-center fw-bold mb-3" style="font-size: 1.75rem;") Xác thực Email của bạn
+    p(class="text-center text-muted mb-4")
+        | Chúng tôi đã gửi mã xác thực đến địa chỉ email của bạn. Vui lòng kiểm tra hộp thư và
+        |  nhập mã để tiếp tục.
+
+    div(class="p-3 rounded-3 text-center bg-primary-subtle mb-4")
+        div(class="text-muted") Email đã gửi đến:
+        div(class="fw-semibold" id="verifyEmail") #{email}
+
+    form(id="verifyForm", novalidate)
+        div(class="mb-4")
+            label(class="form-label fw-semibold fs-6 d-block text-center") Nhập mã xác thực
+            div(class="d-flex justify-content-center gap-2 mb-3")
+                input(type="text" class="verify-code-input form-control form-control-lg fs-3 text-center fw-bold" id="verifyCode1" maxlength="1" pattern="[0-9]")
+                input(type="text" class="verify-code-input form-control form-control-lg fs-3 text-center fw-bold" id="verifyCode2" maxlength="1" pattern="[0-9]")
+                input(type="text" class="verify-code-input form-control form-control-lg fs-3 text-center fw-bold" id="verifyCode3" maxlength="1" pattern="[0-9]")
+                input(type="text" class="verify-code-input form-control form-control-lg fs-3 text-center fw-bold" id="verifyCode4" maxlength="1" pattern="[0-9]")
+            div(class="invalid-feedback text-center" error="otp") Mã xác thực không hợp lệ.
+
+        div(class="d-grid mb-3")
+            button(type="submit" class="btn btn-primary btn-lg fs-6") Xác thực
+
+    div(class="alert alert-warning d-flex align-items-start gap-2 mb-3" role="alert")
+        span(class="pt-1") ⚠️
+        div Không nhận được email? Kiểm tra thư mục spam hoặc nhấn nút gửi lại bên dưới.
+
+    div(class="d-grid mb-2")
+        button(id="btnResendEmail" class="btn btn-outline-primary btn-lg fs-6", disabled)
+            span(id="resendText") Gửi lại Email
+            span(id="countdownText" class="d-none")
+                | Gửi lại sau 
+                span(id="countdownNumber") 30
+                | s
+
+    div(class="text-center mt-3 small")
+        a(href="/users/login" class="text-decoration-none") Quay lại trang đăng nhập

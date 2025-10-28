@@ -1,0 +1,26 @@
+extend ../../layouts/auth.pug
+
+block card-body 
+    div(class="text-center mb-4")
+        img(src="/img/logo.jpeg" alt="FluentAI" class="login-logo mb-2 w-50")
+
+    form(id="registerForm", novalidate)
+        div(class="mb-3")
+            label(for="regEmail" class="form-label fw-semibold fs-6") Email
+            input(type="email" id="regEmail" class="form-control form-control-lg fs-6" placeholder="Nhập email của bạn" autocomplete="email", required)
+            div(class="invalid-feedback" error="email") Vui lòng nhập email hợp lệ.
+        div(class="mb-3")
+            label(for="regPassword" class="form-label fw-semibold fs-6") Mật khẩu
+            input(type="password" id="regPassword" class="form-control form-control-lg fs-6" placeholder="Nhập mật khẩu" minlength="6" autocomplete="password", required)
+            div(class="invalid-feedback" error="password") Mật khẩu tối thiểu 6 ký tự.
+        div(class="mb-1")
+            label(for="regPasswordConfirm" class="form-label fw-semibold fs-6") Nhập lại mật khẩu
+            input(type="password" id="regPasswordConfirm" class="form-control form-control-lg fs-6" placeholder="Nhập lại mật khẩu" minlength="6" autocomplete="password", required)
+            div(class="invalid-feedback" error="passwordConfirm") Mật khẩu nhập lại chưa khớp.
+
+        div(class="d-grid mb-3 mt-3")
+            button(type="submit" class="btn btn-primary btn-lg fs-6" btn-submit-register) Đăng ký
+
+        div(class="text-center mt-4 small")
+            span Đã có tài khoản? 
+            a(href="/users/login" class="text-decoration-none") Quay lại đăng nhập

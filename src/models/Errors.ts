@@ -1,5 +1,5 @@
-import { HttpStatus } from '~/constants/httpStatus';
-import { COMMON_MESSAGES } from '~/constants/message';
+import { HttpStatus } from '~/constants/httpStatus'
+import { COMMON_MESSAGES } from '~/constants/message'
 
 type ErrorsType = Record<string, { msg: string; [key: string]: any }>
 
@@ -16,8 +16,8 @@ export class ErrorWithStatus {
 export class EntityError extends ErrorWithStatus {
   errors: ErrorsType
 
-  constructor({ message = COMMON_MESSAGES.VALIDATION_ERROR, status = HttpStatus.UNPROCESSABLE_ENTITY, errors }: { message?: string; status?: number; errors: ErrorsType }) {
-    super(message, status)
+  constructor({ message = COMMON_MESSAGES.VALIDATION_ERROR, errors }: { message?: string; errors: ErrorsType }) {
+    super(message, HttpStatus.UNPROCESSABLE_ENTITY)
     this.errors = errors
   }
 }

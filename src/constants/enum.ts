@@ -3,3 +3,13 @@ export enum GenderType {
     FEMALE = 'female',
     OTHER = 'other'
 }
+
+export enum TokenType {
+    AccessToken,
+    RefreshToken
+}
+
+export enum VerifyEmailType {
+    RESISTER,
+    FORGOT_PASSWORD
+}

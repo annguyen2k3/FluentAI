@@ -7,7 +7,7 @@ block card-body
   form(id="loginForm", novalidate)
     div(class="mb-3")
       label(for="email" class="form-label fw-semibold fs-6") Email
-      input(type="email" id="email" class="form-control form-control-lg fs-6" placeholder="Nhập email của bạn", required)
+      input(type="email" id="email" class="form-control form-control-lg fs-6" placeholder="Nhập email của bạn" autocomplete="email", required)
       div(class="invalid-feedback" error="email") Vui lòng nhập email hợp lệ.
     div(class="mb-1")
       label(for="password" class="form-label fw-semibold fs-6") Mật khẩu
@@ -33,4 +33,4 @@ block card-body
 
     div(class="text-center mt-4 small")
       span Bạn chưa có tài khoản? 
-      a(href="./register.html" class="text-decoration-none") Đăng ký tài khoản mới
+      a(href="/users/register" class="text-decoration-none") Đăng ký tài khoản mới

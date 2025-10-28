@@ -5,6 +5,7 @@ import path from 'path'
 import { databaseService } from './services/database.service'
 import bodyParser from 'body-parser'
 import { defaultErrorHandler } from './middlewares/errors.middleware'
+import cookieParser from 'cookie-parser'
 
 dotenv.config()
 
@@ -18,6 +19,8 @@ app.use(express.static('src/public'))
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
+
+app.use(cookieParser())
 
 // View engine setup
 app.set('view engine', 'pug')
