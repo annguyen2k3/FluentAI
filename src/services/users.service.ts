@@ -12,6 +12,7 @@ import User from "~/models/schemas/users.schema";
 import md5 from "md5";
 import { generateOTP } from "~/utils/random";
 import OTPVerifyEmail from "~/models/schemas/otp-verify-email.schema";
+import { sendVerifyEmail } from "~/utils/send-email";
 
 config()
 
@@ -174,12 +175,24 @@ class UserService {
 
     async sendOTPVerifyEmail(email: string, type: VerifyEmailType) {
       const otp = generateOTP(4)
-      console.log('OTP: ' + otp)
+
+      sendVerifyEmail(email, 'Yêu cầu mã xác thực từ FluentAI',
+        ` Mã OTP của bạn là:
+
+          <h1 style="font-size: 36px; letter-spacing: 3px; margin: 10px 0; color: #000;">${otp}</h1>
+
+          (Mã có hiệu lực trong 15 phút)
+
+          Không chia sẻ mã này với bất kỳ ai.
+
+          Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.`
+        )
+        
       await databaseService.otpVerifyEmail.insertOne(new OTPVerifyEmail({
         email,
         type,
         otp,
-        expires_at: new Date(Date.now() + 1000 * 60 * 1)
+        expires_at: new Date(Date.now() + 1000 * 60 * 15)
       }))
     }
 
