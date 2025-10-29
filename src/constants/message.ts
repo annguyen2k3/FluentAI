@@ -18,4 +18,5 @@ export const USER_MESSAGES = {
   REGISTER_SUCCESS: 'Đăng ký thành công',
   REGISTER_FAILED: 'Đăng ký thất bại',
   OTP_INVALID: 'Mã xác thực không hợp lệ',
+  RESET_PASSWORD_SUCCESS: 'Đặt lại mật khẩu thành công',
 } as const 

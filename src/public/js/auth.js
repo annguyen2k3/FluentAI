@@ -46,6 +46,31 @@ import { ApiBreakpoint } from './api_breakpoint.js'
     })
   }
 })()
+;(function () {
+  const toggles = document.querySelectorAll('[data-toggle="password-visibility"]')
+  if (!toggles.length) return
+  toggles.forEach((btn) => {
+    btn.addEventListener('click', function () {
+      const targetSelector = this.getAttribute('data-target')
+      const input = document.querySelector(targetSelector)
+      if (!input) return
+      const icon = this.querySelector('i')
+      if (input.type === 'password') {
+        input.type = 'text'
+        if (icon) {
+          icon.classList.remove('bi-eye')
+          icon.classList.add('bi-eye-slash')
+        }
+      } else {
+        input.type = 'password'
+        if (icon) {
+          icon.classList.remove('bi-eye-slash')
+          icon.classList.add('bi-eye')
+        }
+      }
+    })
+  })
+})()
 
 // Google OAuth login
 ;(function () {
@@ -106,51 +131,10 @@ import { ApiBreakpoint } from './api_breakpoint.js'
   })
 })()
 
-// // Forgot password form validation
-// ;(function () {
-//   const form = document.getElementById('forgotForm')
-//   if (!form) return
-
-//   form.addEventListener('submit', function (event) {
-//     if (!form.checkValidity()) {
-//       event.preventDefault()
-//       event.stopPropagation()
-//     }
-//     form.classList.add('was-validated')
-//   })
-// })()
-
-// // Reset password form validation
-// ;(function () {
-//   const form = document.getElementById('resetForm')
-//   if (!form) return
-//   const pass = document.getElementById('newPassword')
-//   const pass2 = document.getElementById('confirmNewPassword')
-
-//   function validateMatch() {
-//     if (pass2.value && pass.value !== pass2.value) {
-//       pass2.setCustomValidity('Mismatch')
-//     } else {
-//       pass2.setCustomValidity('')
-//     }
-//   }
-
-//   pass.addEventListener('input', validateMatch)
-//   pass2.addEventListener('input', validateMatch)
-
-//   form.addEventListener('submit', function (e) {
-//     validateMatch()
-//     if (!form.checkValidity()) {
-//       e.preventDefault()
-//       e.stopPropagation()
-//     }
-//     form.classList.add('was-validated')
-//   })
-// })()
-
 // Verify email form validation
 ;(function () {
   const form = document.getElementById('verifyForm')
+  if (!form) return
   const inputs = [
     document.getElementById('verifyCode1'),
     document.getElementById('verifyCode2'),
@@ -286,4 +270,221 @@ import { ApiBreakpoint } from './api_breakpoint.js'
 
   startCountdown()
   inputs[0].focus()
+})()
+
+// Forgot password form validation
+;(function () {
+  const formForgot_email = document.getElementById('forgotForm')
+  if (!formForgot_email) return
+
+  const btnForgot = formForgot_email.querySelector('button[btn-submit-email]')
+  btnForgot.addEventListener('click', function (event) {
+    event.preventDefault()
+    const email = formForgot_email.querySelector('input#forgotEmail').value
+    fetch(ApiBreakpoint.FORGOT_PASSWORD_EMAIL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      body: JSON.stringify({ email })
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data)
+        if (data.status === 200) {
+          window.location.href = '/users/forgot-password/otp'
+        } else if (data.status === 422) {
+          const errors = data.errors
+          for (const key in errors) {
+            const errorElement = formForgot_email.querySelector(`.invalid-feedback[error="${key}"]`)
+            if (errorElement) {
+              const errorItem = errors[key]
+              errorElement.textContent = errorItem.msg
+              errorElement.style.display = 'block'
+            }
+          }
+        }
+      })
+      .catch((error) => console.error('Error:', error))
+  })
+})()
+
+// Forgot password OTP form validation
+;(function () {
+  const form = document.getElementById('formOTPForgotPassword')
+  if (!form) return
+  const inputs = [
+    document.getElementById('verifyCode1'),
+    document.getElementById('verifyCode2'),
+    document.getElementById('verifyCode3'),
+    document.getElementById('verifyCode4')
+  ]
+  const btnResend = document.getElementById('btnResendEmail')
+  const resendText = document.getElementById('resendText')
+  const countdownText = document.getElementById('countdownText')
+  const countdownNumber = document.getElementById('countdownNumber')
+
+  function getFullCode() {
+    return inputs.map((input) => input.value).join('')
+  }
+
+  function validateCode() {
+    const code = getFullCode()
+    return /^\d{4}$/.test(code)
+  }
+
+  function moveToNext(currentIndex) {
+    if (currentIndex < inputs.length - 1) {
+      inputs[currentIndex + 1].focus()
+    }
+  }
+
+  function moveToPrevious(currentIndex) {
+    if (currentIndex > 0) {
+      inputs[currentIndex - 1].focus()
+    }
+  }
+
+  inputs.forEach((input, index) => {
+    input.addEventListener('input', function (e) {
+      const value = this.value.replace(/\D/g, '')
+      this.value = value
+
+      if (value && index < inputs.length - 1) {
+        moveToNext(index)
+      }
+    })
+
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !this.value && index > 0) {
+        moveToPrevious(index)
+      } else if (e.key === 'ArrowLeft' && index > 0) {
+        moveToPrevious(index)
+      } else if (e.key === 'ArrowRight' && index < inputs.length - 1) {
+        moveToNext(index)
+      }
+    })
+
+    input.addEventListener('paste', function (e) {
+      e.preventDefault()
+      const pastedData = (e.clipboardData || window.clipboardData).getData('text')
+      const digits = pastedData.replace(/\D/g, '').slice(0, 4)
+
+      for (let i = 0; i < digits.length && index + i < inputs.length; i++) {
+        inputs[index + i].value = digits[i]
+      }
+
+      if (digits.length > 0) {
+        inputs[Math.min(index + digits.length - 1, inputs.length - 1)].focus()
+      }
+    })
+  })
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault()
+    event.stopPropagation()
+    if (!validateCode()) {
+      form.querySelector('.invalid-feedback[error="otp"]').style.display = 'block'
+    } else {
+      const otp = getFullCode()
+      fetch(ApiBreakpoint.FORGOT_PASSWORD_OTP, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({ otp })
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data)
+          if (data.status === 200) {
+            window.location.href = '/users/forgot-password/reset'
+          } else if (data.status === 422) {
+            const errors = data.errors
+            for (const key in errors) {
+              const errorElement = form.querySelector(`.invalid-feedback[error="${key}"]`)
+              if (errorElement) {
+                const errorItem = errors[key]
+                errorElement.textContent = errorItem.msg
+                errorElement.style.display = 'block'
+              }
+            }
+          }
+        })
+        .catch((error) => console.error('Error:', error))
+    }
+  })
+
+  // Countdown để gửi lại email xác thực
+  let countdown = 30
+  let countdownInterval = null
+
+  function startCountdown() {
+    countdown = 30
+    btnResend.disabled = true
+    resendText.classList.add('d-none')
+    countdownText.classList.remove('d-none')
+
+    countdownInterval = setInterval(function () {
+      countdown--
+      countdownNumber.textContent = countdown
+
+      if (countdown <= 0) {
+        clearInterval(countdownInterval)
+        btnResend.disabled = false
+        resendText.classList.remove('d-none')
+        countdownText.classList.add('d-none')
+      }
+    }, 1000)
+  }
+
+  // Gửi lại email xác thực
+  btnResend.addEventListener('click', function () {
+    if (!btnResend.disabled) {
+      window.location.href = '/users/forgot-password/otp'
+    }
+  })
+
+  startCountdown()
+  inputs[0].focus()
+})()
+
+// Forgot password reset form validation
+;(function () {
+  const form = document.getElementById('resetForm')
+  if (!form) return
+
+  const btnReset = form.querySelector('button[btn-submit-reset-password]')
+  btnReset.addEventListener('click', function (event) {
+    event.preventDefault()
+    const password = form.querySelector('input#newPassword').value
+    const passwordConfirm = form.querySelector('input#confirmNewPassword').value
+    fetch(ApiBreakpoint.FORGOT_PASSWORD_RESET, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      body: JSON.stringify({ password, passwordConfirm })
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === 200) {
+          window.location.href = '/users/login'
+        } else if (data.status === 422) {
+          const errors = data.errors
+          for (const key in errors) {
+            const errorElement = form.querySelector(`.invalid-feedback[error="${key}"]`)
+            if (errorElement) {
+              const errorItem = errors[key]
+              errorElement.textContent = errorItem.msg
+              errorElement.style.display = 'block'
+            }
+          }
+        }
+      })
+      .catch((error) => console.error('Error:', error))
+  })
 })()

@@ -196,6 +196,11 @@ class UserService {
       }))
     }
 
+    async resetPassword(email: string, password: string) {
+      const passwordHash = md5(password)
+      await databaseService.users.updateOne({ email }, { $set: { password: passwordHash } })
+    }
+
 }
 
 const userService = new UserService()

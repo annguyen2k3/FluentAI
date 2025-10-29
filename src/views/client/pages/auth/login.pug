@@ -11,10 +11,13 @@ block card-body
       div(class="invalid-feedback" error="email") Vui lòng nhập email hợp lệ.
     div(class="mb-1")
       label(for="password" class="form-label fw-semibold fs-6") Mật khẩu
-      input(type="password" id="password" class="form-control form-control-lg fs-6" placeholder="Nhập mật khẩu" minlength="6" autocomplete="password", required)
+      div(class="input-group input-group-lg")
+        input(type="password" id="password" class="form-control fs-6" placeholder="Nhập mật khẩu" minlength="6" autocomplete="password", required)
+        button(type="button" class="btn btn-outline-secondary" aria-label="Ẩn/Hiện mật khẩu" data-toggle="password-visibility" data-target="#password")
+          i(class="bi bi-eye")
       div(class="invalid-feedback" error="password") Mật khẩu tối thiểu 6 ký tự.
     div(class="text-end mb-3")
-      a(href="/auth/forgot-password.html" class="text-decoration-none small") Quên mật khẩu?
+      a(href="/users/forgot-password" class="text-decoration-none small") Quên mật khẩu?
 
     div(class="d-grid mb-3")
       button(type="submit" class="btn btn-primary btn-lg fs-6", btn-submit-login) Đăng nhập

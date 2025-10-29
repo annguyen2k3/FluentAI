@@ -9,6 +9,7 @@ import {ParamsDictionary} from "express-serve-static-core";
 import { LoginReqBody } from '~/models/requests/User.request'
 import { generateOTP } from '~/utils/random'
 import { VerifyEmailType } from '~/constants/enum'
+import { databaseService } from '~/services/database.service'
 
 // GET /users/login
 export const getLoginController = (req: Request, res: Response) => {
@@ -76,6 +77,7 @@ export const getVerifyEmailController = async (req: Request, res: Response) => {
     })  
 }
 
+// POST /users/verify-email
 export const verifyEmailController = async (req: Request, res: Response) => {
   const email = req.cookies.emailRegister as string
   const password = req.cookies.passwordRegister as string
@@ -91,5 +93,79 @@ export const verifyEmailController = async (req: Request, res: Response) => {
   res.status(HttpStatus.OK).json({
     message: USER_MESSAGES.REGISTER_SUCCESS,
     status: HttpStatus.OK,
+  })
+}
+
+// GET /users/forgot-password
+export const getForgotPasswordController = (req: Request, res: Response) => {
+  res.render('client/pages/auth/forgot-password.pug', { pageTitle: 'FluentAI - Quên mật khẩu' })
+}
+
+// POST /users/forgot-password/email
+export const forgotPasswordEmailController = async (req: Request, res: Response) => {
+  const { email } = req.body
+
+  res.cookie('emailForgotPassword', email)
+
+  res.status(HttpStatus.OK).json({
+    message: COMMON_MESSAGES.INFORM_SUCCESS,
+    status: HttpStatus.OK,
+  })
+}
+
+// GET /users/forgot-password/otp
+export const getForgotPasswordOTPController = async (req: Request, res: Response) => {
+
+  const email = req.cookies.emailForgotPassword as string
+
+  if (!email) {
+    return res.redirect('/users/forgot-password')
+  }
+
+  await userService.sendOTPVerifyEmail(email, VerifyEmailType.FORGOT_PASSWORD)
+
+  res.render('client/pages/auth/forgot-password-otp.pug', { pageTitle: 'FluentAI - Quên mật khẩu OTP' })
+}
+
+// POST /users/forgot-password/otp
+export const forgotPasswordOTPController = async (req: Request, res: Response) => {
+
+  const otp = req.body.otp
+  res.cookie('otpForgotPassword', otp)
+
+  res.status(HttpStatus.OK).json({
+    message: COMMON_MESSAGES.INFORM_SUCCESS,
+    status: HttpStatus.OK,
+  })
+}
+
+// GET /users/forgot-password/reset
+export const getForgotPasswordResetController = async (req: Request, res: Response) => {
+
+  const otp = req.cookies.otpForgotPassword as string
+  const email = req.cookies.emailForgotPassword as string
+
+  const check = await databaseService.otpVerifyEmail.findOne({ email, otp, type: VerifyEmailType.FORGOT_PASSWORD })
+  if (!check) {
+    return res.redirect('/users/forgot-password')
+  }
+
+  res.render('client/pages/auth/forgot-password-reset.pug', { pageTitle: 'FluentAI - Đặt lại mật khẩu' })
+}
+
+// POST /users/forgot-password/reset
+export const forgotPasswordResetController = async (req: Request, res: Response) => {
+
+  const email = req.cookies.emailForgotPassword as string
+  const password = req.body.password
+
+  await userService.resetPassword(email, password)
+
+  res.clearCookie('emailForgotPassword')
+  res.clearCookie('otpForgotPassword')
+
+  res.status(HttpStatus.OK).json({
+    message: USER_MESSAGES.RESET_PASSWORD_SUCCESS,
+    status: HttpStatus.OK
   })
 }
