@@ -7,7 +7,6 @@ import User from '~/models/schemas/users.schema'
 import userService from '~/services/users.service'
 import {ParamsDictionary} from "express-serve-static-core";
 import { LoginReqBody } from '~/models/requests/User.request'
-import { generateOTP } from '~/utils/random'
 import { VerifyEmailType } from '~/constants/enum'
 import { databaseService } from '~/services/database.service'
 
@@ -23,8 +22,14 @@ export const loginController = async (req: Request<ParamsDictionary, any, LoginR
 
   const result = await userService.login(user_id.toString())
 
-  res.cookie('refresh_token', result.refresh_token)
-  res.cookie('access_token', result.access_token)
+  res.cookie('refresh_token', result.refresh_token, {
+    httpOnly: true,
+    sameSite: 'lax',
+  })
+  res.cookie('access_token', result.access_token, {
+    httpOnly: true,
+    sameSite: 'lax',
+  })
 
   res.status(HttpStatus.OK).json({
     message: USER_MESSAGES.LOGIN_SUCCESS,

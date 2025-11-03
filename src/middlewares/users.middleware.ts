@@ -1,9 +1,13 @@
+import { Request, Response, NextFunction } from "express";
 import { checkSchema } from "express-validator";
+import { JsonWebTokenError } from "jsonwebtoken";
+import { capitalize } from "lodash";
 import md5 from "md5";
 import { VerifyEmailType } from "~/constants/enum";
 import { USER_MESSAGES } from "~/constants/message";
 import { databaseService } from "~/services/database.service";
 import userService from "~/services/users.service";
+import { verifyToken } from "~/utils/jwt";
 import { validate } from "~/utils/validation";
 
 export const loginValidator = validate(checkSchema({
@@ -170,3 +174,53 @@ export const forgotPasswordResetValidator = validate(checkSchema({
         }
     }
 }, ['body']))
+
+export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
+    const access_token = req.cookies?.access_token as string
+    const refresh_token = req.cookies?.refresh_token as string
+
+    if(!access_token || !refresh_token) {
+        return res.redirect('/users/login')
+    }
+
+    const refresh_token_exists = await databaseService.refreshTokens.findOne({ token: refresh_token })
+    if(refresh_token_exists === null) {
+        return res.redirect('/users/login')
+    }
+
+    try {
+        const decoded = await verifyToken({ token: access_token, secretOrPublicKey: process.env.JWT_SECRET_ACCESS_TOKEN as string})
+        const user = await userService.getUserById(decoded.user_id)
+        if(!user) {
+            return res.redirect('/users/login')
+        }
+        req.user = user
+        next()
+    } catch (error: any) {
+        if (error?.name === 'TokenExpiredError') {
+            try {
+                const decoded = await verifyToken({ token: refresh_token, secretOrPublicKey: process.env.JWT_SECRET_REFRESH_TOKEN as string})
+            
+                const user = await userService.getUserById(decoded.user_id)
+                if(!user) {
+                    return res.redirect('/users/login')
+                }
+                req.user = user
+                const new_tokens = await userService.login(user._id.toString())
+                res.cookie('access_token', new_tokens.access_token, {
+                    httpOnly: true,
+                    sameSite: 'lax',
+                })
+                res.cookie('refresh_token', new_tokens.refresh_token, {
+                    httpOnly: true,
+                    sameSite: 'lax',
+                })
+                return next()
+            } catch (error) {
+                return res.redirect('/users/login')
+            }
+            
+        }
+        return res.redirect('/users/login')
+    }
+}

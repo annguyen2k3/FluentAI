@@ -25,7 +25,7 @@ class UserService {
           },
           privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string,
           options: {
-            expiresIn: '15M'
+            expiresIn: '1M'
           }
         })
     }
@@ -38,7 +38,7 @@ class UserService {
             },
             privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
             options: {
-            expiresIn: '100D'
+            expiresIn: '30D'
             }
         })
     }
@@ -50,6 +50,8 @@ class UserService {
     async login(user_id: string) {
         const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
     
+        await databaseService.refreshTokens.deleteOne({ user_id: new ObjectId(user_id) })
+        
         await databaseService.refreshTokens.insertOne(
           new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
         )
@@ -199,6 +201,10 @@ class UserService {
     async resetPassword(email: string, password: string) {
       const passwordHash = md5(password)
       await databaseService.users.updateOne({ email }, { $set: { password: passwordHash } })
+    }
+
+    async getUserById(user_id: string) {
+      return await databaseService.users.findOne({ _id: new ObjectId(user_id) })
     }
 
 }

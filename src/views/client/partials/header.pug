@@ -1,0 +1,73 @@
+header(class="header")
+    div(class="container-fluid h-100")
+        div(class="row align-items-center h-100")
+            a(href="/" class="col-1")
+                img(src="/img/logo_rmbg.png" alt="FluentAI" class="login-logo w-100")
+            div(class="col-9")
+                nav(class="navbar navbar-expand-lg")
+                    div(class="navbar-nav")
+                        div(class="nav-item dropdown")
+                            a(class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false")
+                                i(class="fas fa-pencil-alt nav-icon")
+                                |  Luyện viết
+                            ul(class="dropdown-menu")
+                                li
+                                    a(class="dropdown-item" href="/write-sentence/setup.html") Dịch câu
+                                li
+                                    a(class="dropdown-item" href="/write-paragraph/setup.html") Dịch đoạn văn
+                        div(class="nav-item dropdown")
+                            a(class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false")
+                                i(class="fas fa-microphone nav-icon")
+                                |  Luyện phát âm
+                            ul(class="dropdown-menu")
+                                li
+                                    a(class="dropdown-item" href="/speaking-sentence/setup.html") Luyện nói câu
+                                li
+                                    a(class="dropdown-item" href="/speaking-video/choose.html") Luyện nói video
+                        div(class="nav-item dropdown")
+                            a(class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false")
+                                i(class="fas fa-headphones nav-icon")
+                                |  Luyện nghe
+                            ul(class="dropdown-menu")
+                                li
+                                    a(class="dropdown-item" href="/listening-audio/choose.html") Luyện nghe audio
+                                li
+                                    a(class="dropdown-item" href="/listening-video/choose.html") Luyện nghe video
+                        div(class="nav-item")
+                            a(class="nav-link" href="/my-vocabulary/list.html")
+                                i(class="fas fa-book nav-icon")
+                                |  Từ điển của bạn
+                        div(class="nav-item")
+                            a(class="nav-link" href="#")
+                                i(class="fas fa-info-circle nav-icon")
+                                |  Về chúng tôi
+            div(class="col-2 text-end")
+                div(class="header__actions")
+                    i(class="fas fa-bell header__icon")
+                    div(class="header__avatar")
+                        img(src="https://img.freepik.com/vector-mien-phi/hinh-minh-hoa-chang-trai-tre-mim-cuoi_1308-174669.jpg?semt=ais_hybrid&w=740&q=80" alt="Avatar" class="header__avatar-img")
+                        div(class="avatar-modal")
+                            div(class="avatar-modal__header")
+                                img(src="https://img.freepik.com/vector-mien-phi/hinh-minh-hoa-chang-trai-tre-mim-cuoi_1308-174669.jpg?semt=ais_hybrid&w=740&q=80" alt="Avatar" class="avatar-modal__avatar")
+                                div(class="avatar-modal__info")
+                                    h4(class="avatar-modal__name") An Nguyễn
+                                    p(class="avatar-modal__email") annguyen300243@gmail.com
+                                    div(class="avatar-modal__assets")
+                                        span(class="avatar-modal__assets-text")
+                                            | Tài sản: 120
+                                            i(class="fa-brands fa-bitcoin fs-6" style="color: #FFD43B;")
+                                        button(class="avatar-modal__topup-btn") + Nạp thêm
+                            div(class="avatar-modal__divider")
+                            div(class="avatar-modal__menu")
+                                a(href="#" class="avatar-modal__item")
+                                    i(class="fas fa-user avatar-modal__icon")
+                                    |  Thông tin cá nhân
+                                a(href="#" class="avatar-modal__item")
+                                    i(class="fas fa-bookmark avatar-modal__icon")
+                                    |  Bài viết đã lưu
+                                a(href="#" class="avatar-modal__item")
+                                    i(class="fas fa-history avatar-modal__icon")
+                                    |  Lịch sử hoạt động
+                                a(href="#" class="avatar-modal__item")
+                                    i(class="fas fa-sign-out-alt avatar-modal__icon")
+                                    |  Đăng xuất
