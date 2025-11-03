@@ -7,8 +7,9 @@ import User from '~/models/schemas/users.schema'
 import userService from '~/services/users.service'
 import {ParamsDictionary} from "express-serve-static-core";
 import { LoginReqBody } from '~/models/requests/User.request'
-import { VerifyEmailType } from '~/constants/enum'
+import { GenderType, VerifyEmailType } from '~/constants/enum'
 import { databaseService } from '~/services/database.service'
+import { isoStringToDate, isoStringToDateTime } from '~/utils/format'
 
 // GET /users/login
 export const getLoginController = (req: Request, res: Response) => {
@@ -173,4 +174,17 @@ export const forgotPasswordResetController = async (req: Request, res: Response)
     message: USER_MESSAGES.RESET_PASSWORD_SUCCESS,
     status: HttpStatus.OK
   })
+}
+
+// GET /users/profile
+export const getProfileController = async (req: Request, res: Response) => {
+  const user = req.user as User
+
+  const formatedUser = {
+    ...user,
+    date_of_birth: user.date_of_birth ? isoStringToDate(user.date_of_birth as Date): '---',
+    update_at: user.update_at ? isoStringToDateTime(user.update_at as Date): '---'
+  }
+
+  res.render('client/pages/users/profile.pug', { pageTitle: 'FluentAI - Thông tin cá nhân', user: formatedUser })
 }

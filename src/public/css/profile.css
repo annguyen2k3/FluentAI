@@ -1,0 +1,294 @@
+/* Profile Page Styles */
+.profile-section {
+    background: #fff;
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.profile-section__title {
+    font-size: var(--font-size-xl);
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.profile-section__title-icon {
+    color: var(--primary-color);
+}
+
+.profile-info {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--spacing-lg);
+    align-items: start;
+}
+
+.profile-avatar {
+    text-align: center;
+}
+
+.profile-avatar__preview {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--primary-color);
+    margin: 0 auto var(--spacing-md);
+    display: block;
+    box-shadow: var(--shadow-md);
+}
+
+.profile-avatar__upload {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-avatar__input {
+    display: none;
+}
+
+.profile-avatar__label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--primary-color);
+    color: #fff;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    transition: all var(--transition-fast);
+}
+
+.profile-avatar__label:hover {
+    background: var(--secondary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.profile-form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+.profile-form__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.profile-form__label {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: #374151;
+}
+
+.profile-form__input,
+.profile-form__select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid #d1d5db;
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-base);
+    transition: all var(--transition-fast);
+}
+
+.profile-form__input:focus,
+.profile-form__select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(57, 69, 242, 0.1);
+}
+
+.profile-form__input:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+    color: #6b7280;
+}
+
+.profile-form__update-info {
+    font-size: var(--font-size-xs);
+    color: #6b7280;
+    margin-top: var(--spacing-xs);
+    font-style: italic;
+}
+
+.profile-form__actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid #e5e7eb;
+}
+
+.profile-form__btn {
+    padding: var(--spacing-sm) var(--spacing-xl);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.profile-form__btn--primary {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.profile-form__btn--primary:hover {
+    background: var(--secondary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.profile-form__btn--secondary {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.profile-form__btn--secondary:hover {
+    background: #d1d5db;
+}
+
+.profile-form__btn--edit {
+    background: #10b981;
+    color: #fff;
+}
+
+.profile-form__btn--edit:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.profile-form__edit-mode {
+    display: none;
+}
+
+.profile-form__edit-mode.active {
+    display: block;
+}
+
+.profile-form__view-mode {
+    display: block;
+}
+
+.profile-form__view-mode.hidden {
+    display: none;
+}
+
+.profile-field__value {
+    padding: var(--spacing-sm) 0;
+    font-size: var(--font-size-base);
+    color: #1f2937;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.profile-field__value--empty {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Password Section */
+.password-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.password-form__actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.password-form__btn {
+    padding: var(--spacing-sm) var(--spacing-xl);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.password-form__btn--primary {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.password-form__btn--primary:hover {
+    background: var(--secondary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.password-form__btn--secondary {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.password-form__btn--secondary:hover {
+    background: #d1d5db;
+}
+
+.password-form__input-wrapper {
+    position: relative;
+}
+
+.password-form__toggle {
+    position: absolute;
+    right: var(--spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    transition: color var(--transition-fast);
+}
+
+.password-form__toggle:hover {
+    color: var(--primary-color);
+}
+
+.password-form__input {
+    padding-right: 3rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-info {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-form__row {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-form__actions,
+    .password-form__actions {
+        flex-direction: column;
+    }
+
+    .profile-form__btn,
+    .password-form__btn {
+        width: 100%;
+    }
+}

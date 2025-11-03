@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { getLoginController, loginController, googleOAuthStartController, googleOAuthCallbackController, getRegisterController, registerController, getVerifyEmailController, verifyEmailController, getForgotPasswordController, forgotPasswordEmailController, getForgotPasswordOTPController, forgotPasswordOTPController, forgotPasswordResetController, getForgotPasswordResetController } from '~/controllers/client/users.controllers'
-import { forgotPasswordEmailValidator, forgotPasswordOTPValidator, forgotPasswordResetValidator, loginValidator, registerValidator, verifyEmailValidator } from '~/middlewares/users.middleware'
+import { getLoginController, loginController, googleOAuthStartController, googleOAuthCallbackController, getRegisterController, registerController, getVerifyEmailController, verifyEmailController, getForgotPasswordController, forgotPasswordEmailController, getForgotPasswordOTPController, forgotPasswordOTPController, forgotPasswordResetController, getForgotPasswordResetController, getProfileController } from '~/controllers/client/users.controllers'
+import { forgotPasswordEmailValidator, forgotPasswordOTPValidator, forgotPasswordResetValidator, loginValidator, registerValidator, requireAuth, verifyEmailValidator } from '~/middlewares/users.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
 const userRoutes = Router()
 
@@ -84,6 +84,11 @@ userRoutes.get('/forgot-password/reset', wrapRequestHandler(getForgotPasswordRes
 // Method: POST
 // Body: { password: string, passwordConfirm: string }
 userRoutes.post('/forgot-password/reset', forgotPasswordResetValidator, wrapRequestHandler(forgotPasswordResetController))
+
+// Description: Render profile page
+// Path: /users/profile
+// Method: GET
+userRoutes.get('/profile', requireAuth, wrapRequestHandler(getProfileController))
 
 
 export default userRoutes

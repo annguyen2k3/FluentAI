@@ -1,0 +1,129 @@
+extends ../../layouts/default.pug
+
+block main-content
+    div(class="main-content")
+        div(class="container py-4")
+            h1(class="mb-4" style="font-size: var(--font-size-xxl); font-weight: bold; color: #1f2937;")
+                | Thông tin tài khoản
+
+            div(class="row")
+                // Section 1: Account Information - col-8
+                div(class="col-12 col-lg-8 mb-4 mb-lg-0")
+                    div(class="profile-section")
+                        h2(class="profile-section__title")
+                            i(class="fas fa-user profile-section__title-icon")
+                            |  Thông tin cá nhân
+
+                        div(class="profile-info")
+                            // Avatar Section
+                            div(class="profile-avatar")
+                                img(id="avatarPreview" src=user.avatar ? user.avatar : 'https://cdn-icons-png.freepik.com/512/3607/3607444.png' alt="Avatar" class="profile-avatar__preview")
+                                div(class="profile-avatar__upload")
+                                    input(type="file" id="avatarInput" accept="image/*" class="profile-avatar__input")
+                                    label(for="avatarInput" class="profile-avatar__label")
+                                        i(class="fas fa-camera")
+                                        |  Chọn ảnh
+
+                            // Form Section
+                            form(class="profile-form" id="profileForm")
+                                // View Mode
+                                div(class="profile-form__view-mode" id="viewMode")
+                                    div(class="profile-form__row")
+                                        div(class="profile-form__group")
+                                            label(class="profile-form__label") Tên người dùng
+                                            div(class="profile-field__value" id="viewUsername") #{user.username}
+                                        div(class="profile-form__group")
+                                            label(class="profile-form__label") Email
+                                            div(class="profile-field__value" id="viewEmail") #{user.email}
+                                    div(class="profile-form__row")
+                                        div(class="profile-form__group")
+                                            label(class="profile-form__label") Ngày sinh
+                                            div(class="profile-field__value" id="viewDateOfBirth") #{user.date_of_birth ? user.date_of_birth : '-'}
+                                        div(class="profile-form__group")
+                                            label(class="profile-form__label") Điện thoại
+                                            div(class="profile-field__value" id="viewPhone") #{user.phone_number ? user.phone_number : '-'}
+                                    div(class="profile-form__row")
+                                        div(class="profile-form__group")
+                                            label(class="profile-form__label") Giới tính
+                                            div(class="profile-field__value" id="viewGender") #{user.gender ? user.gender === 'male' ? 'Nam' : user.gender === 'female' ? 'Nữ' : 'Khác' : '-'}
+                                        div(class="profile-form__group")
+                                            label(class="profile-form__label") Ngày cập nhật
+                                            div(class="profile-field__value" id="viewUpdatedAt") #{user.update_at ? user.update_at : '-'}
+                                    div(class="profile-form__actions")
+                                        button(type="button" class="profile-form__btn profile-form__btn--edit" id="editBtn")
+                                            i(class="fas fa-edit")
+                                            |  Sửa thông tin
+
+                                // Edit Mode
+                                div(class="profile-form__edit-mode" id="editMode")
+                                    div(class="profile-form__row")
+                                        div(class="profile-form__group")
+                                            label(for="username" class="profile-form__label") Tên người dùng
+                                            input(type="text" id="username" name="username" class="profile-form__input" value=user.username, required)
+                                        div(class="profile-form__group")
+                                            label(for="email" class="profile-form__label") Email
+                                            input(type="email" id="email" name="email" class="profile-form__input" value=user.email, disabled)
+                                    div(class="profile-form__row")
+                                        div(class="profile-form__group")
+                                            label(for="dateOfBirth" class="profile-form__label") Ngày sinh
+                                            input(type="date" id="dateOfBirth" name="dateOfBirth" class="profile-form__input" value=user.date_of_birth, required)
+                                        div(class="profile-form__group")
+                                            label(for="phone" class="profile-form__label") Điện thoại
+                                            input(type="tel" id="phone" name="phone" class="profile-form__input" value=user.phone_number, pattern="[0-9]{10,11}", required)
+                                    div(class="profile-form__row")
+                                        div(class="profile-form__group")
+                                            label(for="gender" class="profile-form__label") Giới tính
+                                            select(id="gender" name="gender" class="profile-form__select" required)
+                                                option(value="" selected=(!user.gender)) Chọn giới tính
+                                                option(value="male" selected=(user.gender === 'male')) Nam
+                                                option(value="female" selected=(user.gender === 'female')) Nữ
+                                                option(value="other" selected=(user.gender === 'other')) Khác
+                                        div(class="profile-form__group")
+                                            label(class="profile-form__label") Ngày cập nhật
+                                            div(class="profile-field__value" id="editUpdatedAt") #{user.update_at ? user.update_at : '---'}
+                                            div(class="profile-form__update-info")
+                                                | Sẽ được cập nhật tự động khi bạn lưu
+                                    div(class="profile-form__actions")
+                                        button(type="submit" class="profile-form__btn profile-form__btn--primary")
+                                            i(class="fas fa-save")
+                                            |  Lưu thay đổi
+                                        button(type="button" class="profile-form__btn profile-form__btn--secondary" id="cancelBtn")
+                                            i(class="fas fa-times")
+                                            |  Hủy
+
+                // Section 2: Change Password - col-4
+                div(class="col-12 col-lg-4")
+                    div(class="profile-section")
+                        h2(class="profile-section__title")
+                            i(class="fas fa-lock profile-section__title-icon")
+                            |  Đổi mật khẩu
+                        form(class="password-form" id="passwordForm")
+                            div(class="profile-form__group")
+                                label(for="oldPassword" class="profile-form__label") Mật khẩu cũ
+                                div(class="password-form__input-wrapper")
+                                    input(type="password" id="oldPassword" name="oldPassword" class="profile-form__input password-form__input w-100" placeholder="Nhập mật khẩu cũ", required)
+                                    button(type="button" class="password-form__toggle" data-toggle="oldPassword")
+                                        i(class="fas fa-eye")
+                            div(class="profile-form__group")
+                                label(for="newPassword" class="profile-form__label") Mật khẩu mới
+                                div(class="password-form__input-wrapper")
+                                    input(type="password" id="newPassword" name="newPassword" class="profile-form__input password-form__input w-100" placeholder="Nhập mật khẩu mới" minlength="6", required)
+                                    button(type="button" class="password-form__toggle" data-toggle="newPassword")
+                                        i(class="fas fa-eye")
+                            div(class="profile-form__group")
+                                label(for="confirmPassword" class="profile-form__label") Nhập lại mật khẩu mới
+                                div(class="password-form__input-wrapper")
+                                    input(type="password" id="confirmPassword" name="confirmPassword" class="profile-form__input password-form__input w-100" placeholder="Nhập lại mật khẩu mới" minlength="6", required)
+                                    button(type="button" class="password-form__toggle" data-toggle="confirmPassword")
+                                        i(class="fas fa-eye")
+                                div(class="invalid-feedback" id="passwordMismatch" style="display: none;")
+                                    | Mật khẩu mới và xác nhận mật khẩu không khớp.
+                            div(class="password-form__actions")
+                                button(type="submit" class="password-form__btn password-form__btn--primary")
+                                    i(class="fas fa-key")
+                                    |  Đổi mật khẩu
+                                button(type="reset" class="password-form__btn password-form__btn--secondary")
+                                    i(class="fas fa-redo")
+                                    |  Đặt lại
+
+    script(src="/js/profile.js")

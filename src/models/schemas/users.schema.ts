@@ -36,7 +36,7 @@ export default class User {
         this.password = user.password
         this.create_at = user.create_at || date
         this.update_at = user.update_at || date
-        this.avatar = user.avatar || ''
+        this.avatar = user.avatar || 'https://cdn-icons-png.freepik.com/512/3607/3607444.png'
         this.date_of_birth = user.date_of_birth || undefined
         this.phone_number = user.phone_number || ''
         this.gender = user.gender || undefined

@@ -45,13 +45,13 @@ header(class="header")
                 div(class="header__actions")
                     i(class="fas fa-bell header__icon")
                     div(class="header__avatar")
-                        img(src="https://img.freepik.com/vector-mien-phi/hinh-minh-hoa-chang-trai-tre-mim-cuoi_1308-174669.jpg?semt=ais_hybrid&w=740&q=80" alt="Avatar" class="header__avatar-img")
+                        img(src=user.avatar alt="Avatar" class="header__avatar-img")
                         div(class="avatar-modal")
                             div(class="avatar-modal__header")
-                                img(src="https://img.freepik.com/vector-mien-phi/hinh-minh-hoa-chang-trai-tre-mim-cuoi_1308-174669.jpg?semt=ais_hybrid&w=740&q=80" alt="Avatar" class="avatar-modal__avatar")
+                                img(src=user.avatar alt="Avatar" class="avatar-modal__avatar")
                                 div(class="avatar-modal__info")
-                                    h4(class="avatar-modal__name") An Nguyễn
-                                    p(class="avatar-modal__email") annguyen300243@gmail.com
+                                    h4(class="avatar-modal__name") #{user.username}
+                                    p(class="avatar-modal__email") #{user.email}
                                     div(class="avatar-modal__assets")
                                         span(class="avatar-modal__assets-text")
                                             | Tài sản: 120

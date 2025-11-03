@@ -34,6 +34,7 @@
   "dependencies": {
     "@aws-sdk/client-ses": "^3.919.0",
     "@types/cookie-parser": "^1.4.10",
+    "@types/formidable": "^3.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/lodash": "^4.17.20",
     "@types/md5": "^2.3.6",
@@ -43,6 +44,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-validator": "^7.3.0",
+    "formidable": "^3.5.4",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
