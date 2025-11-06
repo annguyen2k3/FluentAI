@@ -11,6 +11,7 @@ import { GenderType, VerifyEmailType } from '~/constants/enum'
 import { databaseService } from '~/services/database.service'
 import { omit } from 'lodash'
 import mediasService from '~/services/medias.service'
+import { deleteFileFromS3 } from '~/utils/s3'
 
 // GET /users/login
 export const getLoginController = (req: Request, res: Response) => {
@@ -238,7 +239,10 @@ export const updateAvatarProfileController = async (req: Request, res: Response)
 
   const result = await mediasService.uploadImage(req)
 
-  await databaseService.users.updateOne({ _id: new ObjectId(user._id) }, { $set: { avatar: result[0].url } })
+  Promise.all([
+    deleteFileFromS3({ filename: user.avatar as string }),
+    databaseService.users.updateOne({ _id: new ObjectId(user._id) }, { $set: { avatar: result[0].url } })
+  ])
 
   res.status(HttpStatus.OK).json({
     message: USER_MESSAGES.UPDATE_AVATAR_SUCCESS,

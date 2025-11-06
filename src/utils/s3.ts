@@ -1,5 +1,5 @@
 import {config} from 'dotenv'
-import { S3 } from '@aws-sdk/client-s3'
+import { DeleteObjectCommand, S3 } from '@aws-sdk/client-s3'
 import fs from 'node:fs'
 import { Upload } from '@aws-sdk/lib-storage'
 import path from 'path'
@@ -39,13 +39,39 @@ export const uploadFileToS3 = ({
     return parallelUploads3.done()
 }
 
-export const deleteFileFromS3 = ({
+export const deleteFileFromS3 = async ({
     filename
 } : {
     filename: string,
 }) => {
-    return s3.deleteObject({
-        Bucket: process.env.AWS_S3_BUCKET_NAME,
-        Key: filename,
-    })
+    if (!filename) {
+        return
+    }
+
+    let key = filename
+
+    if (filename.includes('amazonaws.com') || filename.startsWith('http://') || filename.startsWith('https://')) {
+        try {
+            const url = new URL(filename)
+            key = url.pathname.substring(1)
+        } catch (error) {
+            console.error('Error parsing URL:', error)
+            return
+        }
+    }
+
+    const params = {
+        Bucket: process.env.AWS_S3_BUCKET_NAME as string,
+        Key: key,
+    }
+    
+    try {
+        const command = new DeleteObjectCommand(params)
+        const result = await s3.send(command)
+        return result
+    } catch (error) {
+        console.error(`Error deleting file '${key}' from bucket '${process.env.AWS_S3_BUCKET_NAME}':`, error)
+        throw error
+    }
 }
+
