@@ -28,7 +28,7 @@ userRoutes.get('/register', wrapRequestHandler(getRegisterController))
 // Description: Register user with email and password
 // Path: /users/register
 // Method: POST
-// Body: { email: string, password: string }
+// Body: { email: string, password: string, passwordConfirm: string }
 userRoutes.post('/register', registerValidator, wrapRequestHandler(registerController))
 
 // Description: Render verify email page after register [OTP]

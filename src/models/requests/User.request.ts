@@ -17,3 +17,32 @@ export interface UpdateProfileReqBody {
   phoneNumber: string,
   gender: GenderType
 }
+
+export interface RegisterReqBody {
+  email: string,
+  password: string,
+  passwordConfirm: string
+}
+
+export interface VerifyEmailReqBody {
+  otp: string
+}
+
+export interface ForgotPasswordEmailReqBody {
+  email: string
+}
+
+export interface ForgotPasswordOTPReqBody {
+  otp: string
+}
+
+export interface ForgotPasswordResetReqBody {
+  password: string,
+  passwordConfirm: string
+}
+
+export interface ChangePasswordReqBody {
+  oldPassword: string,
+  newPassword: string,
+  confirmPassword: string
+}

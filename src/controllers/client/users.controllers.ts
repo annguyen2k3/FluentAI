@@ -6,7 +6,7 @@ import { COMMON_MESSAGES, USER_MESSAGES } from '~/constants/message'
 import User from '~/models/schemas/users.schema'
 import userService from '~/services/users.service'
 import {ParamsDictionary} from "express-serve-static-core";
-import { LoginReqBody, UpdateProfileReqBody } from '~/models/requests/User.request'
+import { LoginReqBody, RegisterReqBody, UpdateProfileReqBody, VerifyEmailReqBody, ForgotPasswordEmailReqBody, ForgotPasswordOTPReqBody, ForgotPasswordResetReqBody, ChangePasswordReqBody } from '~/models/requests/User.request'
 import { GenderType, VerifyEmailType } from '~/constants/enum'
 import { databaseService } from '~/services/database.service'
 import { omit } from 'lodash'
@@ -47,11 +47,13 @@ export const loginController = async (req: Request<ParamsDictionary, any, LoginR
   })
 }
 
+// GET /users/google/start
 export const googleOAuthStartController = async (req: Request, res: Response) => {
   const url = await userService.getGooogleAuthUrl()
   return res.redirect(url)
 }
 
+// GET /users/google/callback
 export const googleOAuthCallbackController = async (req: Request, res: Response) => {
   const code = String(req.query.code || '')
   if (!code) return res.status(HttpStatus.BAD_REQUEST).send('Missing code')
@@ -78,7 +80,7 @@ export const getRegisterController = (req: Request, res: Response) => {
 }
 
 // POST /users/register
-export const registerController = async (req: Request, res: Response) => {
+export const registerController = async (req: Request<ParamsDictionary, any, RegisterReqBody>, res: Response) => {
   res.status(HttpStatus.OK).json({
     message: COMMON_MESSAGES.INFORM_SUCCESS,
     status: HttpStatus.OK,
@@ -100,7 +102,7 @@ export const getVerifyEmailController = async (req: Request, res: Response) => {
 }
 
 // POST /users/verify-email
-export const verifyEmailController = async (req: Request, res: Response) => {
+export const verifyEmailController = async (req: Request<ParamsDictionary, any, VerifyEmailReqBody>, res: Response) => {
   const email = req.cookies.emailRegister as string
   const password = req.cookies.passwordRegister as string
 
@@ -124,7 +126,7 @@ export const getForgotPasswordController = (req: Request, res: Response) => {
 }
 
 // POST /users/forgot-password/email
-export const forgotPasswordEmailController = async (req: Request, res: Response) => {
+export const forgotPasswordEmailController = async (req: Request<ParamsDictionary, any, ForgotPasswordEmailReqBody>, res: Response) => {
   const { email } = req.body
 
   res.cookie('emailForgotPassword', email)
@@ -150,7 +152,7 @@ export const getForgotPasswordOTPController = async (req: Request, res: Response
 }
 
 // POST /users/forgot-password/otp
-export const forgotPasswordOTPController = async (req: Request, res: Response) => {
+export const forgotPasswordOTPController = async (req: Request<ParamsDictionary, any, ForgotPasswordOTPReqBody>, res: Response) => {
 
   const otp = req.body.otp
   res.cookie('otpForgotPassword', otp)
@@ -176,7 +178,7 @@ export const getForgotPasswordResetController = async (req: Request, res: Respon
 }
 
 // POST /users/forgot-password/reset
-export const forgotPasswordResetController = async (req: Request, res: Response) => {
+export const forgotPasswordResetController = async (req: Request<ParamsDictionary, any, ForgotPasswordResetReqBody>, res: Response) => {
 
   const email = req.cookies.emailForgotPassword as string
   const password = req.body.password
@@ -221,7 +223,7 @@ export const updateProfileController = async (req: Request, res: Response) => {
 }
 
 // PUT /users/profile/change-password
-export const changePasswordController = async (req: Request, res: Response) => {
+export const changePasswordController = async (req: Request<ParamsDictionary, any, ChangePasswordReqBody>, res: Response) => {
   const user = req.user as User
   const newPassword = req.body.newPassword
 
