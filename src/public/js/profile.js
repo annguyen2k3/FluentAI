@@ -1,7 +1,11 @@
+import { ApiBreakpoint } from './api_breakpoint.js'
+import { formatISOStringToDate, formatISOStringToDateInputValue, formatISOStringToDateTime } from './helper.js'
+
 // Profile page functionality
 ;(function () {
   // Check if we're on the profile page
-  if (!document.getElementById('profileForm')) return
+  const formProfile = document.getElementById('profileForm')
+  if (!formProfile) return
 
   // Avatar preview functionality
   const avatarInput = document.getElementById('avatarInput')
@@ -23,12 +27,27 @@
           return
         }
 
-        // Create preview
-        const reader = new FileReader()
-        reader.onload = function (e) {
-          avatarPreview.src = e.target.result
-        }
-        reader.readAsDataURL(file)
+        const formData = new FormData()
+        formData.append('images', file)
+
+        // Upload avatar to server
+        fetch(ApiBreakpoint.UPDATE_AVATAR_PROFILE, {
+          method: 'PATCH',
+          body: formData
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data)
+            if (data.status === 200) {
+              avatarPreview.src = data.avatar_url
+              alertSuccess(data.message)
+            } else {
+              alertError('Lỗi: ' + data.message)
+            }
+          })
+          .catch((error) => {
+            alertError('Lỗi Server: ' + error.message)
+          })
       }
     })
   }
@@ -40,32 +59,55 @@
   const editMode = document.getElementById('editMode')
   const profileForm = document.getElementById('profileForm')
 
-  // Store original values
-  let originalValues = {}
+  const viewUsername = formProfile.querySelector('[viewUsername]')
+  const viewEmail = formProfile.querySelector('[viewEmail]')
+  const viewDateOfBirth = formProfile.querySelector('[viewDateOfBirth]')
+  const viewPhoneNumber = formProfile.querySelector('[viewPhoneNumber]')
+  const viewGender = formProfile.querySelector('[viewGender]')
+  const viewUpdatedAt = formProfile.querySelector('[viewUpdatedAt]')
+
+  const editUsername = formProfile.querySelector('[editUsername]')
+  const editEmail = formProfile.querySelector('[editEmail]')
+  const editDateOfBirth = formProfile.querySelector('[editDateOfBirth]')
+  const editPhoneNumber = formProfile.querySelector('[editPhoneNumber]')
+  const editGender = formProfile.querySelector('[editGender]')
+  const editUpdatedAt = formProfile.querySelector('[editUpdatedAt]')
+
+  let user = JSON.parse(formProfile.getAttribute('data-user'))
+  console.log(user)
+
+  function loadData() {
+    if (viewUsername) viewUsername.textContent = user.username
+    if (viewEmail) viewEmail.textContent = user.email
+    if (viewDateOfBirth) viewDateOfBirth.textContent = formatISOStringToDate(user.date_of_birth)
+    if (viewPhoneNumber) viewPhoneNumber.textContent = user.phone_number
+    if (viewGender) viewGender.textContent = user.gender === 'male' ? 'Nam' : user.gender === 'female' ? 'Nữ' : 'Khác'
+    if (viewUpdatedAt) viewUpdatedAt.textContent = formatISOStringToDateTime(user.update_at)
+
+    if (editUsername) editUsername.value = user.username
+    if (editEmail) editEmail.value = user.email
+    if (editDateOfBirth) editDateOfBirth.value = formatISOStringToDateInputValue(user.date_of_birth)
+    if (editPhoneNumber) editPhoneNumber.value = user.phone_number
+    if (editGender) {
+      const selected = editGender.querySelector(`option[value="${user.gender}"]`)
+      if (selected) {
+        selected.setAttribute('selected', 'true')
+      }
+    } else {
+      editGender.querySelector('option[value=""]').setAttribute('selected', 'true')
+    }
+    if (editUpdatedAt) editUpdatedAt.textContent = formatISOStringToDateTime(user.update_at)
+  }
+
+  loadData()
 
   function enterEditMode() {
-    // Save original values
-    originalValues = {
-      username: document.getElementById('username').value,
-      dateOfBirth: document.getElementById('dateOfBirth').value,
-      phone: document.getElementById('phone').value,
-      gender: document.getElementById('gender').value
-    }
-
     // Show edit mode, hide view mode
     viewMode.classList.add('hidden')
     editMode.classList.add('active')
   }
 
   function exitEditMode() {
-    // Restore original values
-    if (Object.keys(originalValues).length > 0) {
-      document.getElementById('username').value = originalValues.username
-      document.getElementById('dateOfBirth').value = originalValues.dateOfBirth
-      document.getElementById('phone').value = originalValues.phone
-      document.getElementById('gender').value = originalValues.gender
-    }
-
     // Show view mode, hide edit mode
     viewMode.classList.remove('hidden')
     editMode.classList.remove('active')
@@ -85,54 +127,56 @@
       e.preventDefault()
 
       // Get form values
-      const username = document.getElementById('username').value.trim()
-      const dateOfBirth = document.getElementById('dateOfBirth').value
-      const phone = document.getElementById('phone').value.trim()
-      const gender = document.getElementById('gender').value
+      const username = editUsername.value.trim()
+      const dateOfBirth = editDateOfBirth.value
+      const phone = editPhoneNumber.value.trim()
+      const gender = editGender.value
 
-      // Validation
-      if (!username || !dateOfBirth || !phone || !gender) {
-        alert('Vui lòng điền đầy đủ thông tin.')
-        return
-      }
+      console.log(username, dateOfBirth, phone, gender)
 
-      // Format date for display
-      const formattedDate = formatDate(dateOfBirth)
+      // Normalize data for API
+      const isoDateOfBirth = new Date(dateOfBirth).toISOString()
 
-      // Update view mode values
-      document.getElementById('viewUsername').textContent = username
-      document.getElementById('viewDateOfBirth').textContent = formattedDate
-      document.getElementById('viewPhone').textContent = phone
-      document.getElementById('viewGender').textContent = gender
-
-      // Update updated date
-      const now = new Date()
-      const updatedAt = formatDateTime(now)
-      document.getElementById('viewUpdatedAt').textContent = updatedAt
-      document.getElementById('editUpdatedAt').textContent = updatedAt
-
-      // Save new values as original
-      originalValues = {
-        username: username,
-        dateOfBirth: dateOfBirth,
-        phone: phone,
-        gender: gender
-      }
-
-      // Exit edit mode
-      exitEditMode()
-
-      // Show success message
-      alert('Cập nhật thông tin thành công!')
-
-      // Here you would typically send the data to the server
-      // Example: await updateProfile({ username, dateOfBirth, phone, gender });
+      // Send data to server
+      fetch(ApiBreakpoint.UPDATE_PROFILE, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: username,
+          dateOfBirth: isoDateOfBirth,
+          phoneNumber: phone,
+          gender: gender
+        })
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === 200) {
+            alertSuccess('Cập nhật thông tin thành công!')
+            user = data.user
+            loadData()
+            exitEditMode()
+          } else if (data.status === 422) {
+            const errors = data.errors
+            for (const key in errors) {
+              const errorElement = profileForm.querySelector(`.invalid-feedback[error="${key}"]`)
+              if (errorElement) {
+                const errorItem = errors[key]
+                errorElement.textContent = errorItem.msg
+                errorElement.style.display = 'block'
+              }
+            }
+          }
+        })
+        .catch((error) => {
+          alertError('Lỗi Server: ' + error.message)
+        })
     })
   }
 
   // Password form functionality
   const passwordForm = document.getElementById('passwordForm')
-  const passwordMismatch = document.getElementById('passwordMismatch')
 
   // Password toggle visibility
   const passwordToggles = document.querySelectorAll('.password-form__toggle')
@@ -154,80 +198,55 @@
     })
   })
 
-  // Validate password match on input
-  const newPasswordInput = document.getElementById('newPassword')
-  const confirmPasswordInput = document.getElementById('confirmPassword')
-
-  function validatePasswordMatch() {
-    if (confirmPasswordInput.value && newPasswordInput.value !== confirmPasswordInput.value) {
-      confirmPasswordInput.setCustomValidity('Mật khẩu không khớp')
-      passwordMismatch.style.display = 'block'
-      confirmPasswordInput.classList.add('is-invalid')
-    } else {
-      confirmPasswordInput.setCustomValidity('')
-      passwordMismatch.style.display = 'none'
-      confirmPasswordInput.classList.remove('is-invalid')
-    }
-  }
-
-  if (newPasswordInput && confirmPasswordInput) {
-    newPasswordInput.addEventListener('input', validatePasswordMatch)
-    confirmPasswordInput.addEventListener('input', validatePasswordMatch)
-  }
-
   // Handle password form submission
   if (passwordForm) {
     passwordForm.addEventListener('submit', function (e) {
       e.preventDefault()
 
-      const oldPassword = document.getElementById('oldPassword').value
-      const newPassword = document.getElementById('newPassword').value
-      const confirmPassword = document.getElementById('confirmPassword').value
+      const errors = passwordForm.querySelectorAll('.invalid-feedback')
+      errors.forEach((error) => {
+        error.style.display = 'none'
+      })
 
-      // Validation
-      if (!oldPassword || !newPassword || !confirmPassword) {
-        alert('Vui lòng điền đầy đủ thông tin.')
-        return
-      }
+      const oldPassword = document.getElementById('oldPassword').value.trim()
+      const newPassword = document.getElementById('newPassword').value.trim()
+      const confirmPassword = document.getElementById('confirmPassword').value.trim()
 
-      if (newPassword.length < 6) {
-        alert('Mật khẩu mới phải có ít nhất 6 ký tự.')
-        return
-      }
-
-      if (newPassword !== confirmPassword) {
-        alert('Mật khẩu mới và xác nhận mật khẩu không khớp.')
-        return
-      }
-
-      // Show success message
-      alert('Đổi mật khẩu thành công!')
-
-      // Reset form
-      passwordForm.reset()
-
-      // Here you would typically send the data to the server
-      // Example: await changePassword({ oldPassword, newPassword });
+      fetch(ApiBreakpoint.CHANGE_PASSWORD, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ oldPassword, newPassword, confirmPassword })
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === 200) {
+            alertSuccess(data.message)
+            passwordForm.reset()
+          } else if (data.status === 422) {
+            const errors = data.errors
+            for (const key in errors) {
+              const errorElement = passwordForm.querySelector(`.invalid-feedback[error="${key}"]`)
+              if (errorElement) {
+                const errorItem = errors[key]
+                errorElement.textContent = errorItem.msg
+                errorElement.style.display = 'block'
+              }
+            }
+          }
+        })
     })
-  }
 
-  // Helper functions
-  function formatDate(dateString) {
-    if (!dateString) return ''
-    const date = new Date(dateString)
-    const day = String(date.getDate()).padStart(2, '0')
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const year = date.getFullYear()
-    return `${day}/${month}/${year}`
-  }
-
-  function formatDateTime(date) {
-    if (!date) return ''
-    const day = String(date.getDate()).padStart(2, '0')
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const year = date.getFullYear()
-    const hours = String(date.getHours()).padStart(2, '0')
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    return `${day}/${month}/${year} ${hours}:${minutes}`
+    const resetBtn = passwordForm.querySelector('button[type="reset"]')
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        passwordForm.reset()
+        const errors = passwordForm.querySelectorAll('.invalid-feedback')
+        errors.forEach((error) => {
+          error.style.display = 'none'
+        })
+      })
+    }
   }
 })()

@@ -19,4 +19,13 @@ export const USER_MESSAGES = {
   REGISTER_FAILED: 'Đăng ký thất bại',
   OTP_INVALID: 'Mã xác thực không hợp lệ',
   RESET_PASSWORD_SUCCESS: 'Đặt lại mật khẩu thành công',
+  USERNAME_LENGTH: 'Tên người dùng phải có ít nhất 1 ký tự và tối đa 50 ký tự',
+  USERNAME_INVALID: 'Tên người dùng chỉ được chứa chữ cái, số, dấu cách và dấu gạch dưới ( _ )',
+  USERNAME_EXISTS: 'Tên người dùng đã tồn tại',
+  DATE_OF_BIRTH_INVALID: 'Ngày sinh không hợp lệ',
+  PHONE_NUMBER_INVALID: 'Số điện thoại không hợp lệ',
+  GENDER_INVALID: 'Giới tính không hợp lệ',
+  CHANGE_PASSWORD_SUCCESS: 'Đổi mật khẩu thành công',
+  UPDATE_AVATAR_SUCCESS: 'Cập nhật ảnh đại diện thành công',
+  UPDATE_PROFILE_SUCCESS: 'Cập nhật thông tin thành công',
 } as const 

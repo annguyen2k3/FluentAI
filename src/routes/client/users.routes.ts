@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { getLoginController, loginController, googleOAuthStartController, googleOAuthCallbackController, getRegisterController, registerController, getVerifyEmailController, verifyEmailController, getForgotPasswordController, forgotPasswordEmailController, getForgotPasswordOTPController, forgotPasswordOTPController, forgotPasswordResetController, getForgotPasswordResetController, getProfileController } from '~/controllers/client/users.controllers'
-import { forgotPasswordEmailValidator, forgotPasswordOTPValidator, forgotPasswordResetValidator, loginValidator, registerValidator, requireAuth, verifyEmailValidator } from '~/middlewares/users.middleware'
+import { getLoginController, loginController, googleOAuthStartController, googleOAuthCallbackController, getRegisterController, registerController, getVerifyEmailController, verifyEmailController, getForgotPasswordController, forgotPasswordEmailController, getForgotPasswordOTPController, forgotPasswordOTPController, forgotPasswordResetController, getForgotPasswordResetController, getProfileController, updateProfileController, changePasswordController, logoutController, updateAvatarProfileController } from '~/controllers/client/users.controllers'
+import { changePasswordValidator, forgotPasswordEmailValidator, forgotPasswordOTPValidator, forgotPasswordResetValidator, loginValidator, registerValidator, requireAuth, updateProfileValidator, verifyEmailValidator } from '~/middlewares/users.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
 const userRoutes = Router()
 
@@ -8,6 +8,11 @@ const userRoutes = Router()
 // Path: /users/login
 // Method: GET
 userRoutes.get('/login', getLoginController)
+
+// Description: Logout user
+// Path: /users/logout
+// Method: GET
+userRoutes.get('/logout', requireAuth, wrapRequestHandler(logoutController))
 
 // Description: Login user with email and password
 // Path: /users/login
@@ -89,6 +94,40 @@ userRoutes.post('/forgot-password/reset', forgotPasswordResetValidator, wrapRequ
 // Path: /users/profile
 // Method: GET
 userRoutes.get('/profile', requireAuth, wrapRequestHandler(getProfileController))
+
+// Description: Update profile
+// Path: /users/profile
+// Method: PUT
+// Body: { username: string, dateOfBirth: string, phone: string, gender: string }
+userRoutes.put(
+    '/profile', 
+    requireAuth, 
+    updateProfileValidator, 
+    wrapRequestHandler(updateProfileController)
+)
+
+
+// Description: Change password
+// Path: /users/profile/change-password
+// Method: PUT
+// Body: { oldPassword: string, newPassword: string, confirmPassword: string }
+userRoutes.put(
+    '/profile/change-password', 
+    requireAuth, 
+    changePasswordValidator, 
+    wrapRequestHandler(changePasswordController)
+)
+
+// Description: Update avatar
+// Path: /users/profile/avatar
+// Method: PATCH
+// Body: { avatar: string }
+userRoutes.patch(
+    '/profile/avatar', 
+    requireAuth, 
+    wrapRequestHandler(updateAvatarProfileController)
+)
+
 
 
 export default userRoutes

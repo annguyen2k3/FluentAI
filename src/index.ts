@@ -6,12 +6,14 @@ import { databaseService } from './services/database.service'
 import bodyParser from 'body-parser'
 import { defaultErrorHandler } from './middlewares/errors.middleware'
 import cookieParser from 'cookie-parser'
+import { initFolder } from './utils/file'
 
 dotenv.config()
 
 const app = express()
 const port = process.env.PORT || 3000
 
+initFolder()
 databaseService.connect()
 
 // Serving static files

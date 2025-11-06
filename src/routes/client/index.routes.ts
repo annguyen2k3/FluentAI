@@ -5,7 +5,6 @@ import { requireAuth } from '~/middlewares/users.middleware'
 export default function (app: Express) {
 
   app.get('/', requireAuth, (req: Request, res: Response) => {
-    console.log(req.user)
     res.render('client/pages/dashboard.pug', { pageTitle: 'FluentAI - Dashboard', user: req.user })
   })
 
@@ -16,4 +15,5 @@ export default function (app: Express) {
     const query = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''
     return res.redirect(`/users/oauth/google/callback${query}`)
   })
+
 }

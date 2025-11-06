@@ -13,3 +13,9 @@ export enum VerifyEmailType {
     RESISTER,
     FORGOT_PASSWORD
 }
+
+export enum MediaType {
+    Image,
+    Video,
+    Audio,
+}

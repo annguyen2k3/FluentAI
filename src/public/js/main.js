@@ -202,39 +202,6 @@
       avatarModal.style.visibility = 'hidden'
       avatarModal.style.transform = 'translateY(-10px)'
     })
-
-    // Handle modal menu item clicks
-    const modalItems = document.querySelectorAll('.avatar-modal__item')
-    modalItems.forEach(function (item) {
-      item.addEventListener('click', function (e) {
-        e.preventDefault()
-        const itemText = this.textContent.trim()
-
-        switch (itemText) {
-          case 'Thông tin cá nhân':
-            window.location.href = '/users/profile'
-            break
-          case 'Bài viết đã lưu':
-            alert('Tính năng bài viết đã lưu sẽ được tích hợp sau.')
-            break
-          case 'Lịch sử hoạt động':
-            alert('Tính năng lịch sử hoạt động sẽ được tích hợp sau.')
-            break
-          case 'Đăng xuất':
-            if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-              alert('Tính năng đăng xuất sẽ được tích hợp sau.')
-            }
-            break
-          default:
-            alert('Tính năng này sẽ được tích hợp sau.')
-        }
-
-        // Hide modal after click
-        avatarModal.style.opacity = '0'
-        avatarModal.style.visibility = 'hidden'
-        avatarModal.style.transform = 'translateY(-10px)'
-      })
-    })
   }
 })()
 
@@ -432,3 +399,68 @@ topicWPTypes.forEach((opt) => {
     })
   })
 })()
+
+// Alert notification functions
+window.alertSuccess = function (message, time = 3000) {
+  const alertContainer = document.createElement('div')
+  alertContainer.className = 'alert-notification alert-notification--success'
+  alertContainer.innerHTML = `
+    <i class="fas fa-check-circle alert-notification__icon"></i>
+    <div class="alert-notification__content">${message}</div>
+    <button type="button" class="alert-notification__close" aria-label="Đóng">
+      <i class="fas fa-times"></i>
+    </button>
+  `
+
+  document.body.appendChild(alertContainer)
+
+  const closeBtn = alertContainer.querySelector('.alert-notification__close')
+  const closeAlert = () => {
+    alertContainer.classList.add('alert-notification--hide')
+    setTimeout(() => {
+      if (alertContainer.parentNode) {
+        alertContainer.parentNode.removeChild(alertContainer)
+      }
+    }, 300)
+  }
+
+  closeBtn.addEventListener('click', closeAlert)
+
+  if (time > 0) {
+    setTimeout(closeAlert, time)
+  }
+
+  return alertContainer
+}
+
+window.alertError = function (message, time = 5000) {
+  const alertContainer = document.createElement('div')
+  alertContainer.className = 'alert-notification alert-notification--error'
+  alertContainer.innerHTML = `
+    <i class="fas fa-exclamation-circle alert-notification__icon"></i>
+    <div class="alert-notification__content">${message}</div>
+    <button type="button" class="alert-notification__close" aria-label="Đóng">
+      <i class="fas fa-times"></i>
+    </button>
+  `
+
+  document.body.appendChild(alertContainer)
+
+  const closeBtn = alertContainer.querySelector('.alert-notification__close')
+  const closeAlert = () => {
+    alertContainer.classList.add('alert-notification--hide')
+    setTimeout(() => {
+      if (alertContainer.parentNode) {
+        alertContainer.parentNode.removeChild(alertContainer)
+      }
+    }, 300)
+  }
+
+  closeBtn.addEventListener('click', closeAlert)
+
+  if (time > 0) {
+    setTimeout(closeAlert, time)
+  }
+
+  return alertContainer
+}

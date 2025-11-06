@@ -1,6 +1,7 @@
 extends ../../layouts/default.pug
 
 block main-content
+
     div(class="main-content")
         div(class="container py-4")
             h1(class="mb-4" style="font-size: var(--font-size-xxl); font-weight: bold; color: #1f2937;")
@@ -17,7 +18,7 @@ block main-content
                         div(class="profile-info")
                             // Avatar Section
                             div(class="profile-avatar")
-                                img(id="avatarPreview" src=user.avatar ? user.avatar : 'https://cdn-icons-png.freepik.com/512/3607/3607444.png' alt="Avatar" class="profile-avatar__preview")
+                                img(id="avatarPreview" src=user.avatar alt="Avatar" class="profile-avatar__preview")
                                 div(class="profile-avatar__upload")
                                     input(type="file" id="avatarInput" accept="image/*" class="profile-avatar__input")
                                     label(for="avatarInput" class="profile-avatar__label")
@@ -25,30 +26,30 @@ block main-content
                                         |  Chọn ảnh
 
                             // Form Section
-                            form(class="profile-form" id="profileForm")
+                            form(class="profile-form" id="profileForm" data-user=user)
                                 // View Mode
                                 div(class="profile-form__view-mode" id="viewMode")
                                     div(class="profile-form__row")
                                         div(class="profile-form__group")
                                             label(class="profile-form__label") Tên người dùng
-                                            div(class="profile-field__value" id="viewUsername") #{user.username}
+                                            div(class="profile-field__value" viewUsername) An Nguyễn
                                         div(class="profile-form__group")
                                             label(class="profile-form__label") Email
-                                            div(class="profile-field__value" id="viewEmail") #{user.email}
+                                            div(class="profile-field__value" viewEmail) nguyenan@gmail.com
                                     div(class="profile-form__row")
                                         div(class="profile-form__group")
                                             label(class="profile-form__label") Ngày sinh
-                                            div(class="profile-field__value" id="viewDateOfBirth") #{user.date_of_birth ? user.date_of_birth : '-'}
+                                            div(class="profile-field__value" viewDateOfBirth) 01/01/2000
                                         div(class="profile-form__group")
                                             label(class="profile-form__label") Điện thoại
-                                            div(class="profile-field__value" id="viewPhone") #{user.phone_number ? user.phone_number : '-'}
+                                            div(class="profile-field__value" viewPhoneNumber) 0909090909
                                     div(class="profile-form__row")
                                         div(class="profile-form__group")
                                             label(class="profile-form__label") Giới tính
-                                            div(class="profile-field__value" id="viewGender") #{user.gender ? user.gender === 'male' ? 'Nam' : user.gender === 'female' ? 'Nữ' : 'Khác' : '-'}
+                                            div(class="profile-field__value" viewGender) Nam
                                         div(class="profile-form__group")
                                             label(class="profile-form__label") Ngày cập nhật
-                                            div(class="profile-field__value" id="viewUpdatedAt") #{user.update_at ? user.update_at : '-'}
+                                            div(class="profile-field__value" viewUpdatedAt) 01/01/2025 10:00
                                     div(class="profile-form__actions")
                                         button(type="button" class="profile-form__btn profile-form__btn--edit" id="editBtn")
                                             i(class="fas fa-edit")
@@ -59,28 +60,32 @@ block main-content
                                     div(class="profile-form__row")
                                         div(class="profile-form__group")
                                             label(for="username" class="profile-form__label") Tên người dùng
-                                            input(type="text" id="username" name="username" class="profile-form__input" value=user.username, required)
+                                            input(type="text" name="username" class="profile-form__input" editUsername value="An Nguyễn", required)
+                                            div(class="invalid-feedback" error="username") Tên không hợp lệ
                                         div(class="profile-form__group")
                                             label(for="email" class="profile-form__label") Email
-                                            input(type="email" id="email" name="email" class="profile-form__input" value=user.email, disabled)
+                                            input(type="email" name="email" class="profile-form__input" editEmail value="nguyenan@gmail.com", disabled)
                                     div(class="profile-form__row")
                                         div(class="profile-form__group")
                                             label(for="dateOfBirth" class="profile-form__label") Ngày sinh
-                                            input(type="date" id="dateOfBirth" name="dateOfBirth" class="profile-form__input" value=user.date_of_birth, required)
+                                            input(type="date" name="dateOfBirth" class="profile-form__input" editDateOfBirth value="2003-04-03", required)
+                                            div(class="invalid-feedback" error="dateOfBirth") Ngày sinh không hợp lệ
                                         div(class="profile-form__group")
-                                            label(for="phone" class="profile-form__label") Điện thoại
-                                            input(type="tel" id="phone" name="phone" class="profile-form__input" value=user.phone_number, pattern="[0-9]{10,11}", required)
+                                            label(for="phoneNumber" class="profile-form__label") Điện thoại
+                                            input(type="tel" name="phoneNumber" class="profile-form__input" editPhoneNumber value="0909090909", required)
+                                            div(class="invalid-feedback" error="phoneNumber") Điện thoại không hợp lệ
                                     div(class="profile-form__row")
                                         div(class="profile-form__group")
                                             label(for="gender" class="profile-form__label") Giới tính
-                                            select(id="gender" name="gender" class="profile-form__select" required)
-                                                option(value="" selected=(!user.gender)) Chọn giới tính
-                                                option(value="male" selected=(user.gender === 'male')) Nam
-                                                option(value="female" selected=(user.gender === 'female')) Nữ
-                                                option(value="other" selected=(user.gender === 'other')) Khác
+                                            select(id="gender" name="gender" class="profile-form__select" editGender required)
+                                                option(value="") Chọn giới tính
+                                                option(value="male") Nam
+                                                option(value="female") Nữ
+                                                option(value="other") Khác
+                                            div(class="invalid-feedback" error="gender") Giới tính không hợp lệ
                                         div(class="profile-form__group")
                                             label(class="profile-form__label") Ngày cập nhật
-                                            div(class="profile-field__value" id="editUpdatedAt") #{user.update_at ? user.update_at : '---'}
+                                            div(class="profile-field__value" editUpdatedAt) 01/01/2025 10:00
                                             div(class="profile-form__update-info")
                                                 | Sẽ được cập nhật tự động khi bạn lưu
                                     div(class="profile-form__actions")
@@ -104,19 +109,21 @@ block main-content
                                     input(type="password" id="oldPassword" name="oldPassword" class="profile-form__input password-form__input w-100" placeholder="Nhập mật khẩu cũ", required)
                                     button(type="button" class="password-form__toggle" data-toggle="oldPassword")
                                         i(class="fas fa-eye")
+                                div(class="invalid-feedback" error="oldPassword") Mật khẩu cũ không hợp lệ
                             div(class="profile-form__group")
                                 label(for="newPassword" class="profile-form__label") Mật khẩu mới
                                 div(class="password-form__input-wrapper")
-                                    input(type="password" id="newPassword" name="newPassword" class="profile-form__input password-form__input w-100" placeholder="Nhập mật khẩu mới" minlength="6", required)
+                                    input(type="password" id="newPassword" name="newPassword" class="profile-form__input password-form__input w-100" placeholder="Nhập mật khẩu mới" , required)
                                     button(type="button" class="password-form__toggle" data-toggle="newPassword")
                                         i(class="fas fa-eye")
+                                div(class="invalid-feedback" error="newPassword") Mật khẩu mới không hợp lệ
                             div(class="profile-form__group")
                                 label(for="confirmPassword" class="profile-form__label") Nhập lại mật khẩu mới
                                 div(class="password-form__input-wrapper")
-                                    input(type="password" id="confirmPassword" name="confirmPassword" class="profile-form__input password-form__input w-100" placeholder="Nhập lại mật khẩu mới" minlength="6", required)
+                                    input(type="password" id="confirmPassword" name="confirmPassword" class="profile-form__input password-form__input w-100" placeholder="Nhập lại mật khẩu mới" , required)
                                     button(type="button" class="password-form__toggle" data-toggle="confirmPassword")
                                         i(class="fas fa-eye")
-                                div(class="invalid-feedback" id="passwordMismatch" style="display: none;")
+                                div(class="invalid-feedback" error="confirmPassword")
                                     | Mật khẩu mới và xác nhận mật khẩu không khớp.
                             div(class="password-form__actions")
                                 button(type="submit" class="password-form__btn password-form__btn--primary")
@@ -126,4 +133,4 @@ block main-content
                                     i(class="fas fa-redo")
                                     |  Đặt lại
 
-    script(src="/js/profile.js")
+    script(src="/js/profile.js" type="module")

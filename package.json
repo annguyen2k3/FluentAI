@@ -32,7 +32,9 @@
     "typescript-eslint": "^8.46.0"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.922.0",
     "@aws-sdk/client-ses": "^3.919.0",
+    "@aws-sdk/lib-storage": "^3.922.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/formidable": "^3.4.6",
     "@types/jsonwebtoken": "^9.0.10",
@@ -45,11 +47,14 @@
     "express": "^5.1.0",
     "express-validator": "^7.3.0",
     "formidable": "^3.5.4",
+    "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
+    "mime": "^4.1.0",
     "mongodb": "^6.20.0",
     "path": "^0.12.7",
-    "pug": "^3.0.3"
+    "pug": "^3.0.3",
+    "sharp": "^0.34.4"
   }
 }

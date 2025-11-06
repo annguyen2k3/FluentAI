@@ -1,6 +1,6 @@
 import { signToken } from "~/utils/jwt";
 import { databaseService } from "./database.service"
-import { TokenType, VerifyEmailType } from "~/constants/enum";
+import { GenderType, TokenType, VerifyEmailType } from "~/constants/enum";
 import { config } from "dotenv"
 import RefreshToken from "~/models/schemas/RefreshToken.schema";
 import { ObjectId } from "mongodb";
@@ -25,7 +25,7 @@ class UserService {
           },
           privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string,
           options: {
-            expiresIn: '1M'
+            expiresIn: '15M'
           }
         })
     }
@@ -124,7 +124,11 @@ class UserService {
       }
     }
 
-    async oauth(code: string) {
+    async oauth(code: string) : Promise<{
+      access_token: string,
+      refresh_token: string,
+      new_user: number
+    }> {
       const { access_token, id_token } = await this.getOauthGoogleToken(code)
       const userInfo = await this.getGoogleUserInfo(access_token, id_token)
   
@@ -146,14 +150,21 @@ class UserService {
         }
       } else {
         // Nếu chưa đăng ký, tạo mới người dùng
+        const user_id = new ObjectId()
         const password = Math.random().toString(36).substring(2, 15) // Tạo mật khẩu ngẫu nhiên
-        const data = await databaseService.users.insertOne(new User({
+        await databaseService.users.insertOne(new User({
+          _id: user_id,
           email: userInfo.email,
           password: md5(password),
           avatar: userInfo.picture,
         }))
+        const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id.toString())
+        await databaseService.refreshTokens.insertOne(
+          new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+        )
         return {
-          ...data,
+          access_token,
+          refresh_token,
           new_user: 1
         }
       }
@@ -205,6 +216,19 @@ class UserService {
 
     async getUserById(user_id: string) {
       return await databaseService.users.findOne({ _id: new ObjectId(user_id) })
+    }
+
+    async checkUsernameExists(username: string, user_id?: string) {
+      return await databaseService.users.findOne({ username, _id: { $ne: new ObjectId(user_id) } })
+    }
+
+    async updateProfile(user_id: string, username: string, date_of_birth: Date, phone_number: string, gender: GenderType) {
+      return await databaseService.users.updateOne({ _id: new ObjectId(user_id) }, { $set: { username, date_of_birth, phone_number, gender, update_at: new Date() } })
+    }
+
+    async changePassword(user_id: string, newPassword: string) {
+      const passwordHash = md5(newPassword)
+      return await databaseService.users.updateOne({ _id: new ObjectId(user_id) }, { $set: { password: passwordHash, update_at: new Date() } })
     }
 
 }

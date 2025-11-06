@@ -1,83 +1,166 @@
 html,
 body {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
 /* Utilities */
 .bg-gradient-light {
-    background: radial-gradient(
-            1200px 600px at 50% -100px,
-            rgba(57, 69, 242, 0.12),
-            transparent 60%
-        ),
-        radial-gradient(
-            1000px 500px at 120% 20%,
-            rgba(57, 69, 242, 0.08),
-            transparent 60%
-        ),
-        #f5f7ff;
-    min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 50% -100px, rgba(57, 69, 242, 0.12), transparent 60%),
+    radial-gradient(1000px 500px at 120% 20%, rgba(57, 69, 242, 0.08), transparent 60%), #f5f7ff;
+  min-height: 100vh;
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .btn-primary:hover,
 .btn-primary:focus {
-    background-color: var(--secondary-color);
-    border-color: var(--secondary-color);
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
 }
 
 /* Login card */
 .login-card {
-    border-radius: var(--border-radius-lg);
+  border-radius: var(--border-radius-lg);
 }
 
 .login-logo {
-    width: 300px;
+  width: 300px;
 }
 
 .separator {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #fff;
-    padding: 0 0.75rem;
-    color: #6c757d;
-    font-size: var(--font-size-base);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 0 0.75rem;
+  color: #6c757d;
+  font-size: var(--font-size-base);
 }
 
 /* Style for letter */
 .letter-highlight {
-    color: #f59e0b;
-    font-weight: 600;
-    font-style: italic;
+  color: #f59e0b;
+  font-weight: 600;
+  font-style: italic;
 }
 
 .letter-correct {
-    color: #00a824;
-    font-weight: 700;
+  color: #00a824;
+  font-weight: 700;
 }
 
 .letter-incorrect {
-    color: #ff3704;
-    font-weight: 700;
-    text-decoration: line-through;
+  color: #ff3704;
+  font-weight: 700;
+  text-decoration: line-through;
 }
 
 .letter-pink {
-    color: #e73877;
-    font-weight: 700;
+  color: #e73877;
+  font-weight: 700;
 }
 
 /* Handle input invalid */
 .input-invalid {
-    display: none;
-    width: 100%;
-    margin-top: 0.25rem;
-    font-size: 0.875em;
-    color: var(--bs-form-invalid-color);
+  display: none;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: var(--bs-form-invalid-color);
+}
+
+/* Alert notifications */
+.alert-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 300px;
+  max-width: 500px;
+  padding: 1rem 1.25rem;
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 9999;
+  animation: slideInRight 0.3s ease-out;
+  font-size: var(--font-size-base);
+}
+
+.alert-notification--success {
+  background-color: #d4edda;
+  border-left: 4px solid #28a745;
+  color: #155724;
+}
+
+.alert-notification--error {
+  background-color: #f8d7da;
+  border-left: 4px solid #dc3545;
+  color: #721c24;
+}
+
+.alert-notification__icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.alert-notification--success .alert-notification__icon {
+  color: #28a745;
+}
+
+.alert-notification--error .alert-notification__icon {
+  color: #dc3545;
+}
+
+.alert-notification__content {
+  flex: 1;
+  font-weight: 500;
+}
+
+.alert-notification__close {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 1.125rem;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.alert-notification__close:hover {
+  opacity: 1;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.alert-notification--hide {
+  animation: slideOutRight 0.3s ease-out forwards;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }

@@ -3,8 +3,10 @@ import { checkSchema } from "express-validator";
 import { JsonWebTokenError } from "jsonwebtoken";
 import { capitalize } from "lodash";
 import md5 from "md5";
-import { VerifyEmailType } from "~/constants/enum";
+import { GenderType, VerifyEmailType } from "~/constants/enum";
 import { USER_MESSAGES } from "~/constants/message";
+import { PHONE_NUMBER_REGEX, USERNAME_REGEX } from "~/constants/regex";
+import User from "~/models/schemas/users.schema";
 import { databaseService } from "~/services/database.service";
 import userService from "~/services/users.service";
 import { verifyToken } from "~/utils/jwt";
@@ -224,3 +226,109 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
         return res.redirect('/users/login')
     }
 }
+
+export const updateProfileValidator = validate(checkSchema({
+    username: {
+        isLength: {
+            options: {
+                min: 1,
+                max: 50
+            },
+            errorMessage: USER_MESSAGES.USERNAME_LENGTH
+        },
+        custom: {
+            options: async (value, { req }) => {
+                const isExists = await userService.checkUsernameExists(value, req.user?._id.toString())
+                if(isExists) {
+                    throw new Error(USER_MESSAGES.USERNAME_EXISTS)
+                }
+
+                if(!USERNAME_REGEX.test(value)) {
+                    throw new Error(USER_MESSAGES.USERNAME_INVALID)
+                }
+                return true
+            }
+        }
+    },
+    dateOfBirth: {
+        isISO8601: {
+            options: {
+                strict: true,
+                strictSeparator: true
+            },
+            errorMessage: USER_MESSAGES.DATE_OF_BIRTH_INVALID
+        },
+        custom: {
+            options: (value, { req }) => {
+                const d = new Date(value)
+                if (Number.isNaN(d.getTime())) {
+                    throw new Error(USER_MESSAGES.DATE_OF_BIRTH_INVALID)
+                }
+                const min = new Date('1900-01-01T00:00:00.000Z')
+                const today = new Date()
+                today.setHours(0, 0, 0, 0)
+                if (d < min || d > today) {
+                    throw new Error(USER_MESSAGES.DATE_OF_BIRTH_INVALID)
+                }
+                return true
+            }
+        }
+    },
+    phoneNumber: {
+        custom: {
+            options: (value, { req }) => {
+                if(!PHONE_NUMBER_REGEX.test(value)) {
+                    throw new Error(USER_MESSAGES.PHONE_NUMBER_INVALID)
+                }
+                return true
+            }
+        }
+    },
+    gender: {
+        custom: {
+            options: (value, { req }) => {
+                if(!Object.values(GenderType).includes(value as GenderType)) {
+                    throw new Error(USER_MESSAGES.GENDER_INVALID)
+                }
+                return true
+            }
+        }
+    }
+}, ['body']))
+
+export const changePasswordValidator = validate(checkSchema({
+    oldPassword: {
+        custom: {
+            options: async (value, { req }) => {
+                const user = req.user as User
+                if(user.password !== md5(value)) {
+                    throw new Error(USER_MESSAGES.PASSWORD_INCORRECT)
+                }
+                return true
+            }
+        }
+    },
+    newPassword: {
+        isStrongPassword: {
+            options: {
+                minLength: 6,
+                minLowercase: 1,
+                minUppercase: 1,
+                minNumbers: 1,
+                minSymbols: 1
+            },
+            errorMessage: USER_MESSAGES.PASSWORD_STRONG
+        }
+    },
+    confirmPassword: {
+        custom: {
+            options: (value, { req }) => {
+                console.log(value, req.body.newPassword)
+                if (value !== req.body.newPassword) {
+                    throw new Error(USER_MESSAGES.PASSWORD_NOT_MATCH)
+                }
+                return true
+            }
+        }
+    }
+}, ['body']))

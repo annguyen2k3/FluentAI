@@ -18,5 +18,10 @@ export function isoStringToDate(isoString: Date): string {
     const day = String(date.getDate()).padStart(2, '0')
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const year = date.getFullYear()
-    return `${day}/${month}/${year}`
+    return `${day}-${month}-${year}`
+}
+
+// Format example: 2025-10-29T07:15:22.701Z => 2025-10-29
+export function isoStringToDateInputValue(isoString: Date): string {
+    return new Date(isoString).toISOString().split('T')[0]
 }

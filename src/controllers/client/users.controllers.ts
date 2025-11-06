@@ -6,14 +6,22 @@ import { COMMON_MESSAGES, USER_MESSAGES } from '~/constants/message'
 import User from '~/models/schemas/users.schema'
 import userService from '~/services/users.service'
 import {ParamsDictionary} from "express-serve-static-core";
-import { LoginReqBody } from '~/models/requests/User.request'
+import { LoginReqBody, UpdateProfileReqBody } from '~/models/requests/User.request'
 import { GenderType, VerifyEmailType } from '~/constants/enum'
 import { databaseService } from '~/services/database.service'
-import { isoStringToDate, isoStringToDateTime } from '~/utils/format'
+import { omit } from 'lodash'
+import mediasService from '~/services/medias.service'
 
 // GET /users/login
 export const getLoginController = (req: Request, res: Response) => {
   res.render('client/pages/auth/login.pug', { pageTitle: 'FluentAI - Đăng nhập' })
+}
+
+// GET /users/logout
+export const logoutController = async (req: Request, res: Response) => {
+  res.clearCookie('refresh_token')
+  res.clearCookie('access_token')
+  res.redirect('/users/login')
 }
 
 // POST /users/login
@@ -50,10 +58,17 @@ export const googleOAuthCallbackController = async (req: Request, res: Response)
   const result = await userService.oauth(code)
 
   // ví dụ: set cookie refresh_token HttpOnly và chuyển hướng về trang chủ
-  res.cookie('refresh_token', result.refresh_token)
+  res.cookie('refresh_token', result.refresh_token, {
+    httpOnly: true,
+    sameSite: 'lax',
+  })
+  res.cookie('access_token', result.access_token, {
+    httpOnly: true,
+    sameSite: 'lax',
+  })
 
   // có thể đính kèm access_token vào query hoặc trả JSON; ở đây redirect
-  return res.redirect(`/?login=success`)
+  return res.redirect(`/`)
 }
 
 // GET /users/register
@@ -180,11 +195,54 @@ export const forgotPasswordResetController = async (req: Request, res: Response)
 export const getProfileController = async (req: Request, res: Response) => {
   const user = req.user as User
 
-  const formatedUser = {
-    ...user,
-    date_of_birth: user.date_of_birth ? isoStringToDate(user.date_of_birth as Date): '---',
-    update_at: user.update_at ? isoStringToDateTime(user.update_at as Date): '---'
-  }
+  const returnUser = omit(user, ['password'])
 
-  res.render('client/pages/users/profile.pug', { pageTitle: 'FluentAI - Thông tin cá nhân', user: formatedUser })
+  res.render('client/pages/users/profile.pug', { pageTitle: 'FluentAI - Thông tin cá nhân', user: returnUser })
+}
+
+// PUT /users/profile
+export const updateProfileController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const newInfo = req.body as UpdateProfileReqBody
+
+  await userService.updateProfile(user._id?.toString() as string, newInfo.username, new Date(newInfo.dateOfBirth), newInfo.phoneNumber, newInfo.gender)
+
+  const newUser = await databaseService.users.findOne({ _id: new ObjectId(user._id) })
+
+  const returnUser = omit(newUser, ['password'])
+
+
+  res.status(HttpStatus.OK).json({
+    message: COMMON_MESSAGES.INFORM_SUCCESS,
+    status: HttpStatus.OK,
+    user: returnUser
+  })
+}
+
+// PUT /users/profile/change-password
+export const changePasswordController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const newPassword = req.body.newPassword
+
+  await userService.changePassword(user._id?.toString() as string, newPassword)
+
+  res.status(HttpStatus.OK).json({
+    message: USER_MESSAGES.CHANGE_PASSWORD_SUCCESS,
+    status: HttpStatus.OK
+  })
+}
+
+// PATCH /users/profile/avatar
+export const updateAvatarProfileController = async (req: Request, res: Response) => {
+  const user = req.user as User
+
+  const result = await mediasService.uploadImage(req)
+
+  await databaseService.users.updateOne({ _id: new ObjectId(user._id) }, { $set: { avatar: result[0].url } })
+
+  res.status(HttpStatus.OK).json({
+    message: USER_MESSAGES.UPDATE_AVATAR_SUCCESS,
+    status: HttpStatus.OK,
+    avatar_url: result[0].url
+  })
 }
