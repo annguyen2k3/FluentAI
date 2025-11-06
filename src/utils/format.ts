@@ -25,3 +25,17 @@ export function isoStringToDate(isoString: Date): string {
 export function isoStringToDateInputValue(isoString: Date): string {
     return new Date(isoString).toISOString().split('T')[0]
 }
+
+// Create slug from text, example: "Hello World" => "hello-world"
+export function createSlug(text: string): string {
+    return text
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+}

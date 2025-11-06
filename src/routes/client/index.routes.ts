@@ -1,6 +1,7 @@
 import { Express, Request, Response } from 'express'
 import usersRoutes from './users.routes'
 import { requireAuth } from '~/middlewares/users.middleware'
+import writingSentenceRoutes from './writing-sentence.routes'
 
 export default function (app: Express) {
 
@@ -15,5 +16,7 @@ export default function (app: Express) {
     const query = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''
     return res.redirect(`/users/oauth/google/callback${query}`)
   })
+
+  app.use('/writing-sentence', writingSentenceRoutes)
 
 }

@@ -1,0 +1,44 @@
+extends ../../layouts/default.pug
+
+block main-content
+    div(class="container")
+        div(class="ws-setup row justify-content-center" id="ws-setup")
+            div(class="col-12 col-xl-10")
+                div(class="ws-setup__card card border-0 shadow-sm")
+                    div(class="ws-setup__header card-body text-center")
+                        h1(class="ws-setup__title mb-2") Luyện dịch câu
+                        p(class="ws-setup__subtitle mb-0") Chọn mức độ và chủ đề để bắt đầu luyện tập
+
+                    div(class="ws-setup__divider")
+
+                    div(class="ws-setup__section card-body")
+                        h5(class="ws-setup__section-title") Cấp độ của bạn
+                        div(class="row g-3 g-md-4")
+                            each level in levels
+                                div(class="col-12 col-md-4")
+                                    label(class="h-100 ws-setup__option ws-setup__option--level" level=level.slug)
+                                        span(class="ws-setup__option-icon")
+                                            i(class=level.fa_class_icon)
+                                        div(class="ws-setup__option-content")
+                                            span(class="ws-setup__option-text") #{level.title}
+                                            span(class="ws-setup__option-description") #{level.description}
+
+                    div(class="ws-setup__section card-body")
+                        h5(class="ws-setup__section-title") Chủ đề
+                        div(class="ws-setup__topics-container")
+                            div(class="row g-3 g-md-4 pt-1")
+                                div(class="col-12 col-md-6")
+                                    button(class="ws-setup__topic" source-topic="system")
+                                        i(class="fa-solid fa-filter ws-setup__topic-icon")
+                                        span(class="ws-setup__topic-text") Chọn lọc từ hệ thống
+                                div(class="col-12 col-md-6")
+                                    button(class="ws-setup__topic" source-topic="custom")
+                                        i(class="fa-solid fa-robot ws-setup__topic-icon")
+                                        input(type="text" class="ws-setup__custom-input w-75" placeholder="Nhập chủ đề tùy chỉnh, tạo câu bằng AI")
+
+                    div(class="ws-setup__footer card-body text-center pt-5 pb-4")
+                        a(href="#" class="ws-setup__start btn btn-primary px-4 py-2")
+                            | Bắt đầu luyện tập 
+                            i(class="fa-solid fa-arrow-right")
+
+    script(src="/js/writing-sentence.js")

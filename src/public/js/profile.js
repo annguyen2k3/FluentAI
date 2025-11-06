@@ -74,7 +74,6 @@ import { formatISOStringToDate, formatISOStringToDateInputValue, formatISOString
   const editUpdatedAt = formProfile.querySelector('[editUpdatedAt]')
 
   let user = JSON.parse(formProfile.getAttribute('data-user'))
-  console.log(user)
 
   function loadData() {
     if (viewUsername) viewUsername.textContent = user.username
