@@ -6,7 +6,7 @@ interface LevelType {
     title: string
     description: string
     fa_class_icon: string
-    slug: string
+    slug?: string
 }
 
 export default class Levels {

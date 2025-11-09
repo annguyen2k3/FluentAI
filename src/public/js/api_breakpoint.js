@@ -10,5 +10,6 @@ export const ApiBreakpoint = {
   FORGOT_PASSWORD_RESET: `${apiUrl}/users/forgot-password/reset`,
   UPDATE_PROFILE: `${apiUrl}/users/profile`,
   CHANGE_PASSWORD: `${apiUrl}/users/profile/change-password`,
-  UPDATE_AVATAR_PROFILE: `${apiUrl}/users/profile/avatar`
+  UPDATE_AVATAR_PROFILE: `${apiUrl}/users/profile/avatar`,
+  GET_WS_LIST: `${apiUrl}/writing-sentence/list` // Get list of writing sentences
 }

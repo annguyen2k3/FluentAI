@@ -4,6 +4,9 @@ import User from '~/models/schemas/users.schema'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import OTPVerifyEmail from '~/models/schemas/otp-verify-email.schema'
 import Levels from '~/models/schemas/levels.schema'
+import Topics from '~/models/schemas/topics.schema'
+import Types from '~/models/schemas/types.schema'
+import WSList from '~/models/schemas/ws-list.schema'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.cp2tnzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -44,6 +47,18 @@ class DatabaseService {
 
   get levels(): Collection<Levels> {
     return this.db.collection('levels')
+  }
+
+  get topics(): Collection<Topics> {
+    return this.db.collection('topics')
+  }
+
+  get types(): Collection<Types> {
+    return this.db.collection('types')
+  }
+
+  get wsLists(): Collection<WSList> {
+    return this.db.collection('ws_lists')
   }
 }
 
