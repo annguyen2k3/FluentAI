@@ -1,0 +1,114 @@
+extends ../../layouts/default.pug
+
+block main-content
+    div(class="practice-header mb-1" ws-data-practice=ws)
+        h1(class="flex-fill mb-0 fs-3 fw-bold") #{ws.title}
+        div(class="practice-header__info")
+            div(class="practice-header__credits")
+                i(class="fas fa-coins practice-header__icon")
+                span 71 xu
+            div(class="practice-header__divider")
+            div(class="practice-header__points")
+                i(class="fas fa-star practice-header__icon")
+                span 80 điểm
+            div(class="practice-header__divider")
+            div(class="practice-header__progress")
+                span Tiến độ: <span progress-index>1</span>/#{ws.list.length} câu
+
+    div(class="practice-title-section mb-4")
+        div(class="practice-progress")
+            div(class="practice-progress__bar")
+                div(class="practice-progress__fill" progress-fill style="width: 50%")
+
+    div(class="row")
+        div(class="col-lg-8")
+            div(class="practice-content")
+                div(class="practice-sentence")
+                    h2(class="practice-sentence__text" sentence_vi) Chúng tôi đang về nhà bây giờ.
+
+                div(class="practice-input")
+                    textarea(class="practice-input__field" user_translation placeholder="Enter your English translation here..." rows="4")
+
+                div(class="practice-actions")
+                    button(class="practice-actions__btn practice-actions__btn--quit" button-quit)
+                        i(class="fas fa-arrow-left")
+                        | Thoát
+                    div(class="practice-actions__group")
+                        button(class="practice-actions__btn practice-actions__btn--hint")
+                            i(class="fas fa-lightbulb")
+                            | Gợi ý
+                        button(class="practice-actions__btn practice-actions__btn--submit" button-submit)
+                            | Nộp bài 1 
+                            i(class="fa-brands fa-bitcoin" style="color: #FFD43B;")
+                        button(class="practice-actions__btn practice-actions__btn--submit d-none" button-next)
+                            | Câu tiếp theo
+                            i(class="fas fa-arrow-right")
+
+        div(class="col-lg-4")
+            div(class="practice-sidebar")
+                div(class="practice-sidebar__section")
+                    div(class="practice-sidebar__evaluation")
+                        h3(class="practice-feedback__title")
+                            i(class="fa-solid fa-robot p-2" style="color: #2107e9;")
+                            | Đánh giá từ AI
+                        p(class="practice-feedback__description" feedback-description)
+                            | Click 
+                            span(class="letter-highlight") Submit
+                            |  to get feedback from 
+                            span(class="letter-highlight") AI
+                            | . The system will review your translation and point out its strengths and areas for improvement.
+
+    div(class="hint-modal" id="hintModal")
+        div(class="hint-modal__overlay")
+        div(class="hint-modal__content")
+            div(class="hint-modal__header")
+                h4(class="hint-modal__title") Gợi ý
+                button(class="hint-modal__close" id="hintModalClose")
+                    i(class="fas fa-times")
+
+            div(class="hint-modal__body")
+                div(class="hint-modal__items" data-hint-items)
+                    div(class="hint-modal__item")
+                        div(class="hint-modal__item-content")
+                            div(class="hint-modal__hint-text") do not celebrate
+                            div(class="hint-modal__hint-tag") Verb phrase
+                        div(class="hint-modal__item-details")
+                            div(class="hint-modal__meaning")
+                                span(class="hint-modal__label") Nghĩa:
+                                span(class="hint-modal__vietnamese") không ăn mừng, không tổ chức
+                            div(class="hint-modal__example")
+                                span(class="hint-modal__label") Ví dụ:
+                                br
+                                span(class="hint-modal__example-text")
+                                    | - They decided to 
+                                    span(class="hint-modal__highlight") do not celebrate
+                                    |  the holiday this year due to the crisis. 
+                                    br
+                                    | - Họ quyết định 
+                                    span(class="hint-modal__highlight") không tổ chức
+                                    |  ngày lễ năm nay do cuộc khủng hoảng.
+                        button(class="hint-modal__add-btn") + Thêm vào từ điển
+
+                    div(class="hint-modal__item")
+                        div(class="hint-modal__item-content")
+                            div(class="hint-modal__hint-text") Halloween
+                            div(class="hint-modal__hint-tag") Noun
+                        div(class="hint-modal__item-details")
+                            div(class="hint-modal__meaning")
+                                span(class="hint-modal__label") Nghĩa:
+                                span(class="hint-modal__vietnamese") Lễ hội Halloween
+                            div(class="hint-modal__example")
+                                span(class="hint-modal__label") Ví dụ:
+                                br
+                                span(class="hint-modal__example-text")
+                                    | - Children dress up in costumes for 
+                                    span(class="hint-modal__highlight") Halloween
+                                    | . 
+                                    br
+                                    | - Trẻ em mặc trang phục cho 
+                                    span(class="hint-modal__highlight") Lễ hội Halloween
+                                    | .
+                        button(class="hint-modal__add-btn") + Thêm vào từ điển
+
+
+    script(src="/js/writing-sentence.js" type="module")

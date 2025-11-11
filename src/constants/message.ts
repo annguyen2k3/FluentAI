@@ -29,3 +29,15 @@ export const USER_MESSAGES = {
   UPDATE_AVATAR_SUCCESS: 'Cập nhật ảnh đại diện thành công',
   UPDATE_PROFILE_SUCCESS: 'Cập nhật thông tin thành công',
 } as const 
+
+export const PROPERTY_MESSAGES = {
+  SLUG_NOT_FOUND: 'Slug không tồn tại',
+  SLUG_INVALID: 'Slug không hợp lệ',
+} as const
+
+export const WRITING_SENTENCE_MESSAGES = {
+  INIT_CHAT_FAILED: 'Khởi tạo chat thất bại',
+  SENTENCE_VI_INVALID: 'Câu tiếng Việt không hợp lệ',
+  USER_TRANSLATION_INVALID: 'Dịch của người dùng không hợp lệ',
+  TOPIC_INVALID: 'Chủ đề không hợp lệ',
+} as const

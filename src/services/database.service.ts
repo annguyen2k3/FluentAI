@@ -7,6 +7,7 @@ import Levels from '~/models/schemas/levels.schema'
 import Topics from '~/models/schemas/topics.schema'
 import Types from '~/models/schemas/types.schema'
 import WSList from '~/models/schemas/ws-list.schema'
+import Prompts from '~/models/schemas/prompts.schema'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.cp2tnzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -59,6 +60,9 @@ class DatabaseService {
 
   get wsLists(): Collection<WSList> {
     return this.db.collection('ws_lists')
+  }
+  get prompts(): Collection<Prompts> {
+    return this.db.collection('prompts')
   }
 }
 

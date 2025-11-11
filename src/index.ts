@@ -8,6 +8,9 @@ import { defaultErrorHandler } from './middlewares/errors.middleware'
 import cookieParser from 'cookie-parser'
 import { initFolder } from './utils/file'
 
+import './utils/gemini'
+import Prompts from './models/schemas/prompts.schema'
+
 dotenv.config()
 
 const app = express()
@@ -15,6 +18,7 @@ const port = process.env.PORT || 3000
 
 initFolder()
 databaseService.connect()
+
 
 // Serving static files
 app.use(express.static('src/public'))

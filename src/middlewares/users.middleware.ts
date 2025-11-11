@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { checkSchema } from "express-validator";
 import { JsonWebTokenError } from "jsonwebtoken";
-import { capitalize } from "lodash";
+import { capitalize, omit, unset } from "lodash";
 import md5 from "md5";
+import { ObjectId } from "mongodb";
 import { GenderType, VerifyEmailType } from "~/constants/enum";
 import { USER_MESSAGES } from "~/constants/message";
 import { PHONE_NUMBER_REGEX, USERNAME_REGEX } from "~/constants/regex";
@@ -196,7 +197,8 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
         if(!user) {
             return res.redirect('/users/login')
         }
-        req.user = user
+        unset(user, 'password')
+        req.user = user as User
         next()
     } catch (error: any) {
         if (error?.name === 'TokenExpiredError') {
@@ -207,6 +209,8 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
                 if(!user) {
                     return res.redirect('/users/login')
                 }
+                unset(user, 'password')
+
                 req.user = user
                 const new_tokens = await userService.login(user._id.toString())
                 res.cookie('access_token', new_tokens.access_token, {
@@ -301,7 +305,8 @@ export const changePasswordValidator = validate(checkSchema({
         custom: {
             options: async (value, { req }) => {
                 const user = req.user as User
-                if(user.password !== md5(value)) {
+                const isCorrectPassword = await databaseService.users.findOne({ _id: new ObjectId(user._id), password: md5(value) })
+                if(isCorrectPassword === null) {
                     throw new Error(USER_MESSAGES.PASSWORD_INCORRECT)
                 }
                 return true

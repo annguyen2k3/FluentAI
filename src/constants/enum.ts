@@ -31,3 +31,15 @@ export enum PartOfSpeech {
     INTERJECTION = 'interjection', // cụm từ
     OTHER = 'other' // từ khác
 }   
+
+export enum PromptFeature {
+    WRITE_SENTENCE = 'write_sentence',
+    WRITE_PARAGRAPH = 'write_paragraph',
+}
+
+export enum PromptWritingType {
+    INITIALIZATION = 'initialization',
+    TRANSLATION = 'translation',
+    COMPLETION = 'completion',
+    PREVIEW_TOPIC = 'preview_topic_ws',
+}

@@ -11,5 +11,7 @@ export const ApiBreakpoint = {
   UPDATE_PROFILE: `${apiUrl}/users/profile`,
   CHANGE_PASSWORD: `${apiUrl}/users/profile/change-password`,
   UPDATE_AVATAR_PROFILE: `${apiUrl}/users/profile/avatar`,
-  GET_WS_LIST: `${apiUrl}/writing-sentence/list` // Get list of writing sentences
+  GET_WS_LIST: `${apiUrl}/writing-sentence/list`, // Get list of writing sentences
+  POST_PRACTICE_WS: `${apiUrl}/writing-sentence/practice`, // Post practice writing sentence
+  GET_COMPLETE_WS: `${apiUrl}/writing-sentence/practice/complete/{slug}` // Get complete writing sentence
 }
