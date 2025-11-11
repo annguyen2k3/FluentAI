@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb"
 import { VocabularyHintType } from "../Other"
 
-type SentenceWriteType = {
+export type SentenceWriteType = {
     pos: number,
     content: string;
     hint: VocabularyHintType[];

@@ -33,6 +33,7 @@ export const USER_MESSAGES = {
 export const PROPERTY_MESSAGES = {
   SLUG_NOT_FOUND: 'Slug không tồn tại',
   SLUG_INVALID: 'Slug không hợp lệ',
+  LEVEL_NOT_FOUND: 'Cấp độ không tồn tại',
 } as const
 
 export const WRITING_SENTENCE_MESSAGES = {

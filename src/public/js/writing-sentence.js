@@ -50,6 +50,109 @@ if (wsSetup) {
       if (topicType === 'system') {
         window.location.href = `/writing-sentence/system-list?level=${levelSlug}`
       }
+      if (topicType === 'custom') {
+        const topic = customTopicInput.value || ''
+        const level = levelSlug || ''
+        const requestUrl = `${ApiBreakpoint.POST_CUSTOM_TOPIC_PREVIEW_WS}`
+        fetch(requestUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          },
+          body: JSON.stringify({ topic: topic, level: level })
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === 200) {
+              const preview = data.previewResult || {}
+              const wsListPreview = data.wsListPreview || {}
+              const modalEl = document.getElementById('wsPreviewModal')
+              if (!modalEl) return
+              modalEl.setAttribute('id-ws-list-preview', wsListPreview._id.toString())
+              const statusEl = document.getElementById('wsPreviewStatus')
+              const descEl = document.getElementById('wsPreviewDescription')
+              const countEl = document.getElementById('wsPreviewCount')
+              const listEl = document.getElementById('wsPreviewList')
+              if (statusEl) {
+                statusEl.textContent = preview.passed ? 'Đạt' : 'Chưa đạt'
+                statusEl.classList.remove('bg-success', 'bg-danger')
+                statusEl.classList.add(preview.passed ? 'bg-success' : 'bg-danger')
+              }
+              if (descEl) {
+                descEl.textContent = preview.description || ''
+              }
+              if (countEl) {
+                countEl.textContent = Array.isArray(preview.list) ? preview.list.length : 0
+              }
+              if (listEl) {
+                listEl.innerHTML = ''
+                if (Array.isArray(preview.list)) {
+                  preview.list.forEach((item) => {
+                    const li = document.createElement('li')
+                    li.className = 'list-group-item'
+                    li.textContent = item.content || ''
+                    listEl.appendChild(li)
+                  })
+                }
+              }
+              const regenerateBtn = document.getElementById('wsPreviewRegenerate')
+              if (regenerateBtn) {
+                regenerateBtn.onclick = () => {
+                  const reqUrl = `${ApiBreakpoint.POST_CUSTOM_TOPIC_PREVIEW_WS}`
+                  fetch(reqUrl, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Accept: 'application/json'
+                    },
+                    body: JSON.stringify({ topic: topic, level: level })
+                  })
+                    .then((r) => r.json())
+                    .then((res) => {
+                      if (res.status === 200) {
+                        const p = res.previewResult || {}
+                        if (statusEl) {
+                          statusEl.textContent = p.passed ? 'Đạt' : 'Chưa đạt'
+                          statusEl.classList.remove('bg-success', 'bg-danger')
+                          statusEl.classList.add(p.passed ? 'bg-success' : 'bg-danger')
+                        }
+                        if (descEl) descEl.textContent = p.description || ''
+                        if (countEl) countEl.textContent = Array.isArray(p.list) ? p.list.length : 0
+                        if (listEl) {
+                          listEl.innerHTML = ''
+                          if (Array.isArray(p.list)) {
+                            p.list.forEach((it) => {
+                              const li = document.createElement('li')
+                              li.className = 'list-group-item'
+                              li.textContent = it.content || ''
+                              listEl.appendChild(li)
+                            })
+                          }
+                        }
+                      } else {
+                        alertError(res.message)
+                      }
+                    })
+                    .catch((err) => console.error('Error:', err))
+                }
+              }
+              const startBtn = document.getElementById('wsPreviewStart')
+              if (startBtn) {
+                startBtn.onclick = () => {
+                  const templateUrl = `${ApiBreakpoint.GET_PRACTICE_CUSTOM_TOPIC_WS}`
+                  const requestUrl = templateUrl.replace('{idPreview}', wsListPreview._id.toString())
+                  window.location.href = requestUrl
+                }
+              }
+              const modal = typeof bootstrap !== 'undefined' ? new bootstrap.Modal(modalEl) : null
+              if (modal) modal.show()
+            } else {
+              alertError(data.message)
+            }
+          })
+          .catch((error) => console.error('Error:', error))
+      }
     })
   }
   // Write-sentence Setup

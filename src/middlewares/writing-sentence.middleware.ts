@@ -1,4 +1,5 @@
 import { checkSchema } from "express-validator"
+import { ObjectId } from "mongodb"
 import { HttpStatus } from "~/constants/httpStatus"
 import { PROPERTY_MESSAGES, WRITING_SENTENCE_MESSAGES } from "~/constants/message"
 import { ErrorWithStatus } from "~/models/Errors"
@@ -15,7 +16,12 @@ export const renderWSPraticeValidator = validate(checkSchema({
             options: async (value, { req }) => {
                 const ws = await databaseService.wsLists.findOne({ slug: value })
                 if (!ws) {
-                    throw new ErrorWithStatus(PROPERTY_MESSAGES.SLUG_NOT_FOUND, HttpStatus.NOT_FOUND)
+                    const wsPreview = await databaseService.wsListPreviews.findOne({ slug: value })
+                    if (!wsPreview) {
+                        throw new ErrorWithStatus(PROPERTY_MESSAGES.SLUG_NOT_FOUND, HttpStatus.NOT_FOUND)
+                    }
+                    req.ws = wsPreview
+                    return true
                 }
                 req.ws = ws
                 return true
@@ -45,5 +51,18 @@ export const postCustomTopicPreviewWSValidator = validate(checkSchema({
             errorMessage: WRITING_SENTENCE_MESSAGES.TOPIC_INVALID
         },
         trim: true,
+    },
+    level: {
+        trim: true,
+        custom: {
+            options: async (value, { req }) => {
+                const level = await databaseService.levels.findOne({ slug: value })
+                if (!level) {
+                    throw new ErrorWithStatus(PROPERTY_MESSAGES.LEVEL_NOT_FOUND, HttpStatus.NOT_FOUND)
+                }
+                req.level = level
+                return true
+            }
+        }
     }
 }, ['body']))

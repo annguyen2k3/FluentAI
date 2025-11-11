@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
 import { HttpStatus } from '~/constants/httpStatus'
+import Levels from '~/models/schemas/levels.schema'
 import User from '~/models/schemas/users.schema'
 import WSList from '~/models/schemas/ws-list.schema'
 import { databaseService } from '~/services/database.service'
@@ -73,16 +74,8 @@ export const getPracticeWSController = async (req: Request, res: Response) => {
   
   const initResult = await writingService.wsInitChat(user._id?.toString() as string, ws._id?.toString() as string)
   if (!initResult.Init_success) {
-    return res.status(HttpStatus.BAD_REQUEST).json({
-      message: 'Khởi tạo chat thất bại',
-      status: HttpStatus.INTERNAL_SERVER_ERROR,
-      user: user,
-      initResult: initResult
-    })
+    return res.redirect('/writing-sentence/setup')
   }
-
-  console.log('Init result:', initResult)
-  console.log('--------------------------------')
 
   res.render('client/pages/writing-sentence/practice.pug', {
     pageTitle: 'Luyện tập câu',
@@ -111,7 +104,6 @@ export const postPracticeWSController = async (req: Request, res: Response) => {
 }
 
 // GET /writing-sentence/practice/:slug/complete
-// controllers/client/writing.controllers.ts
 export const getCompleteWSController = async (req: Request, res: Response) => {
   const user = req.user as User
   const ws = req.ws as WSList
@@ -141,11 +133,52 @@ export const getCompleteWSController = async (req: Request, res: Response) => {
 export const postCustomTopicPreviewWSController = async (req: Request, res: Response) => {
   const user = req.user as User
   const { topic } = req.body
-  // const previewResult = await writingService.wsPreviewCustomTopic(topic)
-  // res.status(HttpStatus.OK).json({
-  //   message: 'Xem trước chủ đề thành công',
-  //   status: HttpStatus.OK,
-  //   user: user,
-  //   previewResult: previewResult
-  // })
+  
+  const levelDes = req.level.description
+
+  const previewResult = await writingService.wsPreviewCustomTopic(topic, levelDes)
+
+  const wsListPreview = new WSList({
+    title: 'Luyện tập chủ đề',
+    topic: new ObjectId(),
+    level: req.level._id,
+    pos: 0,
+    slug: 'paractice-custom-topic-' + user._id?.toString() as string + '-' + new Date().getTime(),
+    create_at: new Date(),
+    update_at: new Date(),
+    list: previewResult.list
+  })
+  if (previewResult.passed) {
+    await databaseService.wsListPreviews.insertOne(wsListPreview)
+  }
+
+  res.status(HttpStatus.OK).json({
+    message: 'Xem trước chủ đề thành công',
+    status: HttpStatus.OK,
+    user: user,
+    previewResult: previewResult,
+    wsListPreview: wsListPreview
+  })
+}
+
+// GET /writing-sentence/practice/custom-topic/:id-ws-list-preview
+export const getPracticeCustomTopicWSController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const idWsListPreview = req.params.idPreview as string
+
+  const wsListPreview = await databaseService.wsListPreviews.findOne({ _id: new ObjectId(idWsListPreview) })
+  if (!wsListPreview) {
+    return res.redirect('/writing-sentence/setup')
+  }
+
+  const initResult = await writingService.wsInitChat(user._id?.toString() as string, wsListPreview._id?.toString() as string || '')
+  if (!initResult.Init_success) {
+    return res.redirect('/writing-sentence/setup')
+  }
+
+  res.render('client/pages/writing-sentence/practice.pug', {
+    pageTitle: 'Luyện tập chủ đề',
+    user: user,
+    ws: wsListPreview as WSList
+  })
 }

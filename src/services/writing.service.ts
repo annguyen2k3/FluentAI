@@ -1,14 +1,16 @@
 import { ObjectId } from "mongodb"
 import { databaseService } from "./database.service"
 import { config } from "dotenv"
-import { resetAndInitSession, sendInSession, completeAndDeleteSession } from '~/utils/gemini'
+import { resetAndInitSession, sendInSession, completeAndDeleteSession, sendMessageOnce } from '~/utils/gemini'
 import { PromptFeature, PromptWritingType } from "~/constants/enum"
 import { ErrorWithStatus } from "~/models/Errors"
 import { HttpStatus } from "~/constants/httpStatus"
+import { SentenceWriteType } from "~/models/schemas/ws-list.schema"
 config()
 
 type EvaluateResult = { Passed: boolean; Feedback_html: string }
 type InitResult = { Init_success: boolean }
+type PreviewTopicWSResult = { passed: boolean; description: string; list: SentenceWriteType[] }
 
 function sk(userId: string, practiceId: string) {
   return `${userId}_${practiceId}`
@@ -82,8 +84,16 @@ class WritingService {
     return { Passed: true, Feedback_html: text as string }
   }
 
-  // // 4) Xem trước chủ đề tạo bằng AI
-  // async wsPreviewCustomTopic(userId: string, topic: string): Promise<string> {}
+  // Xem trước chủ đề tạo bằng AI
+  async wsPreviewCustomTopic(description_topic: string, description_level: string): Promise<PreviewTopicWSResult> {
+    const promptTpl = await loadPrompt(PromptFeature.WRITE_SENTENCE, PromptWritingType.PREVIEW_TOPIC)
+    const prompt = fillTemplate(promptTpl, {
+      description_topic,
+      description_level
+    })
+    const text = await sendMessageOnce(prompt)
+    return JSON.parse(text as string) as PreviewTopicWSResult
+  }
 }
 
 const writingService = new WritingService()

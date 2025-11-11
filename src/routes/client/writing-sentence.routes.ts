@@ -1,5 +1,14 @@
 import { Router } from 'express'
-import { getCompleteWSController, getPracticeWSController, getSetupWritingSentenceController, getSystemListWSController, getWSListController, postCustomTopicPreviewWSController, postPracticeWSController } from '~/controllers/client/writing.controllers'
+import { 
+    getCompleteWSController, 
+    getPracticeCustomTopicWSController, 
+    getPracticeWSController, 
+    getSetupWritingSentenceController, 
+    getSystemListWSController, 
+    getWSListController, 
+    postCustomTopicPreviewWSController, 
+    postPracticeWSController 
+} from '~/controllers/client/writing.controllers'
 import { requireAuth } from '~/middlewares/users.middleware'
 import { postCustomTopicPreviewWSValidator, postPracticeWSValidator, renderWSPraticeValidator } from '~/middlewares/writing-sentence.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
@@ -60,11 +69,25 @@ writingSentenceRoutes.get(
     wrapRequestHandler(getCompleteWSController)
 )
 
+// POST /writing-sentence/custom-topic/preview
+// Description: Post custom topic preview
+// Method: POST
+// Body: {topic: string, level: string}
 writingSentenceRoutes.post(
     '/custom-topic/preview',
     requireAuth,
     postCustomTopicPreviewWSValidator,
     wrapRequestHandler(postCustomTopicPreviewWSController)
+)
+
+// GET /writing-sentence/practice/custom-topic/:id-ws-list-preview
+// Description: Get practice custom topic
+// Method: GET
+// Params: id-ws-list-preview
+writingSentenceRoutes.get(
+    '/practice/custom-topic/:idPreview',
+    requireAuth,
+    wrapRequestHandler(getPracticeCustomTopicWSController)
 )
 
 export default writingSentenceRoutes

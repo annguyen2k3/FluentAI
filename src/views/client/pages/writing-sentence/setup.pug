@@ -41,4 +41,25 @@ block main-content
                             | Tiếp tục 
                             i(class="fa-solid fa-arrow-right")
 
+
+        //- Model preview custom topic
+        div(class="modal fade" id="wsPreviewModal" tabindex="-1" aria-hidden="true")
+            div(class="modal-dialog modal-lg modal-dialog-centered")
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") Xem trước chủ đề
+                        button(type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close")
+                    div(class="modal-body")
+                        div(class="d-flex justify-content-between align-items-center mb-2")
+                            span(class="fw-semibold") Đánh giá chủ đề
+                            span(id="wsPreviewStatus" class="badge")
+                        p(id="wsPreviewDescription" class="mb-3")
+                        div(class="d-flex justify-content-between align-items-center mb-2")
+                            span(class="fw-semibold") Số lượng câu tạo
+                            span(id="wsPreviewCount")
+                        ul(id="wsPreviewList" class="list-group")
+                    div(class="modal-footer")
+                        button(type="button" id="wsPreviewRegenerate" class="btn btn-outline-secondary") Tạo lại
+                        button(type="button" id="wsPreviewStart" class="btn btn-primary") Bắt đầu luyện tập
+
     script(src="/js/writing-sentence.js" type="module")

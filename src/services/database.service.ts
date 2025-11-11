@@ -28,6 +28,7 @@ class DatabaseService {
 
       await this.otpVerifyEmail.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
       await this.refreshTokens.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
+      await this.wsListPreviews.createIndex({ update_at: 1 }, { expireAfterSeconds: 60*60*10 })
     } catch (error) {
       console.error('Error connecting to MongoDB:', error)
       throw error
@@ -61,6 +62,11 @@ class DatabaseService {
   get wsLists(): Collection<WSList> {
     return this.db.collection('ws_lists')
   }
+
+  get wsListPreviews(): Collection<WSList> {
+    return this.db.collection('ws_list_previews')
+  }
+
   get prompts(): Collection<Prompts> {
     return this.db.collection('prompts')
   }

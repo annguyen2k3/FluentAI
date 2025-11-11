@@ -67,3 +67,9 @@ export async function completeAndDeleteSession(userId: string, practiceId: strin
   sessions.delete(key) // xóa ngay sau khi hoàn thành
   return res.text
 }
+
+// Hàm send message 1 lần với prompt được truyền vào
+export async function sendMessageOnce(prompt: string) {
+  const res = await ai.chats.create(defaultConfig).sendMessage({ message: prompt })
+  return res.text
+}
