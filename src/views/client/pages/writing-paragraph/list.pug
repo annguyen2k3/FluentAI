@@ -1,0 +1,54 @@
+extends ../../layouts/default.pug
+
+block main-content
+    div(class="container py-4 wp-choose" wp-list-choose level=level.slug.toString() type=type.slug.toString())
+        nav(class="wp-choose__breadcrumb mb-4")
+            ol(class="breadcrumb mb-0")
+                li(class="breadcrumb-item")
+                    a(href="/writing-paragraph/setup" class="wp-choose__breadcrumb-link") Dịch đoạn văn
+                li(class="breadcrumb-item active" aria-current="page") #{level.title}
+                li(class="breadcrumb-item active" aria-current="page") #{type.title}
+
+        div(class="row g-3 align-items-end mb-3 wp-choose__filters")
+            div(class="col-12 col-md-3")
+                div(class="wp-choose__heading d-flex align-items-center gap-3")
+                    i(class="fa-solid fa-feather wp-choose__heading-icon")
+                    div(class="wp-choose__heading-text")
+                        h4(class="wp-choose__heading-title m-0") Câu chọn lọc
+                        div(class="wp-choose__heading-sub") Các câu phù hợp cho bạn
+            div(class="col-12 col-md-3")
+                label(class="form-label fw-bold wp-choose__label") Chủ đề
+                select(class="form-select wp-choose__select" aria-label="Chọn chủ đề" filter-topic)
+                    option(id-topic="" value="" selected) Tất cả
+                    each topic in topics
+                        option(id-topic=topic._id.toString() value=topic.slug.toString()) #{topic.title}
+            div(class="col-12 col-md-3")
+                label(class="form-label fw-bold wp-choose__label") Trạng thái
+                select(class="form-select wp-choose__select" aria-label="Chọn trạng thái")
+                    option(selected) Tất cả
+                    option Mới
+                    option Đang tiến hành
+                    option Hoàn thành
+            div(class="col-12 col-md-3 d-flex align-items-end")
+                a(href="/write-sentence/practice.html" class="btn btn-warning w-100 wp-choose__random-btn")
+                    i(class="fa-solid fa-shuffle me-2")
+                    | Luyện tập ngẫu nhiên
+
+        div(class="row g-3" wp-list-cards)
+            p(class="text-center") Đang tải danh sách câu...
+            //- Render list ws cards here
+
+        div(class="d-flex align-items-center justify-content-between mt-4 wp-choose__pagination")
+            div(class="wp-choose__pagination-info")
+                span(class="wp-choose__pagination-text") Hiển thị các mục 1-10 trên tổng số 432
+            div(class="d-flex align-items-center gap-2")
+                button(class="btn btn-light wp-choose__page", disabled)
+                    i(class="fas fa-angle-left")
+                button(class="btn btn-primary wp-choose__page is-active") 1
+                button(class="btn btn-outline-primary wp-choose__page") 2
+                button(class="btn btn-outline-primary wp-choose__page") 3
+                button(class="btn btn-outline-primary wp-choose__page") 4
+                button(class="btn btn-light wp-choose__page")
+                    i(class="fas fa-angle-right")
+
+    script(src="/js/writing-paragraph.js" type="module")

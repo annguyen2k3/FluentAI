@@ -8,6 +8,7 @@ import Topics from '~/models/schemas/topics.schema'
 import Types from '~/models/schemas/types.schema'
 import WSList from '~/models/schemas/ws-list.schema'
 import Prompts from '~/models/schemas/prompts.schema'
+import WPParagraph from '~/models/schemas/wp-paragraph.schema'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.cp2tnzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -24,11 +25,22 @@ class DatabaseService {
     try {
       await this.client.connect()
       await this.db.command({ ping: 1 })
-      console.log('Pinged your deployment. You successfully connected to MongoDB!')
+      console.log(
+        'Pinged your deployment. You successfully connected to MongoDB!'
+      )
 
-      await this.otpVerifyEmail.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
-      await this.refreshTokens.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
-      await this.wsListPreviews.createIndex({ update_at: 1 }, { expireAfterSeconds: 60*60*3 })
+      await this.otpVerifyEmail.createIndex(
+        { expires_at: 1 },
+        { expireAfterSeconds: 0 }
+      )
+      await this.refreshTokens.createIndex(
+        { expires_at: 1 },
+        { expireAfterSeconds: 0 }
+      )
+      await this.wsListPreviews.createIndex(
+        { update_at: 1 },
+        { expireAfterSeconds: 60 * 60 * 3 }
+      )
     } catch (error) {
       console.error('Error connecting to MongoDB:', error)
       throw error
@@ -65,6 +77,10 @@ class DatabaseService {
 
   get wsListPreviews(): Collection<WSList> {
     return this.db.collection('ws_list_previews')
+  }
+
+  get wpParagraphs(): Collection<WPParagraph> {
+    return this.db.collection('wp_paragraphs')
   }
 
   get prompts(): Collection<Prompts> {

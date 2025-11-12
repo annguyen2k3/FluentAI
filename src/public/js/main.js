@@ -72,7 +72,9 @@
 
       // Remove active class from all links and sublinks
       sidebarLinks.forEach((l) => l.classList.remove('sidebar__link--active'))
-      sidebarSublinks.forEach((sl) => sl.classList.remove('sidebar__sublink--active'))
+      sidebarSublinks.forEach((sl) =>
+        sl.classList.remove('sidebar__sublink--active')
+      )
       // Add active class to clicked link
       this.classList.add('sidebar__link--active')
     })
@@ -85,7 +87,9 @@
 
       // Remove active class from all links and sublinks
       sidebarLinks.forEach((l) => l.classList.remove('sidebar__link--active'))
-      sidebarSublinks.forEach((sl) => sl.classList.remove('sidebar__sublink--active'))
+      sidebarSublinks.forEach((sl) =>
+        sl.classList.remove('sidebar__sublink--active')
+      )
 
       // Add active class to clicked sublink
       this.classList.add('sidebar__sublink--active')
@@ -205,38 +209,6 @@
   }
 })()
 
-// Write-paragraph Setup
-const navWPSetup = document.querySelectorAll('.wp-setup__nav button.nav-link')
-navWPSetup.forEach((nav) => {
-  nav.addEventListener('click', function () {
-    navWPSetup.forEach((n) => n.classList.remove('active'))
-    this.classList.add('active')
-    const nav = this.getAttribute('data-nav')
-    if (nav === 'system') {
-      document.querySelector('.wp-setup__nav-system').classList.remove('d-none')
-      document.querySelector('.wp-setup__nav-custom').classList.add('d-none')
-    } else if (nav === 'custom') {
-      document.querySelector('.wp-setup__nav-system').classList.add('d-none')
-      document.querySelector('.wp-setup__nav-custom').classList.remove('d-none')
-    }
-  })
-})
-
-const levelWPOptions = document.querySelectorAll('.wp-setup__option--level')
-const topicWPTypes = document.querySelectorAll('.wp-setup__type')
-levelWPOptions.forEach((opt) => {
-  opt.addEventListener('click', function () {
-    levelWPOptions.forEach((o) => o.removeAttribute('active'))
-    this.setAttribute('active', '')
-  })
-})
-topicWPTypes.forEach((opt) => {
-  opt.addEventListener('click', function () {
-    topicWPTypes.forEach((o) => o.removeAttribute('active'))
-    this.setAttribute('active', '')
-  })
-})
-
 // Hint Modal functionality
 ;(function () {
   const hintModal = document.getElementById('hintModal')
@@ -324,7 +296,9 @@ topicWPTypes.forEach((opt) => {
   const addBtns = dictionaryModal.querySelectorAll('.hint-modal__add-btn')
   addBtns.forEach((btn) => {
     btn.addEventListener('click', function () {
-      const word = this.closest('.hint-modal__item').querySelector('.hint-modal__hint-text').textContent
+      const word = this.closest('.hint-modal__item').querySelector(
+        '.hint-modal__hint-text'
+      ).textContent
       alert(`Đã thêm từ "${word}" vào từ điển cá nhân!`)
     })
   })

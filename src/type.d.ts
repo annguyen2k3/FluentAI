@@ -5,5 +5,7 @@ declare module 'express' {
     user?: User
     ws?: WSList
     level?: Levels
+    type?: Types
+    topic?: Topics
   }
 }

@@ -1,0 +1,90 @@
+extends ../../layouts/default.pug
+
+block main-content
+    div(class="practice-header mb-1" wp-data-practice=wp)
+        h1(class="flex-fill mb-0 fs-3 fw-bold") #{wp.title}
+        div(class="practice-header__info")
+            div(class="practice-header__credits")
+                i(class="fas fa-coins practice-header__icon")
+                span 71 xu
+            div(class="practice-header__divider")
+            div(class="practice-header__points")
+                i(class="fas fa-star practice-header__icon")
+                span 80 điểm
+            div(class="practice-header__divider")
+            div(class="practice-header__progress")
+                span Tiến độ: <span progress-index>1</span>/<span progress-total>20</span>  câu
+
+    div(class="practice-title-section mb-4")
+        div(class="practice-progress")
+            div(class="practice-progress__bar")
+                div(class="practice-progress__fill" progress-fill style="width: 50%")
+
+    div(class="row")
+        div(class="col-lg-8")
+            div(class="practice-display mb-4")
+                div(class="practice-display__frame")
+                    div(class="practice-display__content")
+                        p(class="practice-display__text" sentences-display)
+                            span(class="sentence-complete") Tommy was very excited to sell lemonade.
+                            |
+                            span(class="sentence-inprogress") Cậu muốn kiếm tiền mua đồ chơi mới.
+                            |  Một ngày nóng nực, cậu pha nước chanh với thứ gì đó khác lạ. Đó là một loại thảo mộc ngộ nghĩnh mà cậu tìm thấy trong vườn. "Chuyện gì sẽ xảy ra?" cậu nghĩ. Cậu mời bạn bè uống. Khi họ nhấp một ngụm, họ phá lên cười. "Có gì trong nước chanh này vậy?" Dani hỏi, khúc khích. Tommy nhún vai, ngạc nhiên nhưng vui vẻ. Mọi người không nhịn được cười. Chẳng mấy chốc, mọi người xếp hàng. Họ muốn uống loại nước chanh đặc biệt này. Tommy cảm thấy tự hào nhưng bối rối. Tại sao mọi người lại cười? Là thảo mộc hay nụ cười bí mật của cậu? Cậu muốn biết. Sau một lúc, một người đàn ông đội mũ lớn đã thử. Ông ấy cười lớn đến nỗi làm rơi cả mũ. Tommy vô cùng kinh ngạc! Liệu loại đồ uống này có thể thay đổi cuộc đời cậu không? Đột nhiên, tiếng cười tràn ngập không khí. Mặt trời chiếu sáng rực rỡ và nụ cười lan tỏa khắp nơi. Tommy biết mình đã làm ra một thứ gì đó đặc biệt. Tiếng cười là phép màu, cậu nghĩ. Làm sao một cậu bé với nước chanh có thể mang lại niềm vui cho mọi người? Cậu mỉm cười, cảm thấy rất vui.
+
+            div(class="practice-input mb-4")
+                textarea(class="practice-input__field" placeholder="Nhập bản dịch của bạn tại đây (chỉ nhập câu được hightlight)" rows="2")
+
+            div(class="practice-actions")
+                button(class="practice-actions__btn practice-actions__btn--quit")
+                    i(class="fas fa-arrow-left")
+                    |  Thoát
+                div(class="practice-actions__group")
+                    button(class="practice-actions__btn practice-actions__btn--hint")
+                        i(class="fas fa-lightbulb")
+                        |  Gợi ý
+                    button(class="practice-actions__btn practice-actions__btn--submit")
+                        |  Nộp bài 1
+                        i(class="fa-brands fa-bitcoin" style="color: #FFD43B;")
+
+        div(class="col-lg-4")
+            div(class="practice-sidebar")
+                // AI Evaluation Section
+                div(class="practice-sidebar__section")
+                    div(class="practice-sidebar__evaluation")
+                        h3(class="practice-feedback__title")
+                            i(class="fa-solid fa-robot p-2" style="color: #2107e9;")
+                            | Đánh giá từ AI
+                        p(class="practice-feedback__description" feedback-description)
+                            | Click 
+                            span(class="letter-highlight") Submit
+                            |  to get feedback from 
+                            span(class="letter-highlight") AI
+                            | . The system will review your translation and point out its strengths and areas for improvement.
+
+    div(class="hint-modal" id="hintModal")
+        div(class="hint-modal__overlay")
+        div(class="hint-modal__content")
+            div(class="hint-modal__header")
+                h4(class="hint-modal__title") Gợi ý
+                button(class="hint-modal__close" id="hintModalClose")
+                    i(class="fas fa-times")
+            div(class="hint-modal__body")
+                div(class="hint-modal__items")
+                    each hint in wp.hint
+                        // Hint Item 1
+                        div(class="hint-modal__item")
+                            div(class="hint-modal__item-content")
+                                div(class="hint-modal__hint-text") #{hint.vocabulary_en}
+                                div(class="hint-modal__hint-tag") #{hint.type}
+                            div(class="hint-modal__item-details")
+                                div(class="hint-modal__meaning")
+                                    span(class="hint-modal__label") Nghĩa:
+                                    span(class="hint-modal__vietnamese") #{hint.translate}
+                                div(class="hint-modal__example")
+                                    span(class="hint-modal__label") Ví dụ:
+                                    br
+                                    span(class="hint-modal__example-text") - #{hint.sentence_example.en} <br> - #{hint.sentence_example.vi}
+                                    
+                            button(class="hint-modal__add-btn") + Thêm vào từ điển
+
+    script(src="/js/writing-paragraph.js" type="module")

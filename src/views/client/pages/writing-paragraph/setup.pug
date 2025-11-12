@@ -1,0 +1,74 @@
+extends ../../layouts/default.pug
+
+block main-content
+    div(class=("container"))
+        div(class=("wp-setup row justify-content-center") id="wp-setup")
+            div(class=("col-12 col-xl-10"))
+                div(class=("wp-setup__card card border-0 shadow-sm"))
+                    div(class=("wp-setup__header card-body text-center"))
+                        h1(class=("wp-setup__title mb-2")) Luyện dịch đoạn văn
+                        p(class=("wp-setup__subtitle mb-0")) Chọn cấp độ và loại nội dung để bắt đầu
+
+                    div(class=("wp-setup__divider"))
+
+                    ul(class=("nav nav-tabs wp-setup__nav"))
+                        li(class=("nav-item"))
+                            button(class=("nav-link active"), aria-current="page" data-nav="system") Hệ thống
+                        li(class=("nav-item"))
+                            button(class=("nav-link"), data-nav="custom") Tự nhập đoạn văn
+
+                    div(class=("wp-setup__section card-body"))
+                        div(class=("wp-setup__nav-system"))
+                            h5(class=("wp-setup__section-title mt-3")) Cấp độ của bạn
+                            div(class=("row g-3 g-md-4"))
+                                each level in levels
+                                    div(class=("col-12 col-md-4"))
+                                        label(class=("h-100 wp-setup__option wp-setup__option--level"), data-value=level.slug)
+                                            span(class=("wp-setup__option-icon"))
+                                                i(class=level.fa_class_icon)
+                                            div(class=("wp-setup__option-content"))
+                                                span(class=("wp-setup__option-text")) #{level.title}
+                                                span(class=("wp-setup__option-description")) #{level.description}
+
+                            h5(class=("wp-setup__section-title mt-4")) Loại nội dung
+                            div(class=("wp-setup__types"))
+                                div(class=("row g-3 g-md-4 pt-1"))
+                                    div(class=("col-12 col-lg-6"))
+                                        button(class=("wp-setup__type"), data-type="ai-generate")
+                                            i(class=("fa-solid fa-robot ws-setup__topic-icon"))
+                                            input(type="text", class=("form-control wp-setup__prompt-input"), placeholder="Nhập chủ đề bạn muốn, đoạn văn cứ để AI lo" maxlength="50")
+
+                                    div(class=("col-12"))
+                                        span Sử dụng những đoạn văn có sẵn, được chọn lọc bởi hệ thống:
+
+                                    each type in types
+                                        div(class=("col-12 col-md-6 col-lg-4"))
+                                            button(class=("wp-setup__type"), data-type=type.slug)
+                                                i(class=type.fa_class_icon class='wp-setup__type-icon')
+                                                div(class=("wp-setup__type-content"))
+                                                    span(class=("wp-setup__type-title")) #{type.title}
+                                                    span(class=("wp-setup__type-desc wp-setup__type-desc--2line"), title=type.description, data-bs-toggle="tooltip") #{type.description}
+
+                                    
+
+                        div(class=("wp-setup__nav-custom d-none"))
+                            div(class=("wp-setup__custom-section"))
+                                div(class=("wp-setup__custom-header"))
+                                    div(class=("wp-setup__custom-icon"))
+                                        i(class=("fa-solid fa-paper-plane"))
+                                    h5(class=("wp-setup__custom-title")) Nhập đoạn văn tiếng Việt của bạn
+
+                                div(class=("wp-setup__custom-input"))
+                                    textarea(class=("wp-setup__custom-textarea"), placeholder="Nhập đoạn văn tiếng Việt mà bạn muốn luyện dịch sang ngôn ngữ đích...")
+
+                                div(class=("wp-setup__custom-hint"))
+                                    div(class=("wp-setup__hint-icon"))
+                                        i(class=("fa-solid fa-lightbulb"))
+                                    span(class=("wp-setup__hint-text")) Gợi ý: Nhập một đoạn văn từ 3-8 câu để có trải nghiệm luyện tập tốt nhất
+
+                    div(class=("wp-setup__footer card-body text-center pt-5 pb-4"))
+                        a(href="#", class=("wp-setup__start btn btn-primary px-4 py-2"))
+                            | Bắt đầu luyện tập 
+                            i(class=("fa-solid fa-arrow-right"))
+
+    script(src="/js/writing-paragraph.js" type="module")

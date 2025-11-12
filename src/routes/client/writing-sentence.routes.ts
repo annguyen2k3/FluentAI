@@ -1,31 +1,39 @@
 import { Router } from 'express'
-import { 
-    getCompleteWSController, 
-    getPracticeCustomTopicWSController, 
-    getPracticeWSController, 
-    getSetupWritingSentenceController, 
-    getSystemListWSController, 
-    getWSListController, 
-    postCustomTopicPreviewWSController, 
-    postPracticeWSController 
-} from '~/controllers/client/writing.controllers'
+import {
+  getCompleteWSController,
+  getPracticeCustomTopicWSController,
+  getPracticeWSController,
+  getSetupWritingSentenceController,
+  getSystemListWSController,
+  getWSListController,
+  postCustomTopicPreviewWSController,
+  postPracticeWSController
+} from '~/controllers/client/writing-sentence.controllers'
 import { requireAuth } from '~/middlewares/users.middleware'
-import { postCustomTopicPreviewWSValidator, postPracticeWSValidator, renderWSPraticeValidator } from '~/middlewares/writing-sentence.middleware'
+import {
+  postCustomTopicPreviewWSValidator,
+  postPracticeWSValidator,
+  renderWSPraticeValidator
+} from '~/middlewares/writing-sentence.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
 const writingSentenceRoutes = Router()
 
 // GET /writing-sentence/setup
 // Description: Render setup writing sentence page
 // Method: GET
-writingSentenceRoutes.get('/setup', requireAuth, wrapRequestHandler(getSetupWritingSentenceController))
+writingSentenceRoutes.get(
+  '/setup',
+  requireAuth,
+  wrapRequestHandler(getSetupWritingSentenceController)
+)
 
 // GET /writing-sentence/system-topic
 // Description: Render system topic writing sentence page
 // Method: GET
 writingSentenceRoutes.get(
-    '/system-list',
-    requireAuth,
-    wrapRequestHandler(getSystemListWSController)
+  '/system-list',
+  requireAuth,
+  wrapRequestHandler(getSystemListWSController)
 )
 
 // GET /writing-sentence/list
@@ -33,40 +41,40 @@ writingSentenceRoutes.get(
 // Method: GET
 // Params: level, topic
 writingSentenceRoutes.get(
-    '/list',
-    requireAuth,
-    wrapRequestHandler(getWSListController)
+  '/list',
+  requireAuth,
+  wrapRequestHandler(getWSListController)
 )
 
 // GET /writing-sentence/practice/:slug
 // Description: Render practice writing sentence page
 // Method: GET
 writingSentenceRoutes.get(
-    '/practice/:slug',
-    requireAuth,
-    renderWSPraticeValidator,
-    wrapRequestHandler(getPracticeWSController)
+  '/practice/:slug',
+  requireAuth,
+  renderWSPraticeValidator,
+  wrapRequestHandler(getPracticeWSController)
 )
 
 // POST /writing-sentence/practice/:slug
 // Description: Post practice writing sentence page
 // Method: POST
 writingSentenceRoutes.post(
-    '/practice/:slug',
-    requireAuth,
-    renderWSPraticeValidator,
-    postPracticeWSValidator,
-    wrapRequestHandler(postPracticeWSController)
+  '/practice/:slug',
+  requireAuth,
+  renderWSPraticeValidator,
+  postPracticeWSValidator,
+  wrapRequestHandler(postPracticeWSController)
 )
 
 // GET /writing-sentence/practice/:slug/complete
 // Description: Render complete writing sentence page
 // Method: GET
 writingSentenceRoutes.get(
-    '/practice/complete/:slug',
-    requireAuth,
-    renderWSPraticeValidator,
-    wrapRequestHandler(getCompleteWSController)
+  '/practice/complete/:slug',
+  requireAuth,
+  renderWSPraticeValidator,
+  wrapRequestHandler(getCompleteWSController)
 )
 
 // POST /writing-sentence/custom-topic/preview
@@ -74,10 +82,10 @@ writingSentenceRoutes.get(
 // Method: POST
 // Body: {topic: string, level: string}
 writingSentenceRoutes.post(
-    '/custom-topic/preview',
-    requireAuth,
-    postCustomTopicPreviewWSValidator,
-    wrapRequestHandler(postCustomTopicPreviewWSController)
+  '/custom-topic/preview',
+  requireAuth,
+  postCustomTopicPreviewWSValidator,
+  wrapRequestHandler(postCustomTopicPreviewWSController)
 )
 
 // GET /writing-sentence/practice/custom-topic/:id-ws-list-preview
@@ -85,9 +93,9 @@ writingSentenceRoutes.post(
 // Method: GET
 // Params: id-ws-list-preview
 writingSentenceRoutes.get(
-    '/practice/custom-topic/:idPreview',
-    requireAuth,
-    wrapRequestHandler(getPracticeCustomTopicWSController)
+  '/practice/custom-topic/:idPreview',
+  requireAuth,
+  wrapRequestHandler(getPracticeCustomTopicWSController)
 )
 
 export default writingSentenceRoutes
