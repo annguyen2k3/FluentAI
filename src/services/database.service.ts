@@ -28,7 +28,7 @@ class DatabaseService {
 
       await this.otpVerifyEmail.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
       await this.refreshTokens.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
-      await this.wsListPreviews.createIndex({ update_at: 1 }, { expireAfterSeconds: 60*60*10 })
+      await this.wsListPreviews.createIndex({ update_at: 1 }, { expireAfterSeconds: 60*60*3 })
     } catch (error) {
       console.error('Error connecting to MongoDB:', error)
       throw error
