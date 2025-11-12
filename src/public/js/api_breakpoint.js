@@ -16,5 +16,6 @@ export const ApiBreakpoint = {
   GET_COMPLETE_WS: `${apiUrl}/writing-sentence/practice/complete/{slug}`, // Get complete writing sentence
   POST_CUSTOM_TOPIC_PREVIEW_WS: `${apiUrl}/writing-sentence/custom-topic/preview`, // Post custom topic preview
   GET_PRACTICE_CUSTOM_TOPIC_WS: `${apiUrl}/writing-sentence/practice/custom-topic/{idPreview}`, // Get practice custom topic
-  GET_WP_LIST: `${apiUrl}/writing-paragraph/list` // Get list of writing paragraphs
+  GET_WP_LIST: `${apiUrl}/writing-paragraph/list`, // Get list of writing paragraphs
+  POST_PRACTICE_WP: `${apiUrl}/writing-paragraph/practice` // Post practice writing paragraph
 }

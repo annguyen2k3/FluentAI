@@ -1,0 +1,12 @@
+extends ../../layouts/default.pug
+
+block main-content
+    .container.py-4
+        .row
+            .col-lg-8.mx-auto
+                .card.shadow-sm
+                    .card-body
+                        != completeHtml
+                        .d-flex.gap-2
+                            a.btn.btn-outline-secondary(href="/") Quay về trang chủ
+                            a.btn.btn-primary(href="/writing-paragraph/setup") Tiếp tục luyện viết

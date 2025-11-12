@@ -159,7 +159,7 @@ if (wpPractice) {
   const progressFill = document.querySelector('[progress-fill]')
   const sentencesDisplay = document.querySelector('[sentences-display]')
 
-  const currentIndex = 1
+  let currentIndex = 1
 
   const wpData = JSON.parse(wpPractice.getAttribute('wp-data-practice'))
   const sentences = splitParagraphIntoSentences(wpData.content)
@@ -183,4 +183,60 @@ if (wpPractice) {
   }
 
   renderSentence(currentIndex)
+
+  const buttonSubmit = document.querySelector('[button-submit]')
+  const buttonNext = document.querySelector('[button-next]')
+  if (buttonSubmit) {
+    buttonSubmit.addEventListener('click', function () {
+      const sentenceVi = document.querySelector('.sentence-inprogress').textContent || ''
+      const userTranslation = document.querySelector('[user_translation]').value || ''
+      if (!userTranslation) {
+        alertError('Vui lòng nhập bản dịch của bạn')
+        return
+      }
+      const requestUrl = `${ApiBreakpoint.POST_PRACTICE_WP}/${wpData.slug}`
+      fetch(requestUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({ sentence_vi: sentenceVi, user_translation: userTranslation })
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data)
+          if (data.status === 200) {
+            const feedbackDescription = document.querySelector('[feedback-description]')
+            if (feedbackDescription) {
+              feedbackDescription.innerHTML = data.evaluateResult.Feedback_html
+            }
+            if (data.evaluateResult.Passed) {
+              buttonNext.classList.remove('d-none')
+              buttonSubmit.classList.add('d-none')
+            } else {
+              buttonNext.classList.add('d-none')
+              buttonSubmit.classList.remove('d-none')
+            }
+            document.querySelector('[user_translation]').value = ''
+            if (currentIndex === sentences.length) {
+              window.location.href = `/writing-paragraph/practice/complete/${wpData.slug}`
+            }
+          } else {
+            alertError(data.message)
+          }
+        })
+        .catch((error) => console.error('Error:', error))
+    })
+  }
+
+  if (buttonNext) {
+    buttonNext.addEventListener('click', function () {
+      currentIndex++
+      renderSentence(currentIndex)
+      buttonNext.classList.add('d-none')
+      buttonSubmit.classList.remove('d-none')
+      document.querySelector('[user_translation]').value = ''
+    })
+  }
 }

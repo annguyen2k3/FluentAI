@@ -5,6 +5,8 @@ import Levels from '~/models/schemas/levels.schema'
 import Topics from '~/models/schemas/topics.schema'
 import Types from '~/models/schemas/types.schema'
 import User from '~/models/schemas/users.schema'
+import WPParagraph from '~/models/schemas/wp-paragraph.schema'
+import WSList from '~/models/schemas/ws-list.schema'
 import { databaseService } from '~/services/database.service'
 import writingService from '~/services/writing.service'
 
@@ -121,10 +123,74 @@ export const renderPracticeWPController = async (req: Request, res: Response) =>
   if (!wp) {
     return res.redirect('/writing-paragraph/setup')
   }
-  console.log('WP:', wp)
+
+  const initResult = await writingService.wpInitChat(
+    user._id?.toString() as string,
+    wp._id?.toString() as string,
+    wp.content
+  )
+  if (!initResult.Init_success) {
+    return res.redirect('/writing-paragraph/setup')
+  }
+
   res.render('client/pages/writing-paragraph/practice.pug', {
     pageTitle: 'Luyện tập đoạn văn',
     user: user,
     wp: wp
   })
+}
+
+// POST /writing-paragraph/practice/:slug
+export const postPracticeWPController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const slug = req.params.slug
+  const wp = await databaseService.wpParagraphs.findOne({ slug: slug })
+  if (!wp) {
+    return res.redirect('/writing-paragraph/setup')
+  }
+  const { sentence_vi, user_translation } = req.body
+
+  const evaluateResult = await writingService.wpEvaluate(
+    user._id?.toString() as string,
+    wp._id?.toString() as string,
+    sentence_vi,
+    user_translation
+  )
+
+  console.log('Evaluate result:', evaluateResult)
+  console.log('--------------------------------')
+
+  res.status(HttpStatus.OK).json({
+    message: 'Đánh giá câu thành công',
+    status: HttpStatus.OK,
+    user: user,
+    evaluateResult: evaluateResult
+  })
+}
+
+// GET /writing-paragraph/practice/complete/:slug
+export const getCompleteWPController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const slug = req.params.slug
+  const wp = await databaseService.wpParagraphs.findOne({ slug: slug })
+  if (!wp) {
+    return res.redirect('/writing-paragraph/setup')
+  }
+  try {
+    const completeResult = await writingService.wpComplete(user._id!.toString(), wp._id!.toString())
+    console.log('Complete result:', completeResult)
+    console.log('--------------------------------')
+    return res.render('client/pages/writing-paragraph/complete.pug', {
+      pageTitle: 'Đánh giá tổng quan',
+      user,
+      completeHtml: completeResult.Feedback_html
+    })
+  } catch (err) {
+    console.log('Error:', err)
+    return res.render('client/pages/writing-paragraph/complete.pug', {
+      pageTitle: 'Đánh giá tổng quan',
+      user,
+      completeHtml: `<p class="text-danger">Không thể lấy đánh giá tổng quan.</p> br <p>${err}</p>`
+    })
+  }
 }

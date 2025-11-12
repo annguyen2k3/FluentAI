@@ -1,15 +1,14 @@
 import { Router } from 'express'
 import {
+  getCompleteWPController,
   getSetupWPController,
   getWPListController,
+  postPracticeWPController,
   renderListWPController,
   renderPracticeWPController
 } from '~/controllers/client/writing-paragraph.controllers'
 import { requireAuth } from '~/middlewares/users.middleware'
-import {
-  getListWPValidator,
-  getSystemListWPValidator
-} from '~/middlewares/writing-paragraph.middleware'
+import { getListWPValidator, getSystemListWPValidator } from '~/middlewares/writing-paragraph.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
 
 const writingParagraphRoutes = Router()
@@ -17,11 +16,7 @@ const writingParagraphRoutes = Router()
 // GET /writing-paragraph/setup
 // Description: Render setup writing paragraph page
 // Method: GET
-writingParagraphRoutes.get(
-  '/setup',
-  requireAuth,
-  wrapRequestHandler(getSetupWPController)
-)
+writingParagraphRoutes.get('/setup', requireAuth, wrapRequestHandler(getSetupWPController))
 
 // GET /writing-paragraph/system-list
 // Description: Render system list writing paragraph page
@@ -38,21 +33,25 @@ writingParagraphRoutes.get(
 // Description: Get list of writing paragraphs
 // Method: GET
 // Query: {level: string, type: string, topic: string}
-writingParagraphRoutes.get(
-  '/list',
-  requireAuth,
-  getListWPValidator,
-  wrapRequestHandler(getWPListController)
-)
+writingParagraphRoutes.get('/list', requireAuth, getListWPValidator, wrapRequestHandler(getWPListController))
 
 // GET /writing-paragraph/practice/:slug
 // Description: Render practice writing paragraph page
 // Method: GET
 // Params: {slug: string}
-writingParagraphRoutes.get(
-  '/practice/:slug',
-  requireAuth,
-  wrapRequestHandler(renderPracticeWPController)
-)
+writingParagraphRoutes.get('/practice/:slug', requireAuth, wrapRequestHandler(renderPracticeWPController))
+
+// POST /writing-paragraph/practice/:slug
+// Description: Post practice writing paragraph page
+// Method: POST
+// Params: {slug: string}
+// Body: {sentence_vi: string, user_translation: string}
+writingParagraphRoutes.post('/practice/:slug', requireAuth, wrapRequestHandler(postPracticeWPController))
+
+// GET /writing-paragraph/practice/complete/:slug
+// Description: Render complete writing paragraph page
+// Method: GET
+// Params: {slug: string}
+writingParagraphRoutes.get('/practice/complete/:slug', requireAuth, wrapRequestHandler(getCompleteWPController))
 
 export default writingParagraphRoutes

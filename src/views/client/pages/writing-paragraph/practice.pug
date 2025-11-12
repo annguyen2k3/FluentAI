@@ -32,7 +32,7 @@ block main-content
                             |  Một ngày nóng nực, cậu pha nước chanh với thứ gì đó khác lạ. Đó là một loại thảo mộc ngộ nghĩnh mà cậu tìm thấy trong vườn. "Chuyện gì sẽ xảy ra?" cậu nghĩ. Cậu mời bạn bè uống. Khi họ nhấp một ngụm, họ phá lên cười. "Có gì trong nước chanh này vậy?" Dani hỏi, khúc khích. Tommy nhún vai, ngạc nhiên nhưng vui vẻ. Mọi người không nhịn được cười. Chẳng mấy chốc, mọi người xếp hàng. Họ muốn uống loại nước chanh đặc biệt này. Tommy cảm thấy tự hào nhưng bối rối. Tại sao mọi người lại cười? Là thảo mộc hay nụ cười bí mật của cậu? Cậu muốn biết. Sau một lúc, một người đàn ông đội mũ lớn đã thử. Ông ấy cười lớn đến nỗi làm rơi cả mũ. Tommy vô cùng kinh ngạc! Liệu loại đồ uống này có thể thay đổi cuộc đời cậu không? Đột nhiên, tiếng cười tràn ngập không khí. Mặt trời chiếu sáng rực rỡ và nụ cười lan tỏa khắp nơi. Tommy biết mình đã làm ra một thứ gì đó đặc biệt. Tiếng cười là phép màu, cậu nghĩ. Làm sao một cậu bé với nước chanh có thể mang lại niềm vui cho mọi người? Cậu mỉm cười, cảm thấy rất vui.
 
             div(class="practice-input mb-4")
-                textarea(class="practice-input__field" placeholder="Nhập bản dịch của bạn tại đây (chỉ nhập câu được hightlight)" rows="2")
+                textarea(class="practice-input__field" placeholder="Nhập bản dịch của bạn tại đây (chỉ nhập câu được hightlight)" rows="2" user_translation)
 
             div(class="practice-actions")
                 button(class="practice-actions__btn practice-actions__btn--quit")
@@ -42,9 +42,12 @@ block main-content
                     button(class="practice-actions__btn practice-actions__btn--hint")
                         i(class="fas fa-lightbulb")
                         |  Gợi ý
-                    button(class="practice-actions__btn practice-actions__btn--submit")
+                    button(class="practice-actions__btn practice-actions__btn--submit" button-submit)
                         |  Nộp bài 1
                         i(class="fa-brands fa-bitcoin" style="color: #FFD43B;")
+                    button(class="practice-actions__btn practice-actions__btn--submit d-none" button-next)
+                        | Câu tiếp theo
+                        i(class="fas fa-arrow-right")
 
         div(class="col-lg-4")
             div(class="practice-sidebar")

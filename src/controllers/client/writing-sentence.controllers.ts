@@ -7,10 +7,7 @@ import { databaseService } from '~/services/database.service'
 import writingService from '~/services/writing.service'
 
 // GET /writing-sentence/setup
-export const getSetupWritingSentenceController = async (
-  req: Request,
-  res: Response
-) => {
+export const getSetupWritingSentenceController = async (req: Request, res: Response) => {
   const user = req.user as User
 
   const levels = await databaseService.levels.find({}).toArray()
@@ -23,10 +20,7 @@ export const getSetupWritingSentenceController = async (
 }
 
 // GET /writing-sentence/system-list
-export const getSystemListWSController = async (
-  req: Request,
-  res: Response
-) => {
+export const getSystemListWSController = async (req: Request, res: Response) => {
   const user = req.user as User
 
   const level = await databaseService.levels.findOne({
@@ -92,10 +86,7 @@ export const getPracticeWSController = async (req: Request, res: Response) => {
   const user = req.user as User
   const ws = req.ws as WSList
 
-  const initResult = await writingService.wsInitChat(
-    user._id?.toString() as string,
-    ws._id?.toString() as string
-  )
+  const initResult = await writingService.wsInitChat(user._id?.toString() as string, ws._id?.toString() as string)
   if (!initResult.Init_success) {
     return res.redirect('/writing-sentence/setup')
   }
@@ -131,15 +122,12 @@ export const postPracticeWSController = async (req: Request, res: Response) => {
   })
 }
 
-// GET /writing-sentence/practice/:slug/complete
+// GET /writing-sentence/practice/complete/:slug
 export const getCompleteWSController = async (req: Request, res: Response) => {
   const user = req.user as User
   const ws = req.ws as WSList
   try {
-    const completeResult = await writingService.wsComplete(
-      user._id!.toString(),
-      ws._id!.toString()
-    )
+    const completeResult = await writingService.wsComplete(user._id!.toString(), ws._id!.toString())
     console.log('Complete result:', completeResult)
     console.log('--------------------------------')
     return res.render('client/pages/writing-sentence/complete.pug', {
@@ -152,36 +140,26 @@ export const getCompleteWSController = async (req: Request, res: Response) => {
     return res.render('client/pages/writing-sentence/complete.pug', {
       pageTitle: 'Đánh giá tổng quan',
       user,
-      completeHtml:
-        '<p class="text-danger">Không thể lấy đánh giá tổng quan. Vui lòng thử lại.</p>'
+      completeHtml: '<p class="text-danger">Không thể lấy đánh giá tổng quan. Vui lòng thử lại.</p>'
     })
   }
 }
 
 // POST /writing-sentence/custom-topic/preview
-export const postCustomTopicPreviewWSController = async (
-  req: Request,
-  res: Response
-) => {
+export const postCustomTopicPreviewWSController = async (req: Request, res: Response) => {
   const user = req.user as User
   const { topic } = req.body
 
   const levelDes = req.level.description
 
-  const previewResult = await writingService.wsPreviewCustomTopic(
-    topic,
-    levelDes
-  )
+  const previewResult = await writingService.wsPreviewCustomTopic(topic, levelDes)
 
   const wsListPreview = new WSList({
     title: 'Luyện tập chủ đề',
     topic: new ObjectId(),
     level: req.level._id,
     pos: 0,
-    slug:
-      (('paractice-custom-topic-' + user._id?.toString()) as string) +
-      '-' +
-      new Date().getTime(),
+    slug: (('paractice-custom-topic-' + user._id?.toString()) as string) + '-' + new Date().getTime(),
     create_at: new Date(),
     update_at: new Date(),
     list: previewResult.list
@@ -200,10 +178,7 @@ export const postCustomTopicPreviewWSController = async (
 }
 
 // GET /writing-sentence/practice/custom-topic/:id-ws-list-preview
-export const getPracticeCustomTopicWSController = async (
-  req: Request,
-  res: Response
-) => {
+export const getPracticeCustomTopicWSController = async (req: Request, res: Response) => {
   const user = req.user as User
   const idWsListPreview = req.params.idPreview as string
 
