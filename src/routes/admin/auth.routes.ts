@@ -5,9 +5,10 @@ import {
   logoutController,
   getProfileController,
   updateProfileController,
+  changePasswordController,
   updateAvatarProfileController
 } from '~/controllers/admin/auth.controllers'
-import { requireAdminAuth, updateProfileValidator } from '~/middlewares/admin.middleware'
+import { requireAdminAuth, updateProfileValidator, changePasswordValidator } from '~/middlewares/admin.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
 const authRoutes = Router()
 
@@ -31,6 +32,16 @@ authRoutes.get('/profile', requireAdminAuth, wrapRequestHandler(getProfileContro
 // Description: Update admin profile
 // Body: { username: string, email: string }
 authRoutes.put('/profile', requireAdminAuth, updateProfileValidator, wrapRequestHandler(updateProfileController))
+
+// PUT /admin/auth/profile/change-password
+// Description: Change admin password
+// Body: { currentPassword: string, newPassword: string, confirmPassword: string }
+authRoutes.put(
+  '/profile/change-password',
+  requireAdminAuth,
+  changePasswordValidator,
+  wrapRequestHandler(changePasswordController)
+)
 
 // PATCH /admin/auth/profile/avatar
 // Description: Update admin avatar

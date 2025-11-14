@@ -74,6 +74,23 @@ export const updateProfileController = async (req: Request, res: Response) => {
   })
 }
 
+// PUT /admin/auth/profile/change-password
+export const changePasswordController = async (req: Request, res: Response) => {
+  const admin = req.admin as Admin
+  const newPassword = req.body.newPassword
+
+  const passwordHash = md5(newPassword)
+  await databaseService.admins.updateOne(
+    { _id: new ObjectId(admin._id) },
+    { $set: { password: passwordHash, update_at: new Date() } }
+  )
+
+  res.status(HttpStatus.OK).json({
+    message: 'Đổi mật khẩu thành công',
+    status: HttpStatus.OK
+  })
+}
+
 // PATCH /admin/auth/profile/avatar
 export const updateAvatarProfileController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin

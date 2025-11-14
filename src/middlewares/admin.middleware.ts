@@ -8,6 +8,7 @@ import { verifyToken } from '~/utils/jwt'
 import { validate } from '~/utils/validation'
 import { USER_MESSAGES } from '~/constants/message'
 import Admin from '~/models/schemas/admin.schema'
+import md5 from 'md5'
 
 const prefixAdmin = process.env.PREFIX_ADMIN
 
@@ -114,6 +115,51 @@ export const updateProfileValidator = validate(
             })
             if (existingAdmin) {
               throw new Error(USER_MESSAGES.EMAIL_EXISTS)
+            }
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export const changePasswordValidator = validate(
+  checkSchema(
+    {
+      currentPassword: {
+        custom: {
+          options: async (value, { req }) => {
+            const admin = req.admin as Admin
+            const isCorrectPassword = await databaseService.admins.findOne({
+              _id: new ObjectId(admin._id),
+              password: md5(value)
+            })
+            if (isCorrectPassword === null) {
+              throw new Error(USER_MESSAGES.PASSWORD_INCORRECT)
+            }
+            return true
+          }
+        }
+      },
+      newPassword: {
+        isStrongPassword: {
+          options: {
+            minLength: 6,
+            minLowercase: 1,
+            minUppercase: 1,
+            minNumbers: 1,
+            minSymbols: 1
+          },
+          errorMessage: USER_MESSAGES.PASSWORD_STRONG
+        }
+      },
+      confirmPassword: {
+        custom: {
+          options: (value, { req }) => {
+            if (value !== req.body.newPassword) {
+              throw new Error(USER_MESSAGES.PASSWORD_NOT_MATCH)
             }
             return true
           }
