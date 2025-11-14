@@ -70,5 +70,10 @@ export const AdminApiBreakpoint = {
   // POST /admin/users/logout
   // Description: Logout user
   // Body: { userId: string }
-  LOGOUT_USER: `${adminApiUrl}/users/logout`
+  LOGOUT_USER: `${adminApiUrl}/users/logout`,
+
+  // DELETE /admin/users/delete
+  // Description: Delete user
+  // Body: { userId: string }
+  DELETE_USER: `${adminApiUrl}/users/delete`
 }

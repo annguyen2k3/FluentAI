@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+  deleteUserController,
   getListUsersController,
   lockUserController,
   logoutUserController,
@@ -19,21 +20,51 @@ manageUserRoutes.get('/', requireAdminAuth, wrapRequestHandler(renderManageUserC
 // GET /admin/users/list
 // Description: Get list of users
 // Query: page, limit, status, search, sort, startDate, endDate
-manageUserRoutes.get('/list', requireAdminAuth, getListValidator, wrapRequestHandler(getListUsersController))
+manageUserRoutes.get(
+  '/list',
+  requireAdminAuth,
+  getListValidator,
+  wrapRequestHandler(getListUsersController)
+)
 
 // POST /admin/users/lock
 // Description: Lock user
 // Body: userId
-manageUserRoutes.post('/lock', requireAdminAuth, userIdExistsValidator, wrapRequestHandler(lockUserController))
+manageUserRoutes.post(
+  '/lock',
+  requireAdminAuth,
+  userIdExistsValidator,
+  wrapRequestHandler(lockUserController)
+)
 
 // POST /admin/users/unlock
 // Description: Unlock user
 // Body: userId
-manageUserRoutes.post('/unlock', requireAdminAuth, userIdExistsValidator, wrapRequestHandler(unlockUserController))
+manageUserRoutes.post(
+  '/unlock',
+  requireAdminAuth,
+  userIdExistsValidator,
+  wrapRequestHandler(unlockUserController)
+)
 
 // POST /admin/users/logout
 // Description: Logout user
 // Body: userId
-manageUserRoutes.post('/logout', requireAdminAuth, userIdExistsValidator, wrapRequestHandler(logoutUserController))
+manageUserRoutes.post(
+  '/logout',
+  requireAdminAuth,
+  userIdExistsValidator,
+  wrapRequestHandler(logoutUserController)
+)
+
+// DELETE /admin/users/delete
+// Description: Delete user
+// Body: userId
+manageUserRoutes.delete(
+  '/delete',
+  requireAdminAuth,
+  userIdExistsValidator,
+  wrapRequestHandler(deleteUserController)
+)
 
 export default manageUserRoutes

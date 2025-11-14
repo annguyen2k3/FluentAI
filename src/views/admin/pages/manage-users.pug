@@ -133,7 +133,7 @@ block main-content
       div(class="modal-content")
         div(class="modal-header")
           h5(class="modal-title" id="userDetailModalLabel") Chi tiết người dùng
-          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+          button(type="button" class="close" onclick="$('#userDetailModal').modal('hide')" aria-label="Close")
             span(aria-hidden="true") &times;
         div(class="modal-body")
           div(class="row")
@@ -148,50 +148,44 @@ block main-content
                 div(class="col-md-6")
                   div(class="form-group")
                     label(class="form-label") ID người dùng
-                    p(class="form-control-plaintext" id="userId") #001
+                    p(class="form-control-plaintext" id="userId") -
+                div(class="col-md-6")
+                  div(class="form-group")
+                    label(class="form-label") Email
+                    p(class="form-control-plaintext" id="userEmailDetail") -
                 div(class="col-md-6")
                   div(class="form-group")
                     label(class="form-label") Số điện thoại
-                    p(class="form-control-plaintext" id="userPhone") 0123456789
+                    p(class="form-control-plaintext" id="userPhone") Chưa cập nhật
+                div(class="col-md-6")
+                  div(class="form-group")
+                    label(class="form-label") Giới tính
+                    p(class="form-control-plaintext" id="userGender") Chưa cập nhật
+                div(class="col-md-6")
+                  div(class="form-group")
+                    label(class="form-label") Ngày sinh
+                    p(class="form-control-plaintext" id="userDateOfBirth") Chưa cập nhật
                 div(class="col-md-6")
                   div(class="form-group")
                     label(class="form-label") Ngày đăng ký
-                    p(class="form-control-plaintext" id="userRegisterDate") 15/01/2024
+                    p(class="form-control-plaintext" id="userRegisterDate") -
                 div(class="col-md-6")
                   div(class="form-group")
-                    label(class="form-label") Lần đăng nhập cuối
-                    p(class="form-control-plaintext" id="userLastLogin") 28/01/2024 14:30
+                    label(class="form-label") Cập nhật lần cuối
+                    p(class="form-control-plaintext" id="userLastLogin") -
                 div(class="col-md-6")
                   div(class="form-group")
                     label(class="form-label") Điểm số hiện tại
-                    p(class="form-control-plaintext" id="userScore") 1,250 điểm
+                    p(class="form-control-plaintext" id="userScore") Chưa có dữ liệu
                 div(class="col-md-6")
                   div(class="form-group")
                     label(class="form-label") Cấp độ
-                    p(class="form-control-plaintext" id="userLevel") Trung cấp
+                    p(class="form-control-plaintext" id="userLevel") Chưa có dữ liệu
               div(class="mt-4")
                 h6 Lịch sử hoạt động
                 div(class="timeline" id="userActivity")
-                  div(class="timeline-item")
-                    div(class="timeline-marker bg-success")
-                    div(class="timeline-content")
-                      h6(class="timeline-title") Hoàn thành bài luyện viết
-                      p(class="timeline-text") Đã hoàn thành bài luyện viết cấp độ trung cấp
-                      span(class="timeline-date") 28/01/2024 14:30
-                  div(class="timeline-item")
-                    div(class="timeline-marker bg-info")
-                    div(class="timeline-content")
-                      h6(class="timeline-title") Đăng nhập hệ thống
-                      p(class="timeline-text") Đăng nhập từ thiết bị di động
-                      span(class="timeline-date") 28/01/2024 09:15
-                  div(class="timeline-item")
-                    div(class="timeline-marker bg-warning")
-                    div(class="timeline-content")
-                      h6(class="timeline-title") Cập nhật thông tin
-                      p(class="timeline-text") Thay đổi số điện thoại
-                      span(class="timeline-date") 25/01/2024 16:45
         div(class="modal-footer")
-          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Đóng
+          button(type="button" class="btn btn-secondary" onclick="$('#userDetailModal').modal('hide')") Đóng
           button(type="button" class="btn btn-primary" onclick="editUser()") Chỉnh sửa
 
   div(class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true")
@@ -199,12 +193,12 @@ block main-content
       div(class="modal-content")
         div(class="modal-header")
           h5(class="modal-title" id="confirmModalLabel") Xác nhận
-          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+          button(type="button" class="close" data-dismiss="modal" aria-label="Close")
             span(aria-hidden="true") &times;
         div(class="modal-body")
           p(id="confirmMessage") Bạn có chắc chắn muốn thực hiện hành động này?
         div(class="modal-footer")
-          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-secondary" data-dismiss="modal") Hủy
           button(type="button" class="btn btn-danger" id="confirmAction") Xác nhận
 
 block scripts
@@ -219,6 +213,7 @@ block scripts
       endDate: '',
       sort: 'desc'
     }
+    let usersList = []
 
     async function loadUsers() {
       const tbody = document.getElementById('usersTableBody')
@@ -251,6 +246,7 @@ block scripts
         const result = await response.json()
 
         if (result.status === 200 && result.data) {
+          usersList = result.data.list
           renderUsers(result.data.list)
           renderPagination(result.data.pagination)
         } else {
@@ -418,7 +414,91 @@ block scripts
     }
 
     function viewUser(userId) {
-      showNotification('info', 'Chức năng xem chi tiết đang được phát triển!')
+      const user = usersList.find(u => u._id && u._id.toString() === userId)
+      
+      if (!user) {
+        showNotification('error', 'Không tìm thấy thông tin người dùng!')
+        return
+      }
+
+      const avatar = user.avatar || 'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'
+      const username = user.username || 'Chưa cập nhật'
+      const email = user.email || '-'
+      const phone = user.phone_number || 'Chưa cập nhật'
+      const status = user.status || 'active'
+      const statusText = getStatusText(status)
+      const statusClass = getStatusClass(status)
+      const userIdDisplay = user._id ? user._id.toString() : '-'
+      
+      const createDate = user.create_at ? new Date(user.create_at).toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }) : 'Chưa có'
+      
+      const updateDate = user.update_at ? new Date(user.update_at).toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }) : 'Chưa có'
+      
+      const dateOfBirth = user.date_of_birth ? new Date(user.date_of_birth).toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }) : 'Chưa cập nhật'
+      
+      const genderText = user.gender === 'male' ? 'Nam' : user.gender === 'female' ? 'Nữ' : user.gender === 'other' ? 'Khác' : 'Chưa cập nhật'
+
+      document.getElementById('userAvatar').src = avatar
+      document.getElementById('userAvatar').alt = username
+      document.getElementById('userName').textContent = username
+      document.getElementById('userEmail').textContent = email
+      document.getElementById('userStatus').textContent = statusText
+      document.getElementById('userStatus').className = `badge ${statusClass}`
+      document.getElementById('userId').textContent = userIdDisplay
+      document.getElementById('userEmailDetail').textContent = email
+      document.getElementById('userPhone').textContent = phone
+      document.getElementById('userGender').textContent = genderText
+      document.getElementById('userDateOfBirth').textContent = dateOfBirth
+      document.getElementById('userRegisterDate').textContent = createDate
+      document.getElementById('userLastLogin').textContent = updateDate
+      document.getElementById('userScore').textContent = 'Chưa có dữ liệu'
+      document.getElementById('userLevel').textContent = 'Chưa có dữ liệu'
+
+      const activityHTML = `
+        <div class="timeline-item">
+          <div class="timeline-marker bg-info"></div>
+          <div class="timeline-content">
+            <h6 class="timeline-title">Đăng ký tài khoản</h6>
+            <p class="timeline-text">Người dùng đã đăng ký tài khoản mới</p>
+            <span class="timeline-date">${createDate}</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-marker bg-success"></div>
+          <div class="timeline-content">
+            <h6 class="timeline-title">Cập nhật thông tin</h6>
+            <p class="timeline-text">Cập nhật thông tin cá nhân lần cuối</p>
+            <span class="timeline-date">${updateDate}</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-marker bg-warning"></div>
+          <div class="timeline-content">
+            <h6 class="timeline-title">Chức năng đang phát triển</h6>
+            <p class="timeline-text">Lịch sử hoạt động chi tiết sẽ được cập nhật trong phiên bản tiếp theo</p>
+            <span class="timeline-date">-</span>
+          </div>
+        </div>
+      `
+      document.getElementById('userActivity').innerHTML = activityHTML
+
+      $('#userDetailModal').modal('show')
     }
 
     async function lockUser(userId) {
@@ -543,12 +623,50 @@ block scripts
       )
     }
 
-    function deleteUser(userId) {
+    async function deleteUser(userId) {
+      const user = usersList.find(u => u._id && u._id.toString() === userId)
+      
+      if (user && user.status === 'active') {
+        showNotification('error', 'Không thể xóa tài khoản đang hoạt động. Vui lòng khóa tài khoản trước khi xóa!')
+        return
+      }
+
       showConfirmModal(
         'Xóa tài khoản',
         'Bạn có chắc chắn muốn xóa tài khoản này? Hành động này không thể hoàn tác!',
-        () => {
-          showNotification('info', 'Chức năng xóa tài khoản đang được phát triển!')
+        async () => {
+          try {
+            const response = await fetch(AdminApiBreakpoint.DELETE_USER, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ userId })
+            })
+
+            if (!response.ok) {
+              const errorText = await response.text()
+              let errorData
+              try {
+                errorData = JSON.parse(errorText)
+              } catch {
+                errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` }
+              }
+              throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+            }
+
+            const result = await response.json()
+
+            if (result.status === 200) {
+              showNotification('success', result.message || 'Đã xóa tài khoản thành công!')
+              loadUsers()
+            } else {
+              showNotification('error', result.message || 'Có lỗi xảy ra khi xóa tài khoản!')
+            }
+          } catch (error) {
+            console.error('Error deleting user:', error)
+            showNotification('error', error.message || 'Có lỗi xảy ra khi xóa tài khoản!')
+          }
         }
       )
     }
