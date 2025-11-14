@@ -6,6 +6,7 @@ import { PromptFeature, PromptWritingType } from '~/constants/enum'
 import { ErrorWithStatus } from '~/models/Errors'
 import { HttpStatus } from '~/constants/httpStatus'
 import { SentenceWriteType } from '~/models/schemas/ws-list.schema'
+import { VocabularyHintType } from '~/models/Other'
 config()
 
 type EvaluateResult = { Passed: boolean; Feedback_html: string }
@@ -14,6 +15,14 @@ type PreviewTopicWSResult = {
   passed: boolean
   description: string
   list: SentenceWriteType[]
+}
+
+type PreviewTopicWPResult = {
+  passed: boolean
+  description: string
+  title: string
+  content: string
+  hint: VocabularyHintType[]
 }
 
 function sk(userId: string, practiceId: string) {
@@ -218,6 +227,25 @@ class WritingService {
     const prompt = await loadPrompt(PromptFeature.WRITE_PARAGRAPH, PromptWritingType.COMPLETION)
     const text = await completeAndDeleteSession(userId, practiceId, prompt)
     return { Passed: true, Feedback_html: text as string }
+  }
+
+  async wpPreviewCustomTopic(description_topic: string, description_level: string): Promise<PreviewTopicWPResult> {
+    const promptTpl = await loadPrompt(PromptFeature.WRITE_PARAGRAPH, PromptWritingType.PREVIEW_TOPIC)
+    const prompt = fillTemplate(promptTpl, {
+      description_topic,
+      description_level
+    })
+    const text = await sendMessageOnce(prompt)
+    return JSON.parse(text as string) as PreviewTopicWPResult
+  }
+
+  async wpPreviewContent(content: string): Promise<PreviewTopicWPResult> {
+    const promptTpl = await loadPrompt(PromptFeature.WRITE_PARAGRAPH, PromptWritingType.PREVIEW_CONTENT)
+    const prompt = fillTemplate(promptTpl, {
+      content
+    })
+    const text = await sendMessageOnce(prompt)
+    return JSON.parse(text as string) as PreviewTopicWPResult
   }
 }
 

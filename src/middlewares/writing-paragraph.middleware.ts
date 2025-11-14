@@ -14,10 +14,7 @@ export const getSystemListWPValidator = validate(
           options: async (value, { req }) => {
             const level = await databaseService.levels.findOne({ slug: value })
             if (!level) {
-              throw new ErrorWithStatus(
-                PROPERTY_MESSAGES.LEVEL_NOT_FOUND,
-                HttpStatus.NOT_FOUND
-              )
+              throw new ErrorWithStatus(PROPERTY_MESSAGES.LEVEL_NOT_FOUND, HttpStatus.NOT_FOUND)
             }
             req.level = level
             return true
@@ -30,10 +27,7 @@ export const getSystemListWPValidator = validate(
           options: async (value, { req }) => {
             const type = await databaseService.types.findOne({ slug: value })
             if (!type) {
-              throw new ErrorWithStatus(
-                PROPERTY_MESSAGES.TYPE_NOT_FOUND,
-                HttpStatus.NOT_FOUND
-              )
+              throw new ErrorWithStatus(PROPERTY_MESSAGES.TYPE_NOT_FOUND, HttpStatus.NOT_FOUND)
             }
             req.type = type
             return true
@@ -55,10 +49,7 @@ export const getListWPValidator = validate(
           options: async (value, { req }) => {
             const level = await databaseService.levels.findOne({ slug: value })
             if (!level) {
-              throw new ErrorWithStatus(
-                PROPERTY_MESSAGES.LEVEL_NOT_FOUND,
-                HttpStatus.NOT_FOUND
-              )
+              throw new ErrorWithStatus(PROPERTY_MESSAGES.LEVEL_NOT_FOUND, HttpStatus.NOT_FOUND)
             }
             req.level = level
             return true
@@ -72,10 +63,7 @@ export const getListWPValidator = validate(
           options: async (value, { req }) => {
             const type = await databaseService.types.findOne({ slug: value })
             if (!type) {
-              throw new ErrorWithStatus(
-                PROPERTY_MESSAGES.TYPE_NOT_FOUND,
-                HttpStatus.NOT_FOUND
-              )
+              throw new ErrorWithStatus(PROPERTY_MESSAGES.TYPE_NOT_FOUND, HttpStatus.NOT_FOUND)
             }
             req.type = type
             return true
@@ -90,10 +78,7 @@ export const getListWPValidator = validate(
             console.log('value', value)
             const topic = await databaseService.topics.findOne({ slug: value })
             if (!topic) {
-              throw new ErrorWithStatus(
-                PROPERTY_MESSAGES.TOPIC_NOT_FOUND,
-                HttpStatus.NOT_FOUND
-              )
+              throw new ErrorWithStatus(PROPERTY_MESSAGES.TOPIC_NOT_FOUND, HttpStatus.NOT_FOUND)
             }
             req.topic = topic
             return true
@@ -103,4 +88,57 @@ export const getListWPValidator = validate(
     },
     ['query']
   )
+)
+
+export const renderWPPraticeValidator = validate(
+  checkSchema(
+    {
+      slug: {
+        isString: {
+          errorMessage: PROPERTY_MESSAGES.SLUG_INVALID
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const wp = await databaseService.wpParagraphs.findOne({ slug: value })
+            if (!wp) {
+              const wpPreview = await databaseService.wpPreviews.findOne({ slug: value })
+              if (!wpPreview) {
+                throw new ErrorWithStatus(PROPERTY_MESSAGES.SLUG_NOT_FOUND, HttpStatus.NOT_FOUND)
+              }
+              req.wp = wpPreview
+              return true
+            }
+            req.wp = wp
+            return true
+          }
+        }
+      }
+    },
+    ['params']
+  )
+)
+
+export const postCustomTopicPreviewWPValidator = validate(
+  checkSchema({
+    topic: {
+      isString: {
+        errorMessage: PROPERTY_MESSAGES.TOPIC_INVALID
+      },
+      trim: true
+    },
+    level: {
+      trim: true,
+      custom: {
+        options: async (value, { req }) => {
+          const level = await databaseService.levels.findOne({ slug: value })
+          if (!level) {
+            throw new ErrorWithStatus(PROPERTY_MESSAGES.LEVEL_NOT_FOUND, HttpStatus.NOT_FOUND)
+          }
+          req.level = level
+          return true
+        }
+      }
+    }
+  })
 )

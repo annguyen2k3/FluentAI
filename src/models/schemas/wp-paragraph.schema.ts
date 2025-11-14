@@ -11,8 +11,8 @@ interface WPParagraphType {
   content: string
   hint?: VocabularyHintType[]
   slug?: string
-  create_at: Date
-  update_at: Date
+  create_at?: Date
+  update_at?: Date
 }
 
 export default class WPParagraph {
@@ -24,8 +24,8 @@ export default class WPParagraph {
   content: string
   hint?: VocabularyHintType[]
   slug?: string
-  create_at: Date
-  update_at: Date
+  create_at?: Date
+  update_at?: Date
 
   constructor(wpParagraph: WPParagraphType) {
     this._id = wpParagraph._id || new ObjectId()

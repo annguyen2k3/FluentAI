@@ -13,7 +13,7 @@ import writingService from '~/services/writing.service'
 // GET /writing-paragraph/setup
 export const getSetupWPController = async (req: Request, res: Response) => {
   const user = req.user as User
-  const levels = await databaseService.levels.find({}).toArray()
+  const levels = await databaseService.levels.find({}).sort({ pos: 1 }).toArray()
   const types = await databaseService.types.find({}).toArray()
   res.render('client/pages/writing-paragraph/setup.pug', {
     pageTitle: 'Chọn mức độ và chủ đề',
@@ -118,11 +118,7 @@ export const getWPListController = async (req: Request, res: Response) => {
 // GET /writing-paragraph/practice/:slug
 export const renderPracticeWPController = async (req: Request, res: Response) => {
   const user = req.user as User
-  const slug = req.params.slug
-  const wp = await databaseService.wpParagraphs.findOne({ slug: slug })
-  if (!wp) {
-    return res.redirect('/writing-paragraph/setup')
-  }
+  const wp = req.wp as WPParagraph
 
   const initResult = await writingService.wpInitChat(
     user._id?.toString() as string,
@@ -143,11 +139,7 @@ export const renderPracticeWPController = async (req: Request, res: Response) =>
 // POST /writing-paragraph/practice/:slug
 export const postPracticeWPController = async (req: Request, res: Response) => {
   const user = req.user as User
-  const slug = req.params.slug
-  const wp = await databaseService.wpParagraphs.findOne({ slug: slug })
-  if (!wp) {
-    return res.redirect('/writing-paragraph/setup')
-  }
+  const wp = req.wp as WPParagraph
   const { sentence_vi, user_translation } = req.body
 
   const evaluateResult = await writingService.wpEvaluate(
@@ -171,11 +163,7 @@ export const postPracticeWPController = async (req: Request, res: Response) => {
 // GET /writing-paragraph/practice/complete/:slug
 export const getCompleteWPController = async (req: Request, res: Response) => {
   const user = req.user as User
-  const slug = req.params.slug
-  const wp = await databaseService.wpParagraphs.findOne({ slug: slug })
-  if (!wp) {
-    return res.redirect('/writing-paragraph/setup')
-  }
+  const wp = req.wp as WPParagraph
   try {
     const completeResult = await writingService.wpComplete(user._id!.toString(), wp._id!.toString())
     console.log('Complete result:', completeResult)
@@ -193,4 +181,89 @@ export const getCompleteWPController = async (req: Request, res: Response) => {
       completeHtml: `<p class="text-danger">Không thể lấy đánh giá tổng quan.</p> br <p>${err}</p>`
     })
   }
+}
+
+// POST /writing-paragraph/custom-topic/preview
+export const postCustomTopicPreviewWPController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const { topic } = req.body
+  const level = req.level as Levels
+  const previewResult = await writingService.wpPreviewCustomTopic(topic, level.description)
+
+  const wpParagraph = new WPParagraph({
+    title: previewResult.title,
+    content: previewResult.content,
+    hint: previewResult.hint,
+    level: level._id as ObjectId,
+    topic: new ObjectId(),
+    type: new ObjectId(),
+    slug: (('paractice-custom-topic-' + user._id?.toString()) as string) + '-' + new Date().getTime()
+  })
+
+  if (previewResult.passed) {
+    await databaseService.wpPreviews.insertOne(wpParagraph)
+  }
+
+  res.status(HttpStatus.OK).json({
+    message: 'Xem trước chủ đề thành công',
+    status: HttpStatus.OK,
+    user: user,
+    previewResult: previewResult,
+    wpPreview: wpParagraph
+  })
+}
+
+// GET /writing-paragraph/practice/custom-topic/:idPreview
+export const getPracticeCustomTopicWPController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const idPreview = req.params.idPreview as string
+  const wpPreview = await databaseService.wpPreviews.findOne({ _id: new ObjectId(idPreview) })
+  if (!wpPreview) {
+    return res.redirect('/writing-paragraph/setup')
+  }
+
+  const initResult = await writingService.wpInitChat(
+    user._id?.toString() as string,
+    wpPreview._id?.toString() as string,
+    wpPreview.content
+  )
+  if (!initResult.Init_success) {
+    return res.redirect('/writing-paragraph/setup')
+  }
+  console.log('Init result:', initResult)
+  console.log('--------------------------------')
+  res.render('client/pages/writing-paragraph/practice.pug', {
+    pageTitle: 'Luyện tập chủ đề',
+    user: user,
+    wp: wpPreview
+  })
+}
+
+// POST /writing-paragraph/preview-content
+export const postPreviewContentWPController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const { content } = req.body
+  const previewResult = await writingService.wpPreviewContent(content)
+
+  const wpParagraph = new WPParagraph({
+    title: previewResult.title,
+    content: previewResult.content,
+    hint: previewResult.hint,
+    level: new ObjectId(),
+    topic: new ObjectId(),
+    type: new ObjectId(),
+    slug: (('paractice-custom-content-' + user._id?.toString()) as string) + '-' + new Date().getTime()
+  })
+
+  if (previewResult.passed) {
+    await databaseService.wpPreviews.insertOne(wpParagraph)
+  }
+
+  res.status(HttpStatus.OK).json({
+    message: 'Xem trước nội dung thành công',
+    status: HttpStatus.OK,
+    user: user,
+    previewResult: previewResult,
+    wpPreview: wpParagraph
+  })
 }

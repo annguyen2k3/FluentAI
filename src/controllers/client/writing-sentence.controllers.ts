@@ -10,7 +10,7 @@ import writingService from '~/services/writing.service'
 export const getSetupWritingSentenceController = async (req: Request, res: Response) => {
   const user = req.user as User
 
-  const levels = await databaseService.levels.find({}).toArray()
+  const levels = await databaseService.levels.find({}).sort({ pos: 1 }).toArray()
 
   res.render('client/pages/writing-sentence/setup.pug', {
     pageTitle: 'Chọn mức độ và chủ đề',

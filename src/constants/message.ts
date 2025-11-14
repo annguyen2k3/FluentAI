@@ -21,8 +21,7 @@ export const USER_MESSAGES = {
   OTP_INVALID: 'Mã xác thực không hợp lệ',
   RESET_PASSWORD_SUCCESS: 'Đặt lại mật khẩu thành công',
   USERNAME_LENGTH: 'Tên người dùng phải có ít nhất 1 ký tự và tối đa 50 ký tự',
-  USERNAME_INVALID:
-    'Tên người dùng chỉ được chứa chữ cái, số, dấu cách và dấu gạch dưới ( _ )',
+  USERNAME_INVALID: 'Tên người dùng chỉ được chứa chữ cái, số, dấu cách và dấu gạch dưới ( _ )',
   USERNAME_EXISTS: 'Tên người dùng đã tồn tại',
   DATE_OF_BIRTH_INVALID: 'Ngày sinh không hợp lệ',
   PHONE_NUMBER_INVALID: 'Số điện thoại không hợp lệ',
@@ -37,7 +36,8 @@ export const PROPERTY_MESSAGES = {
   SLUG_INVALID: 'Slug không hợp lệ',
   LEVEL_NOT_FOUND: 'Cấp độ không tồn tại',
   TYPE_NOT_FOUND: 'Loại không tồn tại',
-  TOPIC_NOT_FOUND: 'Chủ đề không tồn tại'
+  TOPIC_NOT_FOUND: 'Chủ đề không tồn tại',
+  TOPIC_INVALID: 'Chủ đề không hợp lệ'
 } as const
 
 export const WRITING_SENTENCE_MESSAGES = {

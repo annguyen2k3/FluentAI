@@ -44,6 +44,85 @@ if (wpSetup) {
     const level = wpSetup.querySelector('.wp-setup__option--level[active]')?.getAttribute('data-value')
     const type = wpSetup.querySelector('.wp-setup__type[active]')?.getAttribute('data-type')
 
+    if (source === 'custom') {
+      const content = wpSetup.querySelector('.wp-setup__custom-textarea').value
+      const requestUrl = `${ApiBreakpoint.POST_PREVIEW_CONTENT_WP}`
+      fetch(requestUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({ content: content })
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data)
+          if (data.status === 200) {
+            const previewResult = data.previewResult || {}
+            const modalEl = document.getElementById('wpPreviewModal')
+            if (!modalEl) return
+
+            const statusEl = document.getElementById('wpPreviewStatus')
+            const descEl = document.getElementById('wpPreviewDescription')
+            const titleEl = document.getElementById('wpPreviewTitle')
+            const contentEl = document.getElementById('wpPreviewContent')
+            const regenerateBtn = document.getElementById('wpPreviewRegenerate')
+            const startBtn = document.getElementById('wpPreviewStart')
+
+            if (statusEl) {
+              statusEl.textContent = previewResult.passed ? 'Đạt' : 'Chưa đạt'
+              statusEl.classList.remove('bg-success', 'bg-danger')
+              statusEl.classList.add(previewResult.passed ? 'bg-success' : 'bg-danger')
+            }
+            if (descEl) {
+              descEl.textContent = previewResult.description || ''
+            }
+            if (titleEl) {
+              titleEl.textContent = previewResult.title || ''
+            }
+            if (contentEl) {
+              contentEl.textContent = previewResult.content || ''
+            }
+
+            if (regenerateBtn) {
+              if (previewResult.passed) {
+                regenerateBtn.style.display = 'none'
+              } else {
+                regenerateBtn.style.display = 'inline-block'
+                regenerateBtn.textContent = 'Xem lại'
+                regenerateBtn.onclick = () => {
+                  const modal = typeof bootstrap !== 'undefined' ? bootstrap.Modal.getInstance(modalEl) : null
+                  if (modal) modal.hide()
+                }
+              }
+            }
+
+            if (startBtn) {
+              if (previewResult.passed) {
+                startBtn.style.display = 'inline-block'
+                startBtn.onclick = () => {
+                  if (data.wpPreview && data.wpPreview._id) {
+                    window.location.href = `/writing-paragraph/practice/custom-topic/${data.wpPreview._id.toString()}`
+                  } else {
+                    alertError('Không thể bắt đầu luyện tập. Vui lòng thử lại.')
+                  }
+                }
+              } else {
+                startBtn.style.display = 'none'
+              }
+            }
+
+            const modal = typeof bootstrap !== 'undefined' ? new bootstrap.Modal(modalEl) : null
+            if (modal) modal.show()
+          } else {
+            alertError(data.message)
+          }
+        })
+        .catch((error) => console.error('Error:', error))
+      return
+    }
+
     if (!level) {
       alertError('Vui lòng chọn cấp độ')
       return
@@ -55,7 +134,92 @@ if (wpSetup) {
 
     if (source === 'system') {
       if (type === 'ai-generate') {
-        console.log('ai-generate')
+        const topic = wpSetup.querySelector('[data-type="ai-generate"] .wp-setup__prompt-input').value
+        const level = wpSetup.querySelector('.wp-setup__option--level[active]')?.getAttribute('data-value')
+        const requestUrl = `${ApiBreakpoint.POST_CUSTOM_TOPIC_PREVIEW_WP}`
+        console.log('requestUrl', requestUrl)
+        fetch(requestUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          },
+          body: JSON.stringify({ topic: topic, level: level })
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data)
+            if (data.status === 200) {
+              const previewResult = data.previewResult || {}
+              const modalEl = document.getElementById('wpPreviewModal')
+              if (!modalEl) return
+
+              const statusEl = document.getElementById('wpPreviewStatus')
+              const descEl = document.getElementById('wpPreviewDescription')
+              const titleEl = document.getElementById('wpPreviewTitle')
+              const contentEl = document.getElementById('wpPreviewContent')
+
+              if (statusEl) {
+                statusEl.textContent = previewResult.passed ? 'Đạt' : 'Chưa đạt'
+                statusEl.classList.remove('bg-success', 'bg-danger')
+                statusEl.classList.add(previewResult.passed ? 'bg-success' : 'bg-danger')
+              }
+              if (descEl) {
+                descEl.textContent = previewResult.description || ''
+              }
+              if (titleEl) {
+                titleEl.textContent = previewResult.title || ''
+              }
+              if (contentEl) {
+                contentEl.textContent = previewResult.content || ''
+              }
+
+              const regenerateBtn = document.getElementById('wpPreviewRegenerate')
+              if (regenerateBtn) {
+                regenerateBtn.onclick = () => {
+                  const reqUrl = `${ApiBreakpoint.POST_CUSTOM_TOPIC_PREVIEW_WP}`
+                  fetch(reqUrl, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Accept: 'application/json'
+                    },
+                    body: JSON.stringify({ topic: topic, level: level })
+                  })
+                    .then((r) => r.json())
+                    .then((res) => {
+                      if (res.status === 200) {
+                        const p = res.previewResult || {}
+                        if (statusEl) {
+                          statusEl.textContent = p.passed ? 'Đạt' : 'Chưa đạt'
+                          statusEl.classList.remove('bg-success', 'bg-danger')
+                          statusEl.classList.add(p.passed ? 'bg-success' : 'bg-danger')
+                        }
+                        if (descEl) descEl.textContent = p.description || ''
+                        if (titleEl) titleEl.textContent = p.title || ''
+                        if (contentEl) contentEl.textContent = p.content || ''
+                      } else {
+                        alertError(res.message)
+                      }
+                    })
+                    .catch((err) => console.error('Error:', err))
+                }
+              }
+
+              const startBtn = document.getElementById('wpPreviewStart')
+              if (startBtn) {
+                startBtn.onclick = () => {
+                  window.location.href = `/writing-paragraph/practice/custom-topic/${data.wpPreview._id.toString()}`
+                }
+              }
+
+              const modal = typeof bootstrap !== 'undefined' ? new bootstrap.Modal(modalEl) : null
+              if (modal) modal.show()
+            } else {
+              alertError(data.message)
+            }
+          })
+          .catch((error) => console.error('Error:', error))
       } else {
         window.location.href = `/writing-paragraph/system-list?level=${level}&type=${type}`
       }

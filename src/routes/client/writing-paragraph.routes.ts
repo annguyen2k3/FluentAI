@@ -1,14 +1,22 @@
 import { Router } from 'express'
 import {
   getCompleteWPController,
+  getPracticeCustomTopicWPController,
   getSetupWPController,
   getWPListController,
+  postCustomTopicPreviewWPController,
   postPracticeWPController,
+  postPreviewContentWPController,
   renderListWPController,
   renderPracticeWPController
 } from '~/controllers/client/writing-paragraph.controllers'
 import { requireAuth } from '~/middlewares/users.middleware'
-import { getListWPValidator, getSystemListWPValidator } from '~/middlewares/writing-paragraph.middleware'
+import {
+  getListWPValidator,
+  getSystemListWPValidator,
+  postCustomTopicPreviewWPValidator,
+  renderWPPraticeValidator
+} from '~/middlewares/writing-paragraph.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
 
 const writingParagraphRoutes = Router()
@@ -39,19 +47,60 @@ writingParagraphRoutes.get('/list', requireAuth, getListWPValidator, wrapRequest
 // Description: Render practice writing paragraph page
 // Method: GET
 // Params: {slug: string}
-writingParagraphRoutes.get('/practice/:slug', requireAuth, wrapRequestHandler(renderPracticeWPController))
+writingParagraphRoutes.get(
+  '/practice/:slug',
+  requireAuth,
+  renderWPPraticeValidator,
+  wrapRequestHandler(renderPracticeWPController)
+)
 
 // POST /writing-paragraph/practice/:slug
 // Description: Post practice writing paragraph page
 // Method: POST
 // Params: {slug: string}
 // Body: {sentence_vi: string, user_translation: string}
-writingParagraphRoutes.post('/practice/:slug', requireAuth, wrapRequestHandler(postPracticeWPController))
+writingParagraphRoutes.post(
+  '/practice/:slug',
+  requireAuth,
+  renderWPPraticeValidator,
+  wrapRequestHandler(postPracticeWPController)
+)
 
 // GET /writing-paragraph/practice/complete/:slug
 // Description: Render complete writing paragraph page
 // Method: GET
 // Params: {slug: string}
-writingParagraphRoutes.get('/practice/complete/:slug', requireAuth, wrapRequestHandler(getCompleteWPController))
+writingParagraphRoutes.get(
+  '/practice/complete/:slug',
+  requireAuth,
+  renderWPPraticeValidator,
+  wrapRequestHandler(getCompleteWPController)
+)
 
+// POST /writing-paragraph/custom-topic/preview
+// Description: Post custom topic preview
+// Method: POST
+// Body: {topic: string, level: string}
+writingParagraphRoutes.post(
+  '/custom-topic/preview',
+  requireAuth,
+  postCustomTopicPreviewWPValidator,
+  wrapRequestHandler(postCustomTopicPreviewWPController)
+)
+
+// GET /writing-paragraph/practice/custom-topic/:idPreview
+// Description: Get practice custom topic
+// Method: GET
+// Params: idPreview
+writingParagraphRoutes.get(
+  '/practice/custom-topic/:idPreview',
+  requireAuth,
+  wrapRequestHandler(getPracticeCustomTopicWPController)
+)
+
+// POST /writing-paragraph/practice/preview-content
+// Description: Post preview content
+// Method: POST
+// Body: {content: string}
+writingParagraphRoutes.post('/preview-content', requireAuth, wrapRequestHandler(postPreviewContentWPController))
 export default writingParagraphRoutes

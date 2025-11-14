@@ -71,4 +71,25 @@ block main-content
                             | Bắt đầu luyện tập 
                             i(class=("fa-solid fa-arrow-right"))
 
+        div(class="modal fade" id="wpPreviewModal" tabindex="-1" aria-hidden="true")
+            div(class="modal-dialog modal-lg modal-dialog-centered")
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") Xem trước chủ đề
+                        button(type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close")
+                    div(class="modal-body")
+                        div(class="d-flex justify-content-between align-items-center mb-2")
+                            span(class="fw-semibold") Đánh giá chủ đề
+                            span(id="wpPreviewStatus" class="badge")
+                        p(id="wpPreviewDescription" class="mb-3")
+                        div(class="mb-3")
+                            span(class="fw-semibold d-block mb-2") Tiêu đề
+                            h6(id="wpPreviewTitle" class="mb-0")
+                        div(class="mb-3")
+                            span(class="fw-semibold d-block mb-2") Nội dung đoạn văn
+                            p(id="wpPreviewContent" class="mb-0")
+                    div(class="modal-footer")
+                        button(type="button" id="wpPreviewRegenerate" class="btn btn-outline-secondary") Tạo lại
+                        button(type="button" id="wpPreviewStart" class="btn btn-primary") Bắt đầu luyện tập
+
     script(src="/js/writing-paragraph.js" type="module")
