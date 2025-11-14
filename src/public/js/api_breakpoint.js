@@ -37,6 +37,11 @@ export const AdminApiBreakpoint = {
   // Body: { username: string, password: string }
   LOGIN: `${adminApiUrl}/auth/login`,
 
+  // PUT /admin/auth/profile
+  // Description: Update admin profile
+  // Body: { username: string, email: string }
+  UPDATE_PROFILE: `${adminApiUrl}/auth/profile`,
+
   // PATCH /admin/auth/profile/avatar
   // Description: Update admin avatar
   // Body: { images: File }

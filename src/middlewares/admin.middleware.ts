@@ -1,11 +1,17 @@
 import { Request, Response, NextFunction } from 'express'
+import { checkSchema } from 'express-validator'
 import { unset } from 'lodash'
-import { Admin, ObjectId } from 'mongodb'
+import { ObjectId } from 'mongodb'
 import adminServices from '~/services/admin.services'
 import { databaseService } from '~/services/database.service'
 import { verifyToken } from '~/utils/jwt'
+import { validate } from '~/utils/validation'
+import { USER_MESSAGES } from '~/constants/message'
+import Admin from '~/models/schemas/admin.schema'
 
 const prefixAdmin = process.env.PREFIX_ADMIN
+
+const ADMIN_USERNAME_REGEX = /^[a-zA-Z0-9]+$/
 
 export const requireAdminAuth = async (req: Request, res: Response, next: NextFunction) => {
   const access_token = req.cookies?.access_token as string
@@ -64,3 +70,56 @@ export const requireAdminAuth = async (req: Request, res: Response, next: NextFu
     return res.redirect(prefixAdmin + '/auth/login')
   }
 }
+
+export const updateProfileValidator = validate(
+  checkSchema(
+    {
+      username: {
+        isLength: {
+          options: {
+            min: 1,
+            max: 50
+          },
+          errorMessage: USER_MESSAGES.USERNAME_LENGTH
+        },
+        custom: {
+          options: async (value, { req }) => {
+            const admin = req.admin as Admin
+            const existingAdmin = await databaseService.admins.findOne({
+              username: value,
+              _id: { $ne: new ObjectId(admin._id) }
+            })
+            if (existingAdmin) {
+              throw new Error(USER_MESSAGES.USERNAME_EXISTS)
+            }
+
+            if (!ADMIN_USERNAME_REGEX.test(value)) {
+              throw new Error('Tên tài khoản chỉ được chứa chữ cái và số')
+            }
+            return true
+          }
+        }
+      },
+      email: {
+        isEmail: {
+          errorMessage: USER_MESSAGES.EMAIL_INVALID
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const admin = req.admin as Admin
+            const existingAdmin = await databaseService.admins.findOne({
+              email: value,
+              _id: { $ne: new ObjectId(admin._id) }
+            })
+            if (existingAdmin) {
+              throw new Error(USER_MESSAGES.EMAIL_EXISTS)
+            }
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)

@@ -4,9 +4,10 @@ import {
   loginController,
   logoutController,
   getProfileController,
+  updateProfileController,
   updateAvatarProfileController
 } from '~/controllers/admin/auth.controllers'
-import { requireAdminAuth } from '~/middlewares/admin.middleware'
+import { requireAdminAuth, updateProfileValidator } from '~/middlewares/admin.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
 const authRoutes = Router()
 
@@ -26,9 +27,14 @@ authRoutes.get('/logout', wrapRequestHandler(logoutController))
 // Description: Get admin profile
 authRoutes.get('/profile', requireAdminAuth, wrapRequestHandler(getProfileController))
 
+// PUT /admin/auth/profile
+// Description: Update admin profile
+// Body: { username: string, email: string }
+authRoutes.put('/profile', requireAdminAuth, updateProfileValidator, wrapRequestHandler(updateProfileController))
+
 // PATCH /admin/auth/profile/avatar
 // Description: Update admin avatar
-// Body: { avatar: string }
+// Body: { images: File }
 authRoutes.patch('/profile/avatar', requireAdminAuth, wrapRequestHandler(updateAvatarProfileController))
 
 export default authRoutes

@@ -7,6 +7,7 @@ import { databaseService } from '~/services/database.service'
 import mediasService from '~/services/medias.service'
 import { deleteFileFromS3 } from '~/utils/s3'
 import Admin from '~/models/schemas/admin.schema'
+import { omit } from 'lodash'
 
 const prefixAdmin = process.env.PREFIX_ADMIN
 
@@ -51,6 +52,26 @@ export const logoutController = async (req: Request, res: Response) => {
 export const getProfileController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
   res.render('admin/pages/auth/profile.pug', { pageTitle: 'Admin - Thông tin cá nhân', admin: admin })
+}
+
+// PUT /admin/auth/profile
+export const updateProfileController = async (req: Request, res: Response) => {
+  const admin = req.admin as Admin
+  const { username, email } = req.body
+
+  await databaseService.admins.updateOne(
+    { _id: new ObjectId(admin._id) },
+    { $set: { username, email, update_at: new Date() } }
+  )
+
+  const updatedAdmin = await databaseService.admins.findOne({ _id: new ObjectId(admin._id) })
+  const returnAdmin = omit(updatedAdmin, ['password'])
+
+  res.status(HttpStatus.OK).json({
+    message: 'Cập nhật thông tin thành công',
+    status: HttpStatus.OK,
+    admin: returnAdmin
+  })
 }
 
 // PATCH /admin/auth/profile/avatar
