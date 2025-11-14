@@ -217,8 +217,6 @@ class WritingService {
       sentence_vi,
       user_translation
     })
-    console.log('Evaluate prompt:', prompt)
-    console.log('--------------------------------')
     const text = await sendInSession(userId, practiceId, prompt)
     return JSON.parse(text as string) as EvaluateResult
   }

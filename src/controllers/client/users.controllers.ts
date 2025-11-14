@@ -5,8 +5,17 @@ import { HttpStatus } from '~/constants/httpStatus'
 import { COMMON_MESSAGES, USER_MESSAGES } from '~/constants/message'
 import User from '~/models/schemas/users.schema'
 import userService from '~/services/users.service'
-import {ParamsDictionary} from "express-serve-static-core";
-import { LoginReqBody, RegisterReqBody, UpdateProfileReqBody, VerifyEmailReqBody, ForgotPasswordEmailReqBody, ForgotPasswordOTPReqBody, ForgotPasswordResetReqBody, ChangePasswordReqBody } from '~/models/requests/User.request'
+import { ParamsDictionary } from 'express-serve-static-core'
+import {
+  LoginReqBody,
+  RegisterReqBody,
+  UpdateProfileReqBody,
+  VerifyEmailReqBody,
+  ForgotPasswordEmailReqBody,
+  ForgotPasswordOTPReqBody,
+  ForgotPasswordResetReqBody,
+  ChangePasswordReqBody
+} from '~/models/requests/User.request'
 import { GenderType, VerifyEmailType } from '~/constants/enum'
 import { databaseService } from '~/services/database.service'
 import { omit } from 'lodash'
@@ -20,6 +29,7 @@ export const getLoginController = (req: Request, res: Response) => {
 
 // GET /users/logout
 export const logoutController = async (req: Request, res: Response) => {
+  await databaseService.refreshTokens.deleteOne({ token: req.cookies.refresh_token })
   res.clearCookie('refresh_token')
   res.clearCookie('access_token')
   res.redirect('/users/login')
@@ -34,16 +44,16 @@ export const loginController = async (req: Request<ParamsDictionary, any, LoginR
 
   res.cookie('refresh_token', result.refresh_token, {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'lax'
   })
   res.cookie('access_token', result.access_token, {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'lax'
   })
 
   res.status(HttpStatus.OK).json({
     message: USER_MESSAGES.LOGIN_SUCCESS,
-    status: HttpStatus.OK,
+    status: HttpStatus.OK
   })
 }
 
@@ -63,11 +73,11 @@ export const googleOAuthCallbackController = async (req: Request, res: Response)
   // ví dụ: set cookie refresh_token HttpOnly và chuyển hướng về trang chủ
   res.cookie('refresh_token', result.refresh_token, {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'lax'
   })
   res.cookie('access_token', result.access_token, {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'lax'
   })
 
   // có thể đính kèm access_token vào query hoặc trả JSON; ở đây redirect
@@ -83,7 +93,7 @@ export const getRegisterController = (req: Request, res: Response) => {
 export const registerController = async (req: Request<ParamsDictionary, any, RegisterReqBody>, res: Response) => {
   res.status(HttpStatus.OK).json({
     message: COMMON_MESSAGES.INFORM_SUCCESS,
-    status: HttpStatus.OK,
+    status: HttpStatus.OK
   })
 }
 
@@ -94,11 +104,10 @@ export const getVerifyEmailController = async (req: Request, res: Response) => {
 
   await userService.sendOTPVerifyEmail(email, VerifyEmailType.RESISTER)
 
-  res.render('client/pages/auth/verify-email.pug', 
-    { 
-      pageTitle: 'FluentAI - Xác thực email',
-      email: email
-    })  
+  res.render('client/pages/auth/verify-email.pug', {
+    pageTitle: 'FluentAI - Xác thực email',
+    email: email
+  })
 }
 
 // POST /users/verify-email
@@ -116,7 +125,7 @@ export const verifyEmailController = async (req: Request<ParamsDictionary, any, 
 
   res.status(HttpStatus.OK).json({
     message: USER_MESSAGES.REGISTER_SUCCESS,
-    status: HttpStatus.OK,
+    status: HttpStatus.OK
   })
 }
 
@@ -126,20 +135,22 @@ export const getForgotPasswordController = (req: Request, res: Response) => {
 }
 
 // POST /users/forgot-password/email
-export const forgotPasswordEmailController = async (req: Request<ParamsDictionary, any, ForgotPasswordEmailReqBody>, res: Response) => {
+export const forgotPasswordEmailController = async (
+  req: Request<ParamsDictionary, any, ForgotPasswordEmailReqBody>,
+  res: Response
+) => {
   const { email } = req.body
 
   res.cookie('emailForgotPassword', email)
 
   res.status(HttpStatus.OK).json({
     message: COMMON_MESSAGES.INFORM_SUCCESS,
-    status: HttpStatus.OK,
+    status: HttpStatus.OK
   })
 }
 
 // GET /users/forgot-password/otp
 export const getForgotPasswordOTPController = async (req: Request, res: Response) => {
-
   const email = req.cookies.emailForgotPassword as string
 
   if (!email) {
@@ -152,20 +163,21 @@ export const getForgotPasswordOTPController = async (req: Request, res: Response
 }
 
 // POST /users/forgot-password/otp
-export const forgotPasswordOTPController = async (req: Request<ParamsDictionary, any, ForgotPasswordOTPReqBody>, res: Response) => {
-
+export const forgotPasswordOTPController = async (
+  req: Request<ParamsDictionary, any, ForgotPasswordOTPReqBody>,
+  res: Response
+) => {
   const otp = req.body.otp
   res.cookie('otpForgotPassword', otp)
 
   res.status(HttpStatus.OK).json({
     message: COMMON_MESSAGES.INFORM_SUCCESS,
-    status: HttpStatus.OK,
+    status: HttpStatus.OK
   })
 }
 
 // GET /users/forgot-password/reset
 export const getForgotPasswordResetController = async (req: Request, res: Response) => {
-
   const otp = req.cookies.otpForgotPassword as string
   const email = req.cookies.emailForgotPassword as string
 
@@ -178,8 +190,10 @@ export const getForgotPasswordResetController = async (req: Request, res: Respon
 }
 
 // POST /users/forgot-password/reset
-export const forgotPasswordResetController = async (req: Request<ParamsDictionary, any, ForgotPasswordResetReqBody>, res: Response) => {
-
+export const forgotPasswordResetController = async (
+  req: Request<ParamsDictionary, any, ForgotPasswordResetReqBody>,
+  res: Response
+) => {
   const email = req.cookies.emailForgotPassword as string
   const password = req.body.password
 
@@ -208,12 +222,17 @@ export const updateProfileController = async (req: Request, res: Response) => {
   const user = req.user as User
   const newInfo = req.body as UpdateProfileReqBody
 
-  await userService.updateProfile(user._id?.toString() as string, newInfo.username, new Date(newInfo.dateOfBirth), newInfo.phoneNumber, newInfo.gender)
+  await userService.updateProfile(
+    user._id?.toString() as string,
+    newInfo.username,
+    new Date(newInfo.dateOfBirth),
+    newInfo.phoneNumber,
+    newInfo.gender
+  )
 
   const newUser = await databaseService.users.findOne({ _id: new ObjectId(user._id) })
 
   const returnUser = omit(newUser, ['password'])
-
 
   res.status(HttpStatus.OK).json({
     message: COMMON_MESSAGES.INFORM_SUCCESS,
@@ -223,7 +242,10 @@ export const updateProfileController = async (req: Request, res: Response) => {
 }
 
 // PUT /users/profile/change-password
-export const changePasswordController = async (req: Request<ParamsDictionary, any, ChangePasswordReqBody>, res: Response) => {
+export const changePasswordController = async (
+  req: Request<ParamsDictionary, any, ChangePasswordReqBody>,
+  res: Response
+) => {
   const user = req.user as User
   const newPassword = req.body.newPassword
 

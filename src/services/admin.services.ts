@@ -14,7 +14,7 @@ class AdminServices {
       },
       privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string,
       options: {
-        expiresIn: '15M'
+        expiresIn: '5M'
       }
     })
   }

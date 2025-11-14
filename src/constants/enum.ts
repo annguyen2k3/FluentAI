@@ -48,3 +48,8 @@ export enum PromptWritingType {
 export enum AdminRole {
   ADMIN = 'root_admin'
 }
+
+export enum UserStatus {
+  ACTIVE = 'active',
+  BLOCKED = 'blocked'
+}

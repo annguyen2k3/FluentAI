@@ -1,0 +1,649 @@
+extends ../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Quản lý người dùng
+
+  div(class="row")
+    div(class="col-md-3")
+      div(class="card card-stats card-primary")
+        div(class="card-body")
+          div(class="row")
+            div(class="col-5")
+              div(class="icon-big text-center")
+                i(class="fas fa-users")
+            div(class="col-7 col-stats")
+              div(class="numbers")
+                p(class="card-category") Tổng người dùng
+                h4(class="card-title") #{countUsers}
+    div(class="col-md-3")
+      div(class="card card-stats card-success")
+        div(class="card-body")
+          div(class="row")
+            div(class="col-5")
+              div(class="icon-big text-center")
+                i(class="fas fa-user-check")
+            div(class="col-7 col-stats")
+              div(class="numbers")
+                p(class="card-category") Đang hoạt động
+                h4(class="card-title") #{countActiveUsers}
+    div(class="col-md-3")
+      div(class="card card-stats card-warning")
+        div(class="card-body")
+          div(class="row")
+            div(class="col-5")
+              div(class="icon-big text-center")
+                i(class="fas fa-user-lock")
+            div(class="col-7 col-stats")
+              div(class="numbers")
+                p(class="card-category") Bị khóa
+                h4(class="card-title") #{countBlockedUsers}
+    div(class="col-md-3")
+      div(class="card card-stats card-info")
+        div(class="card-body")
+          div(class="row")
+            div(class="col-5")
+              div(class="icon-big text-center")
+                i(class="fas fa-user-plus")
+            div(class="col-7 col-stats")
+              div(class="numbers")
+                p(class="card-category") Mới hôm nay
+                h4(class="card-title") #{countNewUsers}
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card")
+        div(class="card-header")
+          div(class="d-flex align-items-center")
+            h4(class="card-title") Danh sách người dùng
+        div(class="card-body")
+          div(class="row mb-3")
+            div(class="col-md-3")
+              div(class="form-group")
+                label Tìm kiếm
+                div(class="input-group")
+                  input(type="text" class="form-control" id="searchInput" placeholder="Tìm theo tên, email, ID...")
+                  div(class="input-group-append")
+                    button(class="btn btn-primary" type="button" id="searchBtn")
+                      i(class="fas fa-search")
+            div(class="col-md-2")
+              div(class="form-group")
+                label Trạng thái
+                select(class="form-control" id="statusFilter")
+                  option(value="") Tất cả
+                  option(value="active") Đang hoạt động
+                  option(value="blocked") Bị khóa
+            div(class="col-md-2")
+              div(class="form-group")
+                label Từ ngày
+                input(type="date" class="form-control" id="startDateFilter")
+            div(class="col-md-2")
+              div(class="form-group")
+                label Đến ngày
+                input(type="date" class="form-control" id="endDateFilter")
+            div(class="col-md-2")
+              div(class="form-group")
+                label Sắp xếp
+                select(class="form-control" id="sortFilter")
+                  option(value="desc") Mới nhất
+                  option(value="asc") Cũ nhất
+            div(class="col-md-1")
+              div(class="form-group")
+                label &nbsp;
+                button(class="btn btn-secondary btn-block" id="resetFilter" title="Reset")
+                  i(class="fas fa-undo") 
+
+          div(class="table-responsive")
+            table(class="table table-striped" id="usersTable")
+              thead
+                tr
+                  th ID
+                  th Avatar
+                  th Tên
+                  th Email
+                  th Số điện thoại
+                  th Trạng thái
+                  th Ngày đăng ký
+                  th Thao tác
+              tbody(id="usersTableBody")
+                tr
+                  td(colspan="8" class="text-center py-4")
+                    div(class="spinner-border text-primary" role="status")
+                      span(class="sr-only") Đang tải...
+
+          div(class="row mt-3")
+            div(class="col-md-6")
+              div(class="dataTables_info" id="paginationInfo")
+                | Đang tải...
+            div(class="col-md-6")
+              nav(aria-label="Page navigation")
+                ul(class="pagination justify-content-end" id="pagination")
+                  li(class="page-item disabled")
+                    a(class="page-link" href="#" tabindex="-1") Đang tải...
+
+  div(class="modal fade" id="userDetailModal" tabindex="-1" role="dialog" aria-labelledby="userDetailModalLabel" aria-hidden="true")
+    div(class="modal-dialog modal-lg" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="userDetailModalLabel") Chi tiết người dùng
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          div(class="row")
+            div(class="col-md-4 text-center")
+              div(class="avatar-lg mx-auto mb-3")
+                img(src="/admin/assets/img/profile.jpg" alt="..." class="avatar-img rounded-circle" id="userAvatar")
+              h4(id="userName") Nguyễn Văn An
+              p(class="text-muted" id="userEmail") an.nguyen@email.com
+              span(class="badge badge-success" id="userStatus") Hoạt động
+            div(class="col-md-8")
+              div(class="row")
+                div(class="col-md-6")
+                  div(class="form-group")
+                    label(class="form-label") ID người dùng
+                    p(class="form-control-plaintext" id="userId") #001
+                div(class="col-md-6")
+                  div(class="form-group")
+                    label(class="form-label") Số điện thoại
+                    p(class="form-control-plaintext" id="userPhone") 0123456789
+                div(class="col-md-6")
+                  div(class="form-group")
+                    label(class="form-label") Ngày đăng ký
+                    p(class="form-control-plaintext" id="userRegisterDate") 15/01/2024
+                div(class="col-md-6")
+                  div(class="form-group")
+                    label(class="form-label") Lần đăng nhập cuối
+                    p(class="form-control-plaintext" id="userLastLogin") 28/01/2024 14:30
+                div(class="col-md-6")
+                  div(class="form-group")
+                    label(class="form-label") Điểm số hiện tại
+                    p(class="form-control-plaintext" id="userScore") 1,250 điểm
+                div(class="col-md-6")
+                  div(class="form-group")
+                    label(class="form-label") Cấp độ
+                    p(class="form-control-plaintext" id="userLevel") Trung cấp
+              div(class="mt-4")
+                h6 Lịch sử hoạt động
+                div(class="timeline" id="userActivity")
+                  div(class="timeline-item")
+                    div(class="timeline-marker bg-success")
+                    div(class="timeline-content")
+                      h6(class="timeline-title") Hoàn thành bài luyện viết
+                      p(class="timeline-text") Đã hoàn thành bài luyện viết cấp độ trung cấp
+                      span(class="timeline-date") 28/01/2024 14:30
+                  div(class="timeline-item")
+                    div(class="timeline-marker bg-info")
+                    div(class="timeline-content")
+                      h6(class="timeline-title") Đăng nhập hệ thống
+                      p(class="timeline-text") Đăng nhập từ thiết bị di động
+                      span(class="timeline-date") 28/01/2024 09:15
+                  div(class="timeline-item")
+                    div(class="timeline-marker bg-warning")
+                    div(class="timeline-content")
+                      h6(class="timeline-title") Cập nhật thông tin
+                      p(class="timeline-text") Thay đổi số điện thoại
+                      span(class="timeline-date") 25/01/2024 16:45
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Đóng
+          button(type="button" class="btn btn-primary" onclick="editUser()") Chỉnh sửa
+
+  div(class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true")
+    div(class="modal-dialog" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="confirmModalLabel") Xác nhận
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          p(id="confirmMessage") Bạn có chắc chắn muốn thực hiện hành động này?
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-danger" id="confirmAction") Xác nhận
+
+block scripts
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+    let currentPage = 1
+    const limit = 10
+    let currentFilters = {
+      search: '',
+      status: '',
+      startDate: '',
+      endDate: '',
+      sort: 'desc'
+    }
+
+    async function loadUsers() {
+      const tbody = document.getElementById('usersTableBody')
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="sr-only">Đang tải...</span></div></td></tr>'
+
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: limit.toString(),
+        ...(currentFilters.search && { search: currentFilters.search }),
+        ...(currentFilters.status && { status: currentFilters.status }),
+        ...(currentFilters.startDate && { startDate: currentFilters.startDate }),
+        ...(currentFilters.endDate && { endDate: currentFilters.endDate }),
+        sort: currentFilters.sort
+      })
+
+      try {
+        const response = await fetch(`${AdminApiBreakpoint.GET_USERS_LIST}?${params}`)
+        
+        if (!response.ok) {
+          const errorText = await response.text()
+          let errorData
+          try {
+            errorData = JSON.parse(errorText)
+          } catch {
+            errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` }
+          }
+          throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        const result = await response.json()
+
+        if (result.status === 200 && result.data) {
+          renderUsers(result.data.list)
+          renderPagination(result.data.pagination)
+        } else {
+          const errorMsg = result.message || 'Có lỗi xảy ra khi tải dữ liệu'
+          tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">
+            <div class="alert alert-danger mb-0">
+              <strong>Lỗi:</strong> ${errorMsg}
+              ${result.error ? `<br><small>Chi tiết: ${JSON.stringify(result.error)}</small>` : ''}
+            </div>
+          </td></tr>`
+        }
+      } catch (error) {
+        console.error('Error loading users:', error)
+        const errorMsg = error.message || 'Có lỗi xảy ra khi tải dữ liệu'
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">
+          <div class="alert alert-danger mb-0">
+            <strong>Lỗi:</strong> ${errorMsg}
+            <br><small>Chi tiết: ${error.toString()}</small>
+            ${error.stack ? `<br><small style="font-size: 0.8em; color: #666;">Stack: ${error.stack}</small>` : ''}
+          </div>
+        </td></tr>`
+      }
+    }
+
+    function renderUsers(users) {
+      const tbody = document.getElementById('usersTableBody')
+      
+      if (!users || users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">Không có dữ liệu</td></tr>'
+        return
+      }
+
+      tbody.innerHTML = users.map(user => {
+        const createDate = user.create_at ? new Date(user.create_at).toLocaleDateString('vi-VN') : '-'
+        const status = user.status || 'active'
+        const statusText = getStatusText(status)
+        const statusClass = getStatusClass(status)
+        const userId = user._id ? user._id.toString() : ''
+        const username = user.username || 'Chưa cập nhật'
+        const email = user.email || '-'
+        const phone = user.phone_number || '-'
+        const avatar = user.avatar || 'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'
+
+        return `
+          <tr data-user-id="${userId}">
+            <td>
+              <span class="user-table__id" title="${userId}">${userId.substring(0, 20)}${userId.length > 20 ? '...' : ''}</span>
+            </td>
+            <td>
+              <div class="avatar-sm">
+                <img src="${avatar}" alt="${username}" class="avatar-img rounded-circle" onerror="this.src='https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'">
+          </div>
+            </td>
+            <td>${username}</td>
+            <td>${email}</td>
+            <td>${phone}</td>
+            <td>
+              <span class="badge ${statusClass}">${statusText}</span>
+            </td>
+            <td>${createDate}</td>
+            <td>
+              <div class="btn-group">
+                <button class="btn btn-sm btn-info" data-action="view" data-user-id="${userId}" title="Xem chi tiết">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-primary" data-action="logout" data-user-id="${userId}" title="Đăng xuất người dùng">
+                  <i class="fas fa-sign-out-alt"></i>
+                </button>
+                ${status === 'active' 
+                  ? `<button class="btn btn-sm btn-warning" data-action="lock" data-user-id="${userId}" title="Khóa tài khoản"><i class="fas fa-lock"></i></button>`
+                  : `<button class="btn btn-sm btn-success" data-action="unlock" data-user-id="${userId}" title="Mở khóa"><i class="fas fa-unlock"></i></button>`
+                }
+                <button class="btn btn-sm btn-danger" data-action="delete" data-user-id="${userId}" title="Xóa">
+                  <i class="fas fa-trash"></i>
+                </button>
+        </div>
+            </td>
+          </tr>
+        `
+      }).join('')
+
+      tbody.querySelectorAll('button[data-action]').forEach(button => {
+        button.addEventListener('click', function() {
+          const action = this.getAttribute('data-action')
+          const userId = this.getAttribute('data-user-id')
+          switch(action) {
+            case 'view':
+              viewUser(userId)
+              break
+            case 'lock':
+              lockUser(userId)
+              break
+            case 'unlock':
+              unlockUser(userId)
+              break
+            case 'logout':
+              logoutUser(userId)
+              break
+            case 'delete':
+              deleteUser(userId)
+              break
+          }
+        })
+      })
+    }
+
+    function renderPagination(pagination) {
+      const paginationInfo = document.getElementById('paginationInfo')
+      const paginationEl = document.getElementById('pagination')
+
+      const start = (pagination.page - 1) * pagination.limit + 1
+      const end = Math.min(pagination.page * pagination.limit, pagination.total)
+      paginationInfo.textContent = `Hiển thị ${start} đến ${end} của ${pagination.total} người dùng`
+
+      let paginationHTML = ''
+      
+      paginationHTML += `<li class="page-item ${!pagination.hasPrevPage ? 'disabled' : ''}">
+        <a class="page-link" href="#" data-page="${pagination.page - 1}">Trước</a>
+      </li>`
+
+      const maxPages = 5
+      let startPage = Math.max(1, pagination.page - Math.floor(maxPages / 2))
+      let endPage = Math.min(pagination.totalPages, startPage + maxPages - 1)
+      
+      if (endPage - startPage < maxPages - 1) {
+        startPage = Math.max(1, endPage - maxPages + 1)
+      }
+
+      if (startPage > 1) {
+        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`
+        if (startPage > 2) {
+          paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`
+        }
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `<li class="page-item ${i === pagination.page ? 'active' : ''}">
+          <a class="page-link" href="#" data-page="${i}">${i}</a>
+        </li>`
+      }
+
+      if (endPage < pagination.totalPages) {
+        if (endPage < pagination.totalPages - 1) {
+          paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`
+        }
+        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${pagination.totalPages}">${pagination.totalPages}</a></li>`
+      }
+
+      paginationHTML += `<li class="page-item ${!pagination.hasNextPage ? 'disabled' : ''}">
+        <a class="page-link" href="#" data-page="${pagination.page + 1}">Sau</a>
+      </li>`
+
+      paginationEl.innerHTML = paginationHTML
+
+      paginationEl.querySelectorAll('a.page-link[data-page]').forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault()
+          const page = parseInt(this.getAttribute('data-page'))
+          if (page && !this.closest('.page-item').classList.contains('disabled')) {
+            currentPage = page
+            loadUsers()
+          }
+        })
+      })
+    }
+
+    function viewUser(userId) {
+      showNotification('info', 'Chức năng xem chi tiết đang được phát triển!')
+    }
+
+    async function lockUser(userId) {
+      showConfirmModal(
+        'Khóa tài khoản',
+        'Bạn có chắc chắn muốn khóa tài khoản này? Người dùng sẽ không thể đăng nhập vào hệ thống.',
+        async () => {
+          try {
+            const response = await fetch(AdminApiBreakpoint.LOCK_USER, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ userId })
+            })
+
+            if (!response.ok) {
+              const errorText = await response.text()
+              let errorData
+              try {
+                errorData = JSON.parse(errorText)
+              } catch {
+                errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` }
+              }
+              throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+            }
+
+            const result = await response.json()
+
+            if (result.status === 200) {
+              showNotification('success', result.message || 'Đã khóa tài khoản thành công!')
+              loadUsers()
+            } else {
+              showNotification('error', result.message || 'Có lỗi xảy ra khi khóa tài khoản!')
+            }
+          } catch (error) {
+            console.error('Error locking user:', error)
+            showNotification('error', error.message || 'Có lỗi xảy ra khi khóa tài khoản!')
+          }
+        }
+      )
+    }
+
+    async function unlockUser(userId) {
+      showConfirmModal(
+        'Mở khóa tài khoản',
+        'Bạn có chắc chắn muốn mở khóa tài khoản này?',
+        async () => {
+          try {
+            const response = await fetch(AdminApiBreakpoint.UNLOCK_USER, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ userId })
+            })
+
+            if (!response.ok) {
+              const errorText = await response.text()
+              let errorData
+              try {
+                errorData = JSON.parse(errorText)
+              } catch {
+                errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` }
+              }
+              throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+            }
+
+            const result = await response.json()
+
+            if (result.status === 200) {
+              showNotification('success', result.message || 'Đã mở khóa tài khoản thành công!')
+              loadUsers()
+            } else {
+              showNotification('error', result.message || 'Có lỗi xảy ra khi mở khóa tài khoản!')
+            }
+          } catch (error) {
+            console.error('Error unlocking user:', error)
+            showNotification('error', error.message || 'Có lỗi xảy ra khi mở khóa tài khoản!')
+          }
+        }
+      )
+    }
+
+    async function logoutUser(userId) {
+      showConfirmModal(
+        'Đăng xuất người dùng',
+        'Bạn có chắc chắn muốn đăng xuất người dùng này khỏi tất cả phiên đang hoạt động?',
+        async () => {
+          try {
+            const response = await fetch(AdminApiBreakpoint.LOGOUT_USER, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ userId })
+            })
+
+            if (!response.ok) {
+              const errorText = await response.text()
+              let errorData
+              try {
+                errorData = JSON.parse(errorText)
+              } catch {
+                errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` }
+              }
+              throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+            }
+
+            const result = await response.json()
+
+            if (result.status === 200) {
+              showNotification('success', result.message || 'Đã đăng xuất người dùng thành công!')
+            } else {
+              showNotification('error', result.message || 'Có lỗi xảy ra khi đăng xuất người dùng!')
+            }
+          } catch (error) {
+            console.error('Error logging out user:', error)
+            showNotification('error', error.message || 'Có lỗi xảy ra khi đăng xuất người dùng!')
+          }
+        }
+      )
+    }
+
+    function deleteUser(userId) {
+      showConfirmModal(
+        'Xóa tài khoản',
+        'Bạn có chắc chắn muốn xóa tài khoản này? Hành động này không thể hoàn tác!',
+        () => {
+          showNotification('info', 'Chức năng xóa tài khoản đang được phát triển!')
+        }
+      )
+    }
+
+    function showConfirmModal(title, message, callback) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: title,
+          text: message,
+          icon: 'warning',
+          buttons: {
+            cancel: 'Hủy',
+            confirm: 'Xác nhận'
+          },
+          dangerMode: true
+        }).then((willDelete) => {
+          if (willDelete) {
+            callback()
+          }
+        })
+      } else {
+        document.getElementById('confirmModalLabel').textContent = title
+        document.getElementById('confirmMessage').textContent = message
+
+        const confirmBtn = document.getElementById('confirmAction')
+        confirmBtn.onclick = () => {
+          $('#confirmModal').modal('hide')
+          callback()
+        }
+
+        $('#confirmModal').modal('show')
+      }
+    }
+
+    function applyFilters() {
+      currentPage = 1
+      currentFilters.search = document.getElementById('searchInput').value.trim()
+      currentFilters.status = document.getElementById('statusFilter').value
+      currentFilters.startDate = document.getElementById('startDateFilter').value
+      currentFilters.endDate = document.getElementById('endDateFilter').value
+      currentFilters.sort = document.getElementById('sortFilter').value
+      loadUsers()
+    }
+
+    function resetFilters() {
+      document.getElementById('searchInput').value = ''
+      document.getElementById('statusFilter').value = ''
+      document.getElementById('startDateFilter').value = ''
+      document.getElementById('endDateFilter').value = ''
+      document.getElementById('sortFilter').value = 'desc'
+      applyFilters()
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', applyFilters)
+    document.getElementById('searchInput').addEventListener('keyup', function (e) {
+      if (e.key === 'Enter') {
+        applyFilters()
+      }
+    })
+    document.getElementById('statusFilter').addEventListener('change', applyFilters)
+    document.getElementById('startDateFilter').addEventListener('change', applyFilters)
+    document.getElementById('endDateFilter').addEventListener('change', applyFilters)
+    document.getElementById('sortFilter').addEventListener('change', applyFilters)
+    document.getElementById('resetFilter').addEventListener('click', resetFilters)
+
+    function getStatusText(status) {
+      const statusMap = {
+        'active': 'Hoạt động',
+        'blocked': 'Bị khóa'
+      }
+      return statusMap[status] || status
+    }
+
+    function getStatusClass(status) {
+      const classMap = {
+        'active': 'badge-success',
+        'blocked': 'badge-warning'
+      }
+      return classMap[status] || 'badge-secondary'
+    }
+
+    function showNotification(type, message) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      loadUsers()
+    })
+

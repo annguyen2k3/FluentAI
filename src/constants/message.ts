@@ -5,6 +5,12 @@ export const COMMON_MESSAGES = {
 } as const
 
 export const USER_MESSAGES = {
+  USER_ID_INVALID: 'ID người dùng không hợp lệ',
+  USER_NOT_FOUND: 'Người dùng không tồn tại',
+  USER_BLOCKED: 'Người dùng đã bị khóa',
+  USER_UNBLOCKED: 'Người dùng đã được mở khóa',
+  USER_LOGOUT: 'Người dùng đã đăng xuất',
+  USER_DELETED: 'Người dùng đã bị xóa',
   LOGIN_SUCCESS: 'Đăng nhập thành công',
   LOGIN_FAILED: 'Đăng nhập thất bại',
   EMAIL_NOT_FOUND: 'Email không tồn tại',
@@ -37,7 +43,13 @@ export const PROPERTY_MESSAGES = {
   LEVEL_NOT_FOUND: 'Cấp độ không tồn tại',
   TYPE_NOT_FOUND: 'Loại không tồn tại',
   TOPIC_NOT_FOUND: 'Chủ đề không tồn tại',
-  TOPIC_INVALID: 'Chủ đề không hợp lệ'
+  TOPIC_INVALID: 'Chủ đề không hợp lệ',
+  PAGE_INVALID: 'Trang không hợp lệ',
+  LIMIT_INVALID: 'Số lượng không hợp lệ',
+  STATUS_INVALID: 'Trạng thái không hợp lệ',
+  SEARCH_INVALID: 'Từ khóa tìm kiếm không hợp lệ',
+  SORT_INVALID: 'Sắp xếp không hợp lệ',
+  DATE_INVALID: 'Ngày không hợp lệ'
 } as const
 
 export const WRITING_SENTENCE_MESSAGES = {

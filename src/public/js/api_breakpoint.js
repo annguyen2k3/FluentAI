@@ -50,5 +50,25 @@ export const AdminApiBreakpoint = {
   // PATCH /admin/auth/profile/avatar
   // Description: Update admin avatar
   // Body: { images: File }
-  UPDATE_AVATAR_PROFILE: `${adminApiUrl}/auth/profile/avatar`
+  UPDATE_AVATAR_PROFILE: `${adminApiUrl}/auth/profile/avatar`,
+
+  // GET /admin/users/list
+  // Description: Get list of users
+  // Query: page, limit, status, search, sort, startDate, endDate
+  GET_USERS_LIST: `${adminApiUrl}/users/list`,
+
+  // POST /admin/users/lock
+  // Description: Lock user
+  // Body: { userId: string }
+  LOCK_USER: `${adminApiUrl}/users/lock`,
+
+  // POST /admin/users/unlock
+  // Description: Unlock user
+  // Body: { userId: string }
+  UNLOCK_USER: `${adminApiUrl}/users/unlock`,
+
+  // POST /admin/users/logout
+  // Description: Logout user
+  // Body: { userId: string }
+  LOGOUT_USER: `${adminApiUrl}/users/logout`
 }
