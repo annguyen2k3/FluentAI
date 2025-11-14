@@ -238,7 +238,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
       secretOrPublicKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
     })
     const user = await userService.getUserById(decoded.user_id)
-    if (!user) {
+    if (!user || user.status === UserStatus.BLOCKED) {
       return res.redirect('/users/login')
     }
     unset(user, 'password')

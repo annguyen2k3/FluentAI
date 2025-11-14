@@ -16,7 +16,7 @@ import {
   ForgotPasswordResetReqBody,
   ChangePasswordReqBody
 } from '~/models/requests/User.request'
-import { GenderType, VerifyEmailType } from '~/constants/enum'
+import { GenderType, UserStatus, VerifyEmailType } from '~/constants/enum'
 import { databaseService } from '~/services/database.service'
 import { omit } from 'lodash'
 import mediasService from '~/services/medias.service'
@@ -36,9 +36,20 @@ export const logoutController = async (req: Request, res: Response) => {
 }
 
 // POST /users/login
-export const loginController = async (req: Request<ParamsDictionary, any, LoginReqBody>, res: Response) => {
+export const loginController = async (
+  req: Request<ParamsDictionary, any, LoginReqBody>,
+  res: Response
+) => {
   const user = req.user as User
   const user_id = user._id as ObjectId
+
+  if (user.status === UserStatus.BLOCKED) {
+    res.status(HttpStatus.BAD_REQUEST).json({
+      status: HttpStatus.BAD_REQUEST,
+      message: USER_MESSAGES.USER_BLOCKED
+    })
+    return
+  }
 
   const result = await userService.login(user_id.toString())
 
@@ -90,7 +101,10 @@ export const getRegisterController = (req: Request, res: Response) => {
 }
 
 // POST /users/register
-export const registerController = async (req: Request<ParamsDictionary, any, RegisterReqBody>, res: Response) => {
+export const registerController = async (
+  req: Request<ParamsDictionary, any, RegisterReqBody>,
+  res: Response
+) => {
   res.status(HttpStatus.OK).json({
     message: COMMON_MESSAGES.INFORM_SUCCESS,
     status: HttpStatus.OK
@@ -111,7 +125,10 @@ export const getVerifyEmailController = async (req: Request, res: Response) => {
 }
 
 // POST /users/verify-email
-export const verifyEmailController = async (req: Request<ParamsDictionary, any, VerifyEmailReqBody>, res: Response) => {
+export const verifyEmailController = async (
+  req: Request<ParamsDictionary, any, VerifyEmailReqBody>,
+  res: Response
+) => {
   const email = req.cookies.emailRegister as string
   const password = req.cookies.passwordRegister as string
 
@@ -159,7 +176,9 @@ export const getForgotPasswordOTPController = async (req: Request, res: Response
 
   await userService.sendOTPVerifyEmail(email, VerifyEmailType.FORGOT_PASSWORD)
 
-  res.render('client/pages/auth/forgot-password-otp.pug', { pageTitle: 'FluentAI - Quên mật khẩu OTP' })
+  res.render('client/pages/auth/forgot-password-otp.pug', {
+    pageTitle: 'FluentAI - Quên mật khẩu OTP'
+  })
 }
 
 // POST /users/forgot-password/otp
@@ -181,12 +200,18 @@ export const getForgotPasswordResetController = async (req: Request, res: Respon
   const otp = req.cookies.otpForgotPassword as string
   const email = req.cookies.emailForgotPassword as string
 
-  const check = await databaseService.otpVerifyEmail.findOne({ email, otp, type: VerifyEmailType.FORGOT_PASSWORD })
+  const check = await databaseService.otpVerifyEmail.findOne({
+    email,
+    otp,
+    type: VerifyEmailType.FORGOT_PASSWORD
+  })
   if (!check) {
     return res.redirect('/users/forgot-password')
   }
 
-  res.render('client/pages/auth/forgot-password-reset.pug', { pageTitle: 'FluentAI - Đặt lại mật khẩu' })
+  res.render('client/pages/auth/forgot-password-reset.pug', {
+    pageTitle: 'FluentAI - Đặt lại mật khẩu'
+  })
 }
 
 // POST /users/forgot-password/reset
@@ -214,7 +239,10 @@ export const getProfileController = async (req: Request, res: Response) => {
 
   const returnUser = omit(user, ['password'])
 
-  res.render('client/pages/users/profile.pug', { pageTitle: 'FluentAI - Thông tin cá nhân', user: returnUser })
+  res.render('client/pages/users/profile.pug', {
+    pageTitle: 'FluentAI - Thông tin cá nhân',
+    user: returnUser
+  })
 }
 
 // PUT /users/profile
@@ -265,7 +293,10 @@ export const updateAvatarProfileController = async (req: Request, res: Response)
 
   Promise.all([
     deleteFileFromS3({ filename: user.avatar as string }),
-    databaseService.users.updateOne({ _id: new ObjectId(user._id) }, { $set: { avatar: result[0].url } })
+    databaseService.users.updateOne(
+      { _id: new ObjectId(user._id) },
+      { $set: { avatar: result[0].url } }
+    )
   ])
 
   res.status(HttpStatus.OK).json({

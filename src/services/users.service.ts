@@ -138,7 +138,9 @@ class UserService {
     const user = await databaseService.users.findOne({ email: userInfo.email })
     if (user) {
       // Nếu đã đăng ký, đăng nhập và trả về token
-      const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user._id.toString())
+      const [access_token, refresh_token] = await this.signAccessAndRefreshToken(
+        user._id.toString()
+      )
       await databaseService.refreshTokens.insertOne(
         new RefreshToken({ user_id: new ObjectId(user?._id), token: refresh_token })
       )
@@ -303,7 +305,12 @@ class UserService {
 
     const [list, total] = await Promise.all([
       databaseService.users
-        .aggregate([{ $match: matchStage }, { $sort: { create_at: sortOrder } }, { $skip: skip }, { $limit: limit }])
+        .aggregate([
+          { $match: matchStage },
+          { $sort: { create_at: sortOrder } },
+          { $skip: skip },
+          { $limit: limit }
+        ])
         .toArray(),
       databaseService.users.countDocuments(matchStage)
     ])
@@ -323,14 +330,20 @@ class UserService {
   }
 
   async lockUser(userId: string) {
-    return await databaseService.users.updateOne(
-      { _id: new ObjectId(userId) },
-      { $set: { status: UserStatus.BLOCKED } }
-    )
+    return await Promise.all([
+      databaseService.users.updateOne(
+        { _id: new ObjectId(userId) },
+        { $set: { status: UserStatus.BLOCKED } }
+      ),
+      databaseService.refreshTokens.deleteMany({ user_id: new ObjectId(userId) })
+    ])
   }
 
   async unlockUser(userId: string) {
-    return await databaseService.users.updateOne({ _id: new ObjectId(userId) }, { $set: { status: UserStatus.ACTIVE } })
+    return await databaseService.users.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { status: UserStatus.ACTIVE } }
+    )
   }
 }
 

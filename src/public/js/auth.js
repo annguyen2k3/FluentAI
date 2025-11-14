@@ -27,7 +27,6 @@ import { ApiBreakpoint } from './api_breakpoint.js'
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log(data)
           if (data.status === 200) {
             window.location.href = '/'
           } else if (data.status === 422) {
@@ -40,6 +39,9 @@ import { ApiBreakpoint } from './api_breakpoint.js'
                 errorElement.style.display = 'block'
               }
             }
+          } else if (data.status === 400) {
+            alert(data.message || 'Đăng nhập thất bại')
+            return
           }
         })
         .catch((error) => console.error('Error:', error))
