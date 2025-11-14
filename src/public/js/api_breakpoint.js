@@ -29,3 +29,16 @@ export const ApiBreakpoint = {
   // Body: {content: string}
   POST_PREVIEW_CONTENT_WP: `${apiUrl}/writing-paragraph/preview-content` // Post preview content
 }
+
+const adminApiUrl = 'http://localhost:3000/admin'
+export const AdminApiBreakpoint = {
+  // POST /admin/auth/login
+  // Description: Login admin
+  // Body: { username: string, password: string }
+  LOGIN: `${adminApiUrl}/auth/login`,
+
+  // PATCH /admin/auth/profile/avatar
+  // Description: Update admin avatar
+  // Body: { images: File }
+  UPDATE_AVATAR_PROFILE: `${adminApiUrl}/auth/profile/avatar`
+}

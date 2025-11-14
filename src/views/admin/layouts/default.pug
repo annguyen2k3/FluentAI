@@ -1,0 +1,71 @@
+doctype html
+html(lang="vi")
+  head
+    meta(http-equiv="X-UA-Compatible" content="IE=edge")
+    title #{pageTitle}
+    meta(name="viewport" content="width=1200, initial-scale=1.0")
+    link(rel="icon" href="/admin/assets/img/kaiadmin/favicon.ico" type="image/x-icon")
+    script(src="/admin/assets/js/plugin/webfont/webfont.min.js")
+    script.
+      WebFont.load({
+        google: { families: ['Public Sans:300,400,500,600,700'] },
+        custom: {
+          families: [
+            'Font Awesome 5 Solid',
+            'Font Awesome 5 Regular',
+            'Font Awesome 5 Brands',
+            'simple-line-icons'
+          ],
+          urls: ['/admin/assets/css/fonts.min.css']
+        },
+        active: function () {
+          sessionStorage.fonts = true
+        }
+      })
+    link(rel="stylesheet" href="/admin/assets/css/bootstrap.min.css")
+    link(rel="stylesheet" href="/admin/assets/css/plugins.min.css")
+    link(rel="stylesheet" href="/admin/assets/css/kaiadmin.min.css")
+    link(rel="stylesheet" href="/admin/assets/css/demo.css")
+    link(rel="stylesheet" href="/admin/assets/css/my-custom.css")
+    block head
+  body
+    div(class="wrapper")
+      include ../partials/sidebar.pug
+
+      div(class="main-panel")
+        include ../partials/header.pug
+
+        div(class="container")
+          div(class="page-inner")
+            block main-content
+
+        include ../partials/footer.pug
+        
+    script(src="/admin/assets/js/core/jquery-3.7.1.min.js")
+    script(src="/admin/assets/js/core/popper.min.js")
+    script(src="/admin/assets/js/core/bootstrap.min.js")
+    script(src="/admin/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js")
+    script(src="/admin/assets/js/plugin/chart.js/chart.min.js")
+    script(src="/admin/assets/js/plugin/sweetalert/sweetalert.min.js")
+    script(src="/admin/assets/js/kaiadmin.min.js")
+    script(src="/admin/assets/js/my-custom.js")
+    script.
+        document.addEventListener('DOMContentLoaded', function () {
+        const currentPath = window.location.pathname
+        const currentPage = currentPath.split('/').pop()
+        document.querySelectorAll('.nav-item').forEach((item) => {
+            item.classList.remove('active')
+        })
+        if (currentPage === 'dashboard') {
+            const dashboardLink = document.querySelector(`.nav-item a[href="${prefixAdmin}/dashboard"]`)
+            if (dashboardLink) dashboardLink.parentElement.classList.add('active')
+        } else if (currentPage === 'users.html') {
+            const userLink = document.querySelector('.nav-item a[href="/admin/users.html"]')
+            if (userLink) userLink.parentElement.classList.add('active')
+        } else if (currentPage === 'scores.html') {
+            const scoreLink = document.querySelector('.nav-item a[href="/admin/scores.html"]')
+            if (scoreLink) scoreLink.parentElement.classList.add('active')
+        }
+        })
+    block scripts
+

@@ -44,3 +44,7 @@ export enum PromptWritingType {
   PREVIEW_TOPIC = 'preview_topic',
   PREVIEW_CONTENT = 'preview_content'
 }
+
+export enum AdminRole {
+  ADMIN = 'root_admin'
+}

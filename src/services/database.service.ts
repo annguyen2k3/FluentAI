@@ -9,6 +9,7 @@ import Types from '~/models/schemas/types.schema'
 import WSList from '~/models/schemas/ws-list.schema'
 import Prompts from '~/models/schemas/prompts.schema'
 import WPParagraph from '~/models/schemas/wp-paragraph.schema'
+import Admin from '~/models/schemas/admin.schema'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.cp2tnzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -79,6 +80,10 @@ class DatabaseService {
 
   get prompts(): Collection<Prompts> {
     return this.db.collection('prompts')
+  }
+
+  get admins(): Collection<Admin> {
+    return this.db.collection('admin')
   }
 }
 

@@ -1,6 +1,7 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import clientRoutes from './routes/client/index.routes'
+import adminRoutes from './routes/admin/index.routes'
 import path from 'path'
 import { databaseService } from './services/database.service'
 import bodyParser from 'body-parser'
@@ -9,7 +10,6 @@ import cookieParser from 'cookie-parser'
 import { initFolder } from './utils/file'
 
 import './utils/gemini'
-import Prompts from './models/schemas/prompts.schema'
 
 dotenv.config()
 
@@ -18,7 +18,6 @@ const port = process.env.PORT || 3000
 
 initFolder()
 databaseService.connect()
-
 
 // Serving static files
 app.use(express.static('src/public'))
@@ -32,9 +31,11 @@ app.use(cookieParser())
 app.set('view engine', 'pug')
 app.set('views', path.join(__dirname, '../src/views'))
 
+app.locals.prefixAdmin = process.env.PREFIX_ADMIN
 
 // ROUTES
 clientRoutes(app)
+adminRoutes(app)
 
 app.use(defaultErrorHandler)
 

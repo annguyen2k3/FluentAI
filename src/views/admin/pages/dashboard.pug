@@ -1,0 +1,181 @@
+extends ../layouts/default.pug
+
+block main-content
+  div(class="row mb-4 dashboard__row")
+    div(class="col-md-3 dashboard__col dashboard__col--quarter")
+      div(class="card card-stats card-round dashboard__card")
+        div(class="card-body dashboard__card-body")
+          div(class="row align-items-center dashboard__stats-row")
+            div(class="col-icon dashboard__stats-icon")
+              div(class="icon-big text-center icon-primary bubble-shadow-small")
+                i(class="fas fa-users")
+            div(class="col col-stats ms-3 dashboard__stats-content")
+              div(class="numbers")
+                p(class="card-category") Tổng số người dùng
+                h4(class="card-title") 1,234
+    div(class="col-md-3 dashboard__col dashboard__col--quarter")
+      div(class="card card-stats card-round dashboard__card")
+        div(class="card-body dashboard__card-body")
+          div(class="row align-items-center dashboard__stats-row")
+            div(class="col-icon dashboard__stats-icon")
+              div(class="icon-big text-center icon-success bubble-shadow-small")
+                i(class="fas fa-user-check")
+            div(class="col col-stats ms-3 dashboard__stats-content")
+              div(class="numbers")
+                p(class="card-category") Người dùng đang online
+                h4(class="card-title") 567
+    div(class="col-md-3 dashboard__col dashboard__col--quarter")
+      div(class="card card-stats card-round dashboard__card")
+        div(class="card-body dashboard__card-body")
+          div(class="row align-items-center dashboard__stats-row")
+            div(class="col-icon dashboard__stats-icon")
+              div(class="icon-big text-center icon-info bubble-shadow-small")
+                i(class="fas fa-robot")
+            div(class="col col-stats ms-3 dashboard__stats-content")
+              div(class="numbers")
+                p(class="card-category") Lượt sử dụng AI hôm nay
+                h4(class="card-title") 10,000
+    div(class="col-md-3 dashboard__col dashboard__col--quarter")
+      div(class="card card-stats card-round dashboard__card")
+        div(class="card-body dashboard__card-body")
+          div(class="row align-items-center dashboard__stats-row")
+            div(class="col-icon dashboard__stats-icon")
+              div(class="icon-big text-center icon-warning bubble-shadow-small")
+                i(class="fas fa-dollar-sign")
+            div(class="col col-stats ms-3 dashboard__stats-content")
+              div(class="numbers")
+                p(class="card-category") Chi phí AI hôm nay
+                h4(class="card-title") $20
+  div(class="row")
+    div(class="col-md-6")
+      div(class="card card-round")
+        div(class="card-header")
+          div(class="card-head-row")
+            div(class="card-title") Thống kê người dùng mới
+            div(class="card-tools")
+              div(class="dropdown")
+                button(id="userStatsDropdown" class="btn btn-sm btn-label-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false") Hôm nay
+                div(class="dropdown-menu" aria-labelledby="userStatsDropdown")
+                  a(class="dropdown-item" href="#") Hôm nay
+                  a(class="dropdown-item" href="#") Tuần này
+                  a(class="dropdown-item" href="#") Tháng này
+        div(class="card-body")
+          div(class="chart-container" style="min-height: 300px")
+            canvas(id="newUserChart")
+    div(class="col-md-6")
+      div(class="card card-round")
+        div(class="card-header")
+          div(class="card-head-row")
+            div(class="card-title") Lưu lượng người dùng
+            div(class="card-tools")
+              div(class="dropdown")
+                button(id="trafficDropdown" class="btn btn-sm btn-label-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false") Hôm nay
+                div(class="dropdown-menu" aria-labelledby="trafficDropdown")
+                  a(class="dropdown-item" href="#") Hôm nay
+                  a(class="dropdown-item" href="#") Tuần này
+                  a(class="dropdown-item" href="#") Tháng này
+        div(class="card-body")
+          div(class="chart-container" style="min-height: 300px")
+            canvas(id="userTrafficChart")
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card card-round")
+        div(class="card-header")
+          div(class="card-head-row")
+            div(class="card-title") Hòm thư phản hồi từ người dùng
+        div(class="card-body")
+          div(class="feedback-list")
+            div(class="feedback-item")
+              div(class="feedback-avatar")
+                img(class="rounded-circle" src="/admin/assets/img/profile.jpg" alt="Avatar" width="40" height="40")
+              div(class="feedback-content")
+                div(class="feedback-user") An Nguyễn
+                div(class="feedback-text") Nội dung phản hồi...
+              div(class="feedback-status")
+                span(class="badge badge-warning") Chưa giải quyết
+            div(class="feedback-item")
+              div(class="feedback-avatar")
+                img(class="rounded-circle" src="/admin/assets/img/profile2.jpg" alt="Avatar" width="40" height="40")
+              div(class="feedback-content")
+                div(class="feedback-user") Minh Trần
+                div(class="feedback-text") Góp ý về tính năng mới...
+              div(class="feedback-status")
+                span(class="badge badge-success") Đã giải quyết
+            div(class="feedback-item")
+              div(class="feedback-avatar")
+                img(class="rounded-circle" src="/admin/assets/img/jm_denis.jpg" alt="Avatar" width="40" height="40")
+              div(class="feedback-content")
+                div(class="feedback-user") Linh Phạm
+                div(class="feedback-text") Báo lỗi hệ thống...
+              div(class="feedback-status")
+                span(class="badge badge-danger") Cần xử lý
+
+block scripts
+  script.
+    const newUserCtx = document.getElementById('newUserChart').getContext('2d')
+    new Chart(newUserCtx, {
+      type: 'line',
+      data: {
+        labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+        datasets: [
+          {
+            label: 'Người dùng mới',
+            data: [12, 19, 3, 5, 2, 3, 8],
+            borderColor: '#177dff',
+            backgroundColor: 'rgba(23, 125, 255, 0.1)',
+            tension: 0.4,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    })
+    const trafficCtx = document.getElementById('userTrafficChart').getContext('2d')
+    new Chart(trafficCtx, {
+      type: 'bar',
+      data: {
+        labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+        datasets: [
+          {
+            label: 'Lưu lượng',
+            data: [65, 59, 80, 81, 56, 55, 40],
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.8)',
+              'rgba(54, 162, 235, 0.8)',
+              'rgba(255, 205, 86, 0.8)',
+              'rgba(75, 192, 192, 0.8)',
+              'rgba(153, 102, 255, 0.8)',
+              'rgba(255, 159, 64, 0.8)',
+              'rgba(199, 199, 199, 0.8)'
+            ]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    })
