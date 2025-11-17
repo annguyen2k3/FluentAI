@@ -1,6 +1,8 @@
 node_modules/
 dist/
-/ADMIN_UI
+ADMIN_UI/
+GUI-FluentAI/
+draw_sequence/
 .env
 seeds/
 .vscode/

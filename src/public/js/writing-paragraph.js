@@ -37,11 +37,12 @@ tooltipTriggerList.forEach((tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTr
 const wpSetup = document.querySelector('div#wp-setup')
 if (wpSetup) {
   const btnStart = wpSetup.querySelector('.wp-setup__start')
-  console.log(btnStart)
   btnStart.addEventListener('click', function (e) {
     e.preventDefault()
     const source = wpSetup.querySelector('.active[data-nav]').getAttribute('data-nav')
-    const level = wpSetup.querySelector('.wp-setup__option--level[active]')?.getAttribute('data-value')
+    const level = wpSetup
+      .querySelector('.wp-setup__option--level[active]')
+      ?.getAttribute('data-value')
     const type = wpSetup.querySelector('.wp-setup__type[active]')?.getAttribute('data-type')
 
     if (source === 'custom') {
@@ -92,7 +93,8 @@ if (wpSetup) {
                 regenerateBtn.style.display = 'inline-block'
                 regenerateBtn.textContent = 'Xem lại'
                 regenerateBtn.onclick = () => {
-                  const modal = typeof bootstrap !== 'undefined' ? bootstrap.Modal.getInstance(modalEl) : null
+                  const modal =
+                    typeof bootstrap !== 'undefined' ? bootstrap.Modal.getInstance(modalEl) : null
                   if (modal) modal.hide()
                 }
               }
@@ -134,8 +136,12 @@ if (wpSetup) {
 
     if (source === 'system') {
       if (type === 'ai-generate') {
-        const topic = wpSetup.querySelector('[data-type="ai-generate"] .wp-setup__prompt-input').value
-        const level = wpSetup.querySelector('.wp-setup__option--level[active]')?.getAttribute('data-value')
+        const topic = wpSetup.querySelector(
+          '[data-type="ai-generate"] .wp-setup__prompt-input'
+        ).value
+        const level = wpSetup
+          .querySelector('.wp-setup__option--level[active]')
+          ?.getAttribute('data-value')
         const requestUrl = `${ApiBreakpoint.POST_CUSTOM_TOPIC_PREVIEW_WP}`
         console.log('requestUrl', requestUrl)
         fetch(requestUrl, {
@@ -233,10 +239,6 @@ function renderWPList() {
     const level = wpListChoose.getAttribute('level')
     const type = wpListChoose.getAttribute('type')
     const topic = wpListChoose.querySelector('select[filter-topic]').value
-
-    console.log('level', level)
-    console.log('type', type)
-    console.log('topic', topic)
 
     const requestUrl = new URL(ApiBreakpoint.GET_WP_LIST)
     requestUrl.searchParams.set('level', level)
@@ -350,6 +352,12 @@ if (wpPractice) {
 
   const buttonSubmit = document.querySelector('[button-submit]')
   const buttonNext = document.querySelector('[button-next]')
+  const buttonQuit = document.querySelector('[button-quit]')
+  if (buttonQuit) {
+    buttonQuit.addEventListener('click', function () {
+      window.location.href = `/writing-paragraph/setup`
+    })
+  }
   if (buttonSubmit) {
     buttonSubmit.addEventListener('click', function () {
       const sentenceVi = document.querySelector('.sentence-inprogress').textContent || ''

@@ -75,5 +75,10 @@ export const AdminApiBreakpoint = {
   // DELETE /admin/users/delete
   // Description: Delete user
   // Body: { userId: string }
-  DELETE_USER: `${adminApiUrl}/users/delete`
+  DELETE_USER: `${adminApiUrl}/users/delete`,
+
+  // PUT /admin/users/update
+  // Description: Update user manage
+  // Body: { userId: string, username: string, email: string, dateOfBirth: string, phoneNumber: string, gender: string }
+  UPDATE_USER_MANAGE: `${adminApiUrl}/users/update`
 }

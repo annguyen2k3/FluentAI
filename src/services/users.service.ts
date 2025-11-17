@@ -12,7 +12,7 @@ import User from '~/models/schemas/users.schema'
 import md5 from 'md5'
 import { generateOTP } from '~/utils/random'
 import OTPVerifyEmail from '~/models/schemas/otp-verify-email.schema'
-import { sendVerifyEmail } from '~/utils/send-email'
+import { sendMail } from '~/utils/nodemailer'
 
 config()
 
@@ -71,6 +71,10 @@ class UserService {
 
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id.toString())
 
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({ user_id: user_id, token: refresh_token })
+    )
+
     return {
       access_token,
       refresh_token
@@ -80,8 +84,12 @@ class UserService {
     }
   }
 
-  async checkEmailExists(email: string) {
-    const isExists = await databaseService.users.findOne({ email })
+  async checkEmailExists(email: string, user_id?: string) {
+    const query: Record<string, unknown> = { email }
+    if (user_id) {
+      query._id = { $ne: new ObjectId(user_id) }
+    }
+    const isExists = await databaseService.users.findOne(query)
     return Boolean(isExists)
   }
 
@@ -192,7 +200,7 @@ class UserService {
   async sendOTPVerifyEmail(email: string, type: VerifyEmailType) {
     const otp = generateOTP(4)
 
-    sendVerifyEmail(
+    sendMail(
       email,
       'Yêu cầu mã xác thực từ FluentAI',
       ` Mã OTP của bạn là:
@@ -226,7 +234,11 @@ class UserService {
   }
 
   async checkUsernameExists(username: string, user_id?: string) {
-    return await databaseService.users.findOne({ username, _id: { $ne: new ObjectId(user_id) } })
+    const query: Record<string, unknown> = { username }
+    if (user_id) {
+      query._id = { $ne: new ObjectId(user_id) }
+    }
+    return await databaseService.users.findOne(query)
   }
 
   async updateProfile(
@@ -343,6 +355,29 @@ class UserService {
     return await databaseService.users.updateOne(
       { _id: new ObjectId(userId) },
       { $set: { status: UserStatus.ACTIVE } }
+    )
+  }
+
+  async updateUserManage(
+    userId: string,
+    username: string,
+    email: string,
+    dateOfBirth: Date,
+    phoneNumber: string,
+    gender: GenderType
+  ) {
+    return await databaseService.users.updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $set: {
+          username,
+          email,
+          date_of_birth: dateOfBirth,
+          phone_number: phoneNumber,
+          gender,
+          update_at: new Date()
+        }
+      }
     )
   }
 }

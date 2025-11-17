@@ -280,6 +280,16 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 export const updateProfileValidator = validate(
   checkSchema(
     {
+      userId: {
+        custom: {
+          options: async (value, { req }) => {
+            const user = await databaseService.users.findOne({ _id: new ObjectId(value) })
+            if (!user) {
+              throw new Error(USER_MESSAGES.USER_NOT_FOUND)
+            }
+          }
+        }
+      },
       username: {
         isLength: {
           options: {
@@ -294,9 +304,23 @@ export const updateProfileValidator = validate(
             if (isExists) {
               throw new Error(USER_MESSAGES.USERNAME_EXISTS)
             }
-
             if (!USERNAME_REGEX.test(value)) {
               throw new Error(USER_MESSAGES.USERNAME_INVALID)
+            }
+            return true
+          }
+        }
+      },
+      email: {
+        isEmail: {
+          errorMessage: USER_MESSAGES.EMAIL_INVALID
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const isExists = await userService.checkEmailExists(value, req.user?._id.toString())
+            if (isExists) {
+              throw new Error(USER_MESSAGES.EMAIL_EXISTS)
             }
             return true
           }
@@ -506,6 +530,98 @@ export const userIdExistsValidator = validate(
               throw new Error(USER_MESSAGES.USER_NOT_FOUND)
             }
             req.user = user
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export const updateUserManageValidator = validate(
+  checkSchema(
+    {
+      userId: {
+        custom: {
+          options: async (value, { req }) => {
+            const user = await databaseService.users.findOne({ _id: new ObjectId(value) })
+            if (!user) {
+              throw new Error(USER_MESSAGES.USER_NOT_FOUND)
+            }
+            req.user = user
+            return true
+          }
+        }
+      },
+      username: {
+        isLength: {
+          options: {
+            min: 1,
+            max: 50
+          },
+          errorMessage: USER_MESSAGES.USERNAME_LENGTH
+        },
+        custom: {
+          options: async (value, { req }) => {
+            const isExists = await userService.checkUsernameExists(
+              value,
+              req.body.userId.toString()
+            )
+            if (isExists) {
+              throw new Error(USER_MESSAGES.USERNAME_EXISTS)
+            }
+
+            if (!USERNAME_REGEX.test(value)) {
+              throw new Error(USER_MESSAGES.USERNAME_INVALID)
+            }
+            return true
+          }
+        }
+      },
+      dateOfBirth: {
+        optional: { options: { values: 'falsy' } },
+        isISO8601: {
+          options: {
+            strict: true,
+            strictSeparator: true
+          },
+          errorMessage: USER_MESSAGES.DATE_OF_BIRTH_INVALID
+        },
+        custom: {
+          options: (value, { req }) => {
+            const d = new Date(value)
+            if (Number.isNaN(d.getTime())) {
+              throw new Error(USER_MESSAGES.DATE_OF_BIRTH_INVALID)
+            }
+            const min = new Date('1900-01-01T00:00:00.000Z')
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+            if (d < min || d > today) {
+              throw new Error(USER_MESSAGES.DATE_OF_BIRTH_INVALID)
+            }
+            return true
+          }
+        }
+      },
+      phoneNumber: {
+        optional: { options: { values: 'falsy' } },
+        custom: {
+          options: (value, { req }) => {
+            if (!PHONE_NUMBER_REGEX.test(value)) {
+              throw new Error(USER_MESSAGES.PHONE_NUMBER_INVALID)
+            }
+            return true
+          }
+        }
+      },
+      gender: {
+        optional: { options: { values: 'falsy' } },
+        custom: {
+          options: (value, { req }) => {
+            if (!Object.values(GenderType).includes(value as GenderType)) {
+              throw new Error(USER_MESSAGES.GENDER_INVALID)
+            }
             return true
           }
         }

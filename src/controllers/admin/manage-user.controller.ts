@@ -135,3 +135,21 @@ export const deleteUserController = async (req: Request, res: Response) => {
     message: 'Xóa tài khoản thành công'
   })
 }
+
+// PUT /admin/users/update
+export const updateUserManageController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const { username, email, dateOfBirth, phoneNumber, gender } = req.body
+  await userService.updateUserManage(
+    user._id?.toString() || '',
+    username,
+    email,
+    dateOfBirth,
+    phoneNumber,
+    gender
+  )
+  res.status(HttpStatus.OK).json({
+    status: HttpStatus.OK,
+    message: 'Cập nhật thông tin người dùng thành công'
+  })
+}

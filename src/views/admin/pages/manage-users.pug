@@ -140,8 +140,6 @@ block main-content
             div(class="col-md-4 text-center")
               div(class="avatar-lg mx-auto mb-3")
                 img(src="/admin/assets/img/profile.jpg" alt="..." class="avatar-img rounded-circle" id="userAvatar")
-              h4(id="userName") Nguyễn Văn An
-              p(class="text-muted" id="userEmail") an.nguyen@email.com
               span(class="badge badge-success" id="userStatus") Hoạt động
             div(class="col-md-8")
               div(class="row")
@@ -151,20 +149,28 @@ block main-content
                     p(class="form-control-plaintext" id="userId") -
                 div(class="col-md-6")
                   div(class="form-group")
+                    label(class="form-label") Tên người dùng
+                    input(type="text" class="form-control" id="userName" placeholder="Nhập tên người dùng" disabled)
+                div(class="col-md-6")
+                  div(class="form-group")
                     label(class="form-label") Email
-                    p(class="form-control-plaintext" id="userEmailDetail") -
+                    input(type="email" class="form-control" id="userEmailDetail" placeholder="Nhập email" disabled)
                 div(class="col-md-6")
                   div(class="form-group")
                     label(class="form-label") Số điện thoại
-                    p(class="form-control-plaintext" id="userPhone") Chưa cập nhật
+                    input(type="tel" class="form-control" id="userPhone" placeholder="Nhập số điện thoại" disabled)
                 div(class="col-md-6")
                   div(class="form-group")
                     label(class="form-label") Giới tính
-                    p(class="form-control-plaintext" id="userGender") Chưa cập nhật
+                    select(class="form-control" id="userGender" disabled)
+                      option(value="") Chưa cập nhật
+                      option(value="male") Nam
+                      option(value="female") Nữ
+                      option(value="other") Khác
                 div(class="col-md-6")
                   div(class="form-group")
                     label(class="form-label") Ngày sinh
-                    p(class="form-control-plaintext" id="userDateOfBirth") Chưa cập nhật
+                    input(type="date" class="form-control" id="userDateOfBirth" disabled)
                 div(class="col-md-6")
                   div(class="form-group")
                     label(class="form-label") Ngày đăng ký
@@ -176,7 +182,7 @@ block main-content
                 div(class="col-md-6")
                   div(class="form-group")
                     label(class="form-label") Điểm số hiện tại
-                    p(class="form-control-plaintext" id="userScore") Chưa có dữ liệu
+                    input(type="number" class="form-control" id="userScore" min="0" step="1" placeholder="Chưa có dữ liệu" disabled)
                 div(class="col-md-6")
                   div(class="form-group")
                     label(class="form-label") Cấp độ
@@ -185,8 +191,13 @@ block main-content
                 h6 Lịch sử hoạt động
                 div(class="timeline" id="userActivity")
         div(class="modal-footer")
-          button(type="button" class="btn btn-secondary" onclick="$('#userDetailModal').modal('hide')") Đóng
-          button(type="button" class="btn btn-primary" onclick="editUser()") Chỉnh sửa
+          button(type="button" class="btn btn-outline-secondary d-none" id="cancelEditBtn" onclick="cancelEditUser()")
+            i(class="fas fa-times")
+            |  Hủy chỉnh sửa
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Đóng
+          button(type="button" class="btn btn-primary" id="editUserBtn" onclick="editUser()")
+            i(class="fas fa-edit")
+            |  Chỉnh sửa
 
   div(class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true")
     div(class="modal-dialog" role="document")
@@ -214,6 +225,8 @@ block scripts
       sort: 'desc'
     }
     let usersList = []
+    let selectedUser = null
+    let isUserEditMode = false
 
     async function loadUsers() {
       const tbody = document.getElementById('usersTableBody')
@@ -300,8 +313,12 @@ block scripts
                 <img src="${avatar}" alt="${username}" class="avatar-img rounded-circle" onerror="this.src='https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'">
           </div>
             </td>
-            <td>${username}</td>
-            <td>${email}</td>
+            <td>
+              <span class="user-table__id" title="${username}" style="display:inline-block; max-width:100px; min-width:100px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${username}</span>
+            </td>
+            <td>
+              <span class="user-table__id" title="${email}" style="display:inline-block; max-width:150px; min-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${email}</span>
+            </td>
             <td>${phone}</td>
             <td>
               <span class="badge ${statusClass}">${statusText}</span>
@@ -423,8 +440,6 @@ block scripts
 
       const avatar = user.avatar || 'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'
       const username = user.username || 'Chưa cập nhật'
-      const email = user.email || '-'
-      const phone = user.phone_number || 'Chưa cập nhật'
       const status = user.status || 'active'
       const statusText = getStatusText(status)
       const statusClass = getStatusClass(status)
@@ -446,28 +461,19 @@ block scripts
         minute: '2-digit'
       }) : 'Chưa có'
       
-      const dateOfBirth = user.date_of_birth ? new Date(user.date_of_birth).toLocaleDateString('vi-VN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }) : 'Chưa cập nhật'
-      
-      const genderText = user.gender === 'male' ? 'Nam' : user.gender === 'female' ? 'Nữ' : user.gender === 'other' ? 'Khác' : 'Chưa cập nhật'
+      selectedUser = JSON.parse(JSON.stringify(user))
+      isUserEditMode = false
+      setUserFormDisabled(true)
+      updateUserEditControls()
+      populateEditableFields(selectedUser)
 
       document.getElementById('userAvatar').src = avatar
       document.getElementById('userAvatar').alt = username
-      document.getElementById('userName').textContent = username
-      document.getElementById('userEmail').textContent = email
       document.getElementById('userStatus').textContent = statusText
       document.getElementById('userStatus').className = `badge ${statusClass}`
       document.getElementById('userId').textContent = userIdDisplay
-      document.getElementById('userEmailDetail').textContent = email
-      document.getElementById('userPhone').textContent = phone
-      document.getElementById('userGender').textContent = genderText
-      document.getElementById('userDateOfBirth').textContent = dateOfBirth
       document.getElementById('userRegisterDate').textContent = createDate
       document.getElementById('userLastLogin').textContent = updateDate
-      document.getElementById('userScore').textContent = 'Chưa có dữ liệu'
       document.getElementById('userLevel').textContent = 'Chưa có dữ liệu'
 
       const activityHTML = `
@@ -670,6 +676,212 @@ block scripts
         }
       )
     }
+
+    function setUserFormDisabled(isDisabled) {
+      const editableFieldIds = ['userName', 'userEmailDetail', 'userPhone', 'userGender', 'userDateOfBirth', 'userScore']
+      editableFieldIds.forEach(id => {
+        const field = document.getElementById(id)
+        if (field) {
+          field.disabled = isDisabled
+        }
+      })
+    }
+
+    function populateEditableFields(user) {
+      const usernameInput = document.getElementById('userName')
+      if (usernameInput) {
+        usernameInput.value = user.username || ''
+        usernameInput.placeholder = user.username ? '' : 'Chưa cập nhật'
+      }
+
+      const emailInput = document.getElementById('userEmailDetail')
+      if (emailInput) {
+        emailInput.value = user.email || ''
+        emailInput.placeholder = user.email ? '' : 'Chưa cập nhật'
+      }
+
+      const phoneInput = document.getElementById('userPhone')
+      if (phoneInput) {
+        phoneInput.value = user.phone_number || ''
+        phoneInput.placeholder = user.phone_number ? '' : 'Chưa cập nhật'
+      }
+
+      const genderSelect = document.getElementById('userGender')
+      if (genderSelect) {
+        genderSelect.value = user.gender || ''
+      }
+
+      const dateInput = document.getElementById('userDateOfBirth')
+      if (dateInput) {
+        dateInput.value = user.date_of_birth ? formatDateForInput(user.date_of_birth) : ''
+      }
+
+      const scoreInput = document.getElementById('userScore')
+      if (scoreInput) {
+        const scoreValue = user.score ?? ''
+        scoreInput.value = scoreValue === null ? '' : scoreValue
+        scoreInput.placeholder = scoreValue === '' ? 'Chưa có dữ liệu' : ''
+      }
+    }
+
+    function formatDateForInput(dateString) {
+      const date = new Date(dateString)
+      if (Number.isNaN(date.getTime())) {
+        return ''
+      }
+      return date.toISOString().split('T')[0]
+    }
+
+    function updateUserEditControls() {
+      const editBtn = document.getElementById('editUserBtn')
+      const cancelBtn = document.getElementById('cancelEditBtn')
+      if (!editBtn || !cancelBtn) return
+
+      if (isUserEditMode) {
+        editBtn.innerHTML = '<i class="fas fa-save"></i> Lưu thông tin'
+        cancelBtn.classList.remove('d-none')
+      } else {
+        editBtn.innerHTML = '<i class="fas fa-edit"></i> Chỉnh sửa'
+        cancelBtn.classList.add('d-none')
+      }
+    }
+
+    function editUser() {
+      if (!selectedUser) {
+        showNotification('error', 'Không có dữ liệu người dùng để chỉnh sửa!')
+        return
+      }
+
+      if (!isUserEditMode) {
+        isUserEditMode = true
+        setUserFormDisabled(false)
+        updateUserEditControls()
+        const usernameInput = document.getElementById('userName')
+        if (usernameInput) {
+          usernameInput.focus()
+        }
+        return
+      }
+
+      saveUserChanges()
+    }
+
+    function cancelEditUser() {
+      if (!selectedUser) return
+      isUserEditMode = false
+      setUserFormDisabled(true)
+      populateEditableFields(selectedUser)
+      updateUserEditControls()
+    }
+
+    async function saveUserChanges() {
+      if (!selectedUser) return
+
+      const userId = selectedUser._id.toString()
+      const username = document.getElementById('userName').value.trim()
+      const email = document.getElementById('userEmailDetail').value.trim()
+      const phone = document.getElementById('userPhone').value.trim()
+      const gender = document.getElementById('userGender').value
+      const dateOfBirth = document.getElementById('userDateOfBirth').value
+      const scoreRaw = document.getElementById('userScore').value.trim()
+
+      const score = scoreRaw === '' ? null : Number(scoreRaw)
+      if (score !== null && Number.isNaN(score)) {
+        showNotification('error', 'Điểm số không hợp lệ!')
+        return
+      }
+
+      if (!username) {
+        showNotification('error', 'Tên người dùng không được để trống!')
+        return
+      }
+
+      if (!email) {
+        showNotification('error', 'Email không được để trống!')
+        return
+      }
+
+      const normalizedData = {
+        userId,
+        username,
+        email,
+        phoneNumber: phone || null,
+        gender: gender || null,
+        dateOfBirth: dateOfBirth || null
+      }
+
+      try {
+        const response = await fetch(AdminApiBreakpoint.UPDATE_USER_MANAGE, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(normalizedData)
+        })
+
+        if (response.status === 422) {
+          const payload = await response.json()
+          let errMess = 'Lỗi validation:\n'
+          for (const key in payload.errors) {
+            errMess += `${key}: ${payload.errors[key].msg}\n`
+          }
+          showNotification('error', errMess.trim())
+          return
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          let errorData
+          try {
+            errorData = JSON.parse(errorText)
+          } catch {
+            errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` }
+          }
+          throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        const result = await response.json()
+        if (result.status !== 200) {
+          throw new Error(result.message || 'Có lỗi xảy ra khi cập nhật người dùng!')
+        }
+
+        selectedUser = {
+          ...selectedUser,
+          username,
+          email,
+          phone_number: phone || null,
+          gender: gender || null,
+          date_of_birth: dateOfBirth || null,
+          score
+        }
+
+        const userIndex = usersList.findIndex(
+          u => u._id && selectedUser._id && u._id.toString() === selectedUser._id.toString()
+        )
+        if (userIndex !== -1) {
+          usersList[userIndex] = {
+            ...usersList[userIndex],
+            username,
+            email,
+            phone_number: phone || null,
+            gender: gender || null,
+            date_of_birth: dateOfBirth || null,
+            score
+          }
+        }
+
+        populateEditableFields(selectedUser)
+        renderUsers(usersList)
+        showNotification('success', result.message || 'Đã cập nhật thông tin người dùng thành công!')
+        cancelEditUser()
+      } catch (error) {
+        console.error('Error updating user:', error)
+        showNotification('error', error.message || 'Có lỗi xảy ra khi cập nhật người dùng!')
+      }
+    }
+
+    window.editUser = editUser
+    window.cancelEditUser = cancelEditUser
 
     function showConfirmModal(title, message, callback) {
       if (typeof swal !== 'undefined') {

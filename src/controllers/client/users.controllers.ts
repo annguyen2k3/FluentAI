@@ -137,8 +137,14 @@ export const verifyEmailController = async (
   res.clearCookie('emailRegister')
   res.clearCookie('passwordRegister')
 
-  res.cookie('refresh_token', result.refresh_token)
-  res.cookie('access_token', result.access_token)
+  res.cookie('refresh_token', result.refresh_token, {
+    httpOnly: true,
+    sameSite: 'lax'
+  })
+  res.cookie('access_token', result.access_token, {
+    httpOnly: true,
+    sameSite: 'lax'
+  })
 
   res.status(HttpStatus.OK).json({
     message: USER_MESSAGES.REGISTER_SUCCESS,

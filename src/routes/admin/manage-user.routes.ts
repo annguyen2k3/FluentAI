@@ -5,10 +5,15 @@ import {
   lockUserController,
   logoutUserController,
   renderManageUserController,
-  unlockUserController
+  unlockUserController,
+  updateUserManageController
 } from '~/controllers/admin/manage-user.controller'
 import { requireAdminAuth } from '~/middlewares/admin.middleware'
-import { getListValidator, userIdExistsValidator } from '~/middlewares/users.middleware'
+import {
+  getListValidator,
+  updateUserManageValidator,
+  userIdExistsValidator
+} from '~/middlewares/users.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
 
 const manageUserRoutes = Router()
@@ -65,6 +70,16 @@ manageUserRoutes.delete(
   requireAdminAuth,
   userIdExistsValidator,
   wrapRequestHandler(deleteUserController)
+)
+
+// PUT /admin/users/update
+// Description: Update user manage
+// Body: userId, username, email, dateOfBirth, phoneNumber, gender
+manageUserRoutes.put(
+  '/update',
+  requireAdminAuth,
+  updateUserManageValidator,
+  wrapRequestHandler(updateUserManageController)
 )
 
 export default manageUserRoutes

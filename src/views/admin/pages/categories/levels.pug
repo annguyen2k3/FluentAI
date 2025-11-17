@@ -1,0 +1,304 @@
+extends ../../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Phân loại nội dung
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Quản lý cấp độ
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card")
+        div(class="card-header")
+          div(class="d-flex align-items-center justify-content-between")
+            h4(class="card-title") Danh sách cấp độ
+            button(class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#levelModal" onclick="openAddModal()")
+              i(class="fas fa-plus")
+              |  Thêm cấp độ mới
+        div(class="card-body")
+          div(class="row" id="levelsList")
+
+  //- Level Modal
+  div(class="modal fade" id="levelModal" tabindex="-1" role="dialog" aria-labelledby="levelModalLabel" aria-hidden="true")
+    div(class="modal-dialog modal-lg" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="levelModalLabel") Thêm cấp độ mới
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          form(id="levelForm")
+            input(type="hidden" id="levelId" name="id")
+            div(class="form-group")
+              label(for="levelTitle" class="form-label") Tên cấp độ 
+                span(class="text-danger") *
+              input(type="text" class="form-control" id="levelTitle" name="title" required placeholder="Ví dụ: Cơ bản, Trung cấp, Nâng cao")
+            div(class="form-group")
+              label(for="levelDescription" class="form-label") Mô tả 
+                span(class="text-danger") *
+              textarea(class="form-control" id="levelDescription" name="description" rows="3" required placeholder="Nhập mô tả cho cấp độ")
+            div(class="form-group")
+              label(for="levelSlug" class="form-label") Slug 
+                span(class="text-danger") *
+              input(type="text" class="form-control" id="levelSlug" name="slug" required placeholder="Ví dụ: co-ban, trung-cap, nang-cao")
+              small(class="form-text text-muted") Slug sẽ được tự động tạo từ tên nếu để trống
+            div(class="form-group")
+              label(for="levelIconClass" class="form-label") FontAwesome Icon Class 
+                span(class="text-danger") *
+              div(class="row")
+                div(class="col-md-8")
+                  input(type="text" class="form-control" id="levelIconClass" name="fa_class_icon" required placeholder="Ví dụ: fa-solid fa-seedling" oninput="updateIconPreview()")
+                  small(class="form-text text-muted") Nhập class icon FontAwesome (ví dụ: fa-solid fa-seedling)
+                div(class="col-md-4")
+                  label(class="form-label d-block") Preview Icon
+                  div(class="icon-preview__box" id="iconPreview")
+                    i(class="fas fa-question-circle")
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-primary" onclick="saveLevel()") Lưu
+
+  //- Confirm Modal
+  div(class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true")
+    div(class="modal-dialog" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="confirmModalLabel") Xác nhận
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          p(id="confirmMessage") Bạn có chắc chắn muốn thực hiện hành động này?
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-danger" id="confirmAction") Xác nhận
+
+block scripts
+  script.
+    let levelsData = [
+      {
+        _id: '690c546bfb74a2323a3431d0',
+        title: 'Cơ bản',
+        description: 'Hoàn hảo cho những người mới bắt đầu hành trình học tiếng Anh. Câu đơn giản, từ vựng cơ bản và ngữ pháp cơ bản.',
+        fa_class_icon: 'fa-solid fa-seedling',
+        slug: 'co-ban'
+      },
+      {
+        _id: '690c546bfb74a2323a3431d1',
+        title: 'Trung cấp',
+        description: 'Dành cho người học sẵn sàng giải quyết các câu phức tạp hơn và từ vựng nâng cao hơn.',
+        fa_class_icon: 'fa-solid fa-layer-group',
+        slug: 'trung-cap'
+      },
+      {
+        _id: '690c546bfb74a2323a3431d2',
+        title: 'Nâng cao',
+        description: 'Thử thách bản thân với những văn bản phức tạp và từ vựng chuyên nghiệp.',
+        fa_class_icon: 'fa-solid fa-rocket',
+        slug: 'nang-cao'
+      }
+    ]
+
+    function renderLevels() {
+      const container = document.getElementById('levelsList')
+      container.innerHTML = ''
+
+      levelsData.forEach(level => {
+        const levelCard = `
+          <div class="col-md-4 mb-4">
+            <div class="card level-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div class="level-icon">
+                    <i class="${level.fa_class_icon}"></i>
+                  </div>
+                  <div class="level-actions">
+                    <button class="btn btn-sm btn-info" onclick="editLevel('${level._id}')" title="Chỉnh sửa">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteLevel('${level._id}')" title="Xóa">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                <h5 class="card-title">${level.title}</h5>
+                <p class="card-text text-muted">${level.description}</p>
+                <div class="level-meta">
+                  <small class="text-muted">
+                    <strong>Slug:</strong> ${level.slug}
+                  </small><br>
+                  <small class="text-muted">
+                    <strong>Icon:</strong> <code>${level.fa_class_icon}</code>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+        container.innerHTML += levelCard
+      })
+    }
+
+    function updateIconPreview() {
+      const iconClass = document.getElementById('levelIconClass').value.trim()
+      const previewBox = document.getElementById('iconPreview')
+
+      if (iconClass) {
+        previewBox.innerHTML = `<i class="${iconClass}"></i>`
+      } else {
+        previewBox.innerHTML = '<i class="fas fa-question-circle"></i>'
+      }
+    }
+
+    function openAddModal() {
+      document.getElementById('levelForm').reset()
+      document.getElementById('levelId').value = ''
+      document.getElementById('levelModalLabel').textContent = 'Thêm cấp độ mới'
+      updateIconPreview()
+    }
+
+    function editLevel(id) {
+      const level = levelsData.find(l => l._id === id)
+      if (!level) return
+
+      document.getElementById('levelId').value = level._id
+      document.getElementById('levelTitle').value = level.title
+      document.getElementById('levelDescription').value = level.description
+      document.getElementById('levelSlug').value = level.slug
+      document.getElementById('levelIconClass').value = level.fa_class_icon
+      document.getElementById('levelModalLabel').textContent = 'Chỉnh sửa cấp độ'
+
+      updateIconPreview()
+      new bootstrap.Modal(document.getElementById('levelModal')).show()
+    }
+
+    function deleteLevel(id) {
+      showConfirmModal(
+        'Xóa cấp độ',
+        'Bạn có chắc chắn muốn xóa cấp độ này? Hành động này không thể hoàn tác!',
+        () => {
+          levelsData = levelsData.filter(l => l._id !== id)
+          renderLevels()
+          showNotification('success', 'Đã xóa cấp độ thành công!')
+        }
+      )
+    }
+
+    function saveLevel() {
+      const form = document.getElementById('levelForm')
+      if (!form.checkValidity()) {
+        form.reportValidity()
+        return
+      }
+
+      const id = document.getElementById('levelId').value
+      const title = document.getElementById('levelTitle').value
+      const description = document.getElementById('levelDescription').value
+      let slug = document.getElementById('levelSlug').value
+      const fa_class_icon = document.getElementById('levelIconClass').value.trim()
+
+      if (!slug) {
+        slug = title.toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/đ/g, 'd')
+          .replace(/Đ/g, 'D')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+        document.getElementById('levelSlug').value = slug
+      }
+
+      if (id) {
+        const index = levelsData.findIndex(l => l._id === id)
+        if (index !== -1) {
+          levelsData[index] = {
+            ...levelsData[index],
+            title,
+            description,
+            slug,
+            fa_class_icon
+          }
+          showNotification('success', 'Đã cập nhật cấp độ thành công!')
+        }
+      } else {
+        const newLevel = {
+          _id: 'new_' + Date.now(),
+          title,
+          description,
+          slug,
+          fa_class_icon
+        }
+        levelsData.push(newLevel)
+        showNotification('success', 'Đã thêm cấp độ mới thành công!')
+      }
+
+      bootstrap.Modal.getInstance(document.getElementById('levelModal')).hide()
+      renderLevels()
+    }
+
+    function showConfirmModal(title, message, callback) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: title,
+          text: message,
+          icon: 'warning',
+          buttons: {
+            cancel: 'Hủy',
+            confirm: 'Xác nhận'
+          },
+          dangerMode: true
+        }).then((willDelete) => {
+          if (willDelete) {
+            callback()
+          }
+        })
+      } else {
+        document.getElementById('confirmModalLabel').textContent = title
+        document.getElementById('confirmMessage').textContent = message
+
+        const confirmBtn = document.getElementById('confirmAction')
+        confirmBtn.onclick = () => {
+          bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide()
+          callback()
+        }
+
+        new bootstrap.Modal(document.getElementById('confirmModal')).show()
+      }
+    }
+
+    function showNotification(type, message) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      renderLevels()
+
+      const currentPath = window.location.pathname
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active')
+      })
+
+      if (currentPath.includes('/categories/levels')) {
+        const levelsLink = document.querySelector('a[href="#{prefixAdmin}/categories/levels"]')
+        if (levelsLink && levelsLink.parentElement) {
+          levelsLink.parentElement.classList.add('active')
+        }
+      }
+    })
+

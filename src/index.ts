@@ -10,6 +10,7 @@ import cookieParser from 'cookie-parser'
 import { initFolder } from './utils/file'
 
 import './utils/gemini'
+import { sendMail } from './utils/nodemailer'
 
 dotenv.config()
 
