@@ -1,0 +1,393 @@
+extends ../../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Phân loại nội dung
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Quản lý chủ đề
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card")
+        div(class="card-header")
+          div(class="d-flex align-items-center justify-content-between")
+            h4(class="card-title") Danh sách chủ đề
+            button(class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#topicModal" onclick="openAddModal()")
+              i(class="fas fa-plus")
+              |  Thêm chủ đề mới
+        div(class="card-body")
+          div(class="row" id="topicsList" data-topics=topics)
+
+  div(class="modal fade" id="topicModal" tabindex="-1" role="dialog" aria-labelledby="topicModalLabel" aria-hidden="true" )
+    div(class="modal-dialog modal-lg" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="topicModalLabel") Thêm chủ đề mới
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          form(id="topicForm")
+            input(type="hidden" id="topicId" name="id")
+            div(class="form-group")
+              label(for="topicTitle" class="form-label") Tên chủ đề 
+                span(class="text-danger") *
+              input(type="text" class="form-control" id="topicTitle" name="title" required placeholder="Ví dụ: Gia đình, Công việc, Du lịch")
+            div(class="form-group")
+              label(for="topicDescription" class="form-label") Mô tả 
+                span(class="text-danger") *
+              textarea(class="form-control" id="topicDescription" name="description" rows="3" required placeholder="Nhập mô tả cho chủ đề")
+            div(class="form-group")
+              label(for="topicSlug" class="form-label") Slug 
+              input(type="text" class="form-control" id="topicSlug" name="slug" placeholder="Ví dụ: gia-dinh, cong-viec, du-lich")
+              small(class="form-text text-muted") Slug sẽ được tự động tạo từ tên nếu để trống
+            div(class="form-group")
+              label(for="topicIconClass" class="form-label") FontAwesome Icon Class 
+              div(class="row")
+                div(class="col-md-8")
+                  input(type="text" class="form-control" id="topicIconClass" name="fa_class_icon" placeholder="Ví dụ: fa-solid fa-folder" oninput="updateIconPreview()")
+                  small(class="form-text text-muted") Nhập class icon FontAwesome (ví dụ: fa-solid fa-folder)
+                div(class="col-md-4")
+                  label(class="form-label d-block") Preview Icon
+                  div(class="icon-preview__box" id="iconPreview")
+                    i(class="fas fa-question-circle")
+            div(class="form-group")
+              label(for="topicPos" class="form-label") Vị trí hiển thị 
+                span(class="text-danger") *
+              input(type="number" class="form-control" id="topicPos" name="pos" required min="1" placeholder="Ví dụ: 1, 2, 3..." value="1")
+              small(class="form-text text-muted") Số càng nhỏ, hiển thị càng trước
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-primary" onclick="saveTopic()") Lưu
+
+  div(class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true")
+    div(class="modal-dialog" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="confirmModalLabel") Xác nhận
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          p(id="confirmMessage") Bạn có chắc chắn muốn thực hiện hành động này?
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-danger" id="confirmAction") Xác nhận
+
+block scripts
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    let topicsData = JSON.parse(document.getElementById('topicsList').dataset.topics)
+    document.getElementById('topicsList').removeAttribute('data-topics')
+    const prefixAdmin = '#{prefixAdmin}'
+
+    function renderTopics() {
+      const container = document.getElementById('topicsList')
+      container.innerHTML = ''
+
+      const sortedTopics = [...topicsData].sort((a, b) => (a.pos || 0) - (b.pos || 0))
+
+      sortedTopics.forEach(topic => {
+        const topicCard = `
+          <div class="col-md-4 mb-4">
+            <div class="card topic-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div class="topic-icon">
+                    <i class="${topic.fa_class_icon}"></i>
+                  </div>
+                  <div class="topic-actions">
+                    <button class="btn btn-sm btn-info" onclick="editTopic('${topic._id}')" title="Chỉnh sửa">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteTopic('${topic._id}')" title="Xóa">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                <h5 class="card-title">${topic.title}</h5>
+                <p class="card-text text-muted">${topic.description}</p>
+                <div class="topic-meta">
+                  <small class="text-muted">
+                    <strong>Vị trí:</strong> ${topic.pos || 0}
+                  </small><br>
+                  <small class="text-muted">
+                    <strong>Slug:</strong> ${topic.slug}
+                  </small><br>
+                  <small class="text-muted">
+                    <strong>Icon:</strong> <code>${topic.fa_class_icon}</code>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+        container.innerHTML += topicCard
+      })
+    }
+
+    function updateIconPreview() {
+      const iconClass = document.getElementById('topicIconClass').value.trim()
+      const previewBox = document.getElementById('iconPreview')
+
+      if (iconClass) {
+        previewBox.innerHTML = `<i class="${iconClass}"></i>`
+      } else {
+        previewBox.innerHTML = '<i class="fas fa-question-circle"></i>'
+      }
+    }
+
+    function openAddModal() {
+      document.getElementById('topicForm').reset()
+      document.getElementById('topicId').value = ''
+      document.getElementById('topicPos').value = '1'
+      document.getElementById('topicModalLabel').textContent = 'Thêm chủ đề mới'
+      updateIconPreview()
+    }
+
+    function editTopic(id) {
+      const topic = topicsData.find(t => t._id === id)
+      if (!topic) return
+
+      document.getElementById('topicId').value = topic._id
+      document.getElementById('topicTitle').value = topic.title
+      document.getElementById('topicDescription').value = topic.description
+      document.getElementById('topicSlug').value = topic.slug
+      document.getElementById('topicIconClass').value = topic.fa_class_icon
+      document.getElementById('topicPos').value = topic.pos || 1
+      document.getElementById('topicModalLabel').textContent = 'Chỉnh sửa chủ đề'
+
+      updateIconPreview()
+      new bootstrap.Modal(document.getElementById('topicModal')).show()
+    }
+
+    function deleteTopic(id) {
+      showConfirmModal(
+        'Xóa chủ đề',
+        'Bạn có chắc chắn muốn xóa chủ đề này? Hành động này không thể hoàn tác!',
+        () => {
+          fetch(AdminApiBreakpoint.DELETE_TOPIC, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ id })
+          })
+            .then(async response => {
+              if (!response.ok) {
+                const error = await response.json()
+                error.status = response.status
+                return Promise.reject(error)
+              }
+              return response.json()
+            })
+            .then(data => {
+              showNotification('success', data.message || 'Đã xóa chủ đề thành công!')
+              window.location.reload()
+            })
+            .catch(error => {
+              let errorMessage = 'Có lỗi xảy ra khi xóa chủ đề'
+              
+              if (error.status === 422 && error.errors) {
+                errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                  .map(err => `- ${err.msg || err}`)
+                  .join('\n')
+              } else if (error.errors) {
+                const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+                errorMessage = errorMessages || error.message || errorMessage
+              } else if (error.message) {
+                errorMessage = error.message
+              }
+              showNotification('error', errorMessage)
+            })
+        }
+      )
+    }
+
+    function saveTopic() {
+      const form = document.getElementById('topicForm')
+      if (!form.checkValidity()) {
+        form.reportValidity()
+        return
+      }
+
+      const id = document.getElementById('topicId').value
+      const title = document.getElementById('topicTitle').value
+      const description = document.getElementById('topicDescription').value
+      let slug = document.getElementById('topicSlug').value.trim()
+      const fa_class_icon = document.getElementById('topicIconClass').value.trim()
+      const pos = parseInt(document.getElementById('topicPos').value) || 1
+
+      if (id) {
+        const topicData = {
+          id,
+          title,
+          description,
+          slug,
+          fa_class_icon,
+          pos
+        }
+
+        fetch(AdminApiBreakpoint.UPDATE_TOPIC, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(topicData)
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const error = await response.json()
+              error.status = response.status
+              return Promise.reject(error)
+            }
+            return response.json()
+          })
+          .then(data => {
+            showNotification('success', data.message || 'Đã cập nhật chủ đề thành công!')
+            bootstrap.Modal.getInstance(document.getElementById('topicModal')).hide()
+            window.location.reload()
+          })
+          .catch(error => {
+            let errorMessage = 'Có lỗi xảy ra khi cập nhật chủ đề'
+            
+            if (error.status === 422 && error.errors) {
+              errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                .map(err => `- ${err.msg || err}`)
+                .join('\n')
+            } else if (error.errors) {
+              const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+              errorMessage = errorMessages || error.message || errorMessage
+            } else if (error.message) {
+              errorMessage = error.message
+            }
+            showNotification('error', errorMessage)
+          })
+        return
+      } else {
+        const topicData = {
+          title,
+          description,
+          slug,
+          fa_class_icon,
+          pos
+        }
+
+        fetch(AdminApiBreakpoint.CREATE_TOPIC, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(topicData)
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const error = await response.json()
+              error.status = response.status
+              return Promise.reject(error)
+            }
+            return response.json()
+          })
+          .then(data => {
+            showNotification('success', data.message || 'Đã thêm chủ đề mới thành công!')
+            bootstrap.Modal.getInstance(document.getElementById('topicModal')).hide()
+            window.location.reload()
+          })
+          .catch(error => {
+            let errorMessage = 'Có lỗi xảy ra khi thêm chủ đề'
+            
+            if (error.status === 422 && error.errors) {
+              errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                .map(err => `- ${err.msg || err}`)
+                .join('\n')
+            } else if (error.errors) {
+              const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+              errorMessage = errorMessages || error.message || errorMessage
+            } else if (error.message) {
+              errorMessage = error.message
+            }
+            showNotification('error', errorMessage)
+          })
+        return
+      }
+
+      bootstrap.Modal.getInstance(document.getElementById('topicModal')).hide()
+      renderTopics()
+    }
+
+    function showConfirmModal(title, message, callback) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: title,
+          text: message,
+          icon: 'warning',
+          buttons: {
+            cancel: 'Hủy',
+            confirm: 'Xác nhận'
+          },
+          dangerMode: true
+        }).then((willDelete) => {
+          if (willDelete) {
+            callback()
+          }
+        })
+      } else {
+        document.getElementById('confirmModalLabel').textContent = title
+        document.getElementById('confirmMessage').textContent = message
+
+        const confirmBtn = document.getElementById('confirmAction')
+        confirmBtn.onclick = () => {
+          bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide()
+          callback()
+        }
+
+        new bootstrap.Modal(document.getElementById('confirmModal')).show()
+      }
+    }
+
+    function showNotification(type, message) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+
+    window.openAddModal = openAddModal
+    window.saveTopic = saveTopic
+    window.editTopic = editTopic
+    window.deleteTopic = deleteTopic
+    window.updateIconPreview = updateIconPreview
+
+    document.addEventListener('DOMContentLoaded', function () {
+      renderTopics()
+
+      const currentPath = window.location.pathname
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active')
+      })
+
+      if (currentPath.includes('/categories/topics')) {
+        const topicsLink = document.querySelector(`a[href="${prefixAdmin}/categories/topics"]`)
+        if (topicsLink && topicsLink.parentElement) {
+          topicsLink.parentElement.classList.add('active')
+        }
+      }
+    })
+

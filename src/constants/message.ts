@@ -62,6 +62,7 @@ export const WRITING_SENTENCE_MESSAGES = {
 export const CATEGORIES_MESSAGES = {
   LEVEL_NOT_FOUND: 'Cấp độ không tồn tại',
   TYPE_NOT_FOUND: 'Loại không tồn tại',
+  TOPIC_NOT_FOUND: 'Chủ đề không tồn tại',
   TITLE_REQUIRED: 'Tiêu đề không được để trống',
   TITLE_INVALID: 'Tiêu đề không hợp lệ',
   TITLE_LENGTH: 'Tiêu đề phải có ít nhất 1 ký tự và tối đa 50 ký tự',

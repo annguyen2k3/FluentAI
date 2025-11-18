@@ -7,7 +7,11 @@ import {
   createTypeController,
   deleteTypeController,
   renderTypesController,
-  updateTypeController
+  updateTypeController,
+  createTopicController,
+  deleteTopicController,
+  renderTopicsController,
+  updateTopicController
 } from '~/controllers/admin/manage-category.controllers'
 import { requireAdminAuth } from '~/middlewares/admin.middleware'
 import {
@@ -16,7 +20,10 @@ import {
   deleteLevelValidator,
   createTypeValidator,
   updateTypeValidator,
-  deleteTypeValidator
+  deleteTypeValidator,
+  createTopicValidator,
+  updateTopicValidator,
+  deleteTopicValidator
 } from '~/middlewares/categories.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
 const manageCategoryRoutes = Router()
@@ -87,6 +94,40 @@ manageCategoryRoutes.delete(
   requireAdminAuth,
   deleteTypeValidator,
   wrapRequestHandler(deleteTypeController)
+)
+
+// GET /admin/categories/topics
+// Description: Render page manage categories topics
+manageCategoryRoutes.get('/topics', requireAdminAuth, wrapRequestHandler(renderTopicsController))
+
+// POST /admin/categories/topics
+// Description: Create topic
+// Body: {title: string, description: string, fa_class_icon: string, slug: string, pos: number}
+manageCategoryRoutes.post(
+  '/topics',
+  requireAdminAuth,
+  createTopicValidator,
+  wrapRequestHandler(createTopicController)
+)
+
+// PUT /admin/categories/topics
+// Description: Update topic
+// Body: {id: string, title: string, description: string, fa_class_icon: string, slug: string, pos: number}
+manageCategoryRoutes.put(
+  '/topics',
+  requireAdminAuth,
+  updateTopicValidator,
+  wrapRequestHandler(updateTopicController)
+)
+
+// DELETE /admin/categories/topics
+// Description: Delete topic
+// Body: {id: string}
+manageCategoryRoutes.delete(
+  '/topics',
+  requireAdminAuth,
+  deleteTopicValidator,
+  wrapRequestHandler(deleteTopicController)
 )
 
 export default manageCategoryRoutes
