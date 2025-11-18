@@ -53,10 +53,17 @@ export const PROPERTY_MESSAGES = {
 } as const
 
 export const WRITING_SENTENCE_MESSAGES = {
+  TITLE_INVALID: 'Tiêu đề không hợp lệ',
   INIT_CHAT_FAILED: 'Khởi tạo chat thất bại',
   SENTENCE_VI_INVALID: 'Câu tiếng Việt không hợp lệ',
   USER_TRANSLATION_INVALID: 'Dịch của người dùng không hợp lệ',
-  TOPIC_INVALID: 'Chủ đề không hợp lệ'
+  TOPIC_INVALID: 'Chủ đề không hợp lệ',
+  LEVEL_INVALID: 'Cấp độ không hợp lệ',
+  LIST_INVALID: 'Danh sách câu không hợp lệ',
+  POS_INVALID: 'Vị trí không hợp lệ',
+  SLUG_INVALID: 'Slug không hợp lệ',
+  SLUG_EXISTS: 'Slug đã tồn tại',
+  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự và tối đa 50 ký tự'
 } as const
 
 export const CATEGORIES_MESSAGES = {

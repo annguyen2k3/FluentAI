@@ -96,15 +96,13 @@ block main-content
             div(class="row")
               div(class="col-md-6")
                 div(class="form-group")
-                  label(for="writingSentenceSlug" class="form-label") Slug 
-                    span(class="text-danger") *
-                  input(type="text" class="form-control" id="writingSentenceSlug" name="slug" required placeholder="Ví dụ: chao-hoi-co-ban")
+                  label(for="writingSentenceSlug" class="form-label") Slug
+                  input(type="text" class="form-control" id="writingSentenceSlug" name="slug" placeholder="Ví dụ: chao-hoi-co-ban")
                   small(class="form-text text-muted") Slug sẽ được tự động tạo từ tiêu đề nếu để trống
               div(class="col-md-3")
                 div(class="form-group")
                   label(for="writingSentencePos" class="form-label") Vị trí 
-                    span(class="text-danger") *
-                  input(type="number" class="form-control" id="writingSentencePos" name="pos" required value="1" min="1")
+                  input(type="number" class="form-control" id="writingSentencePos" name="pos" value="1" min="1")
             div(class="form-group")
               label(class="form-label") Danh sách câu 
                 span(class="text-danger") *
@@ -136,6 +134,7 @@ block scripts
     const prefixAdmin = '#{prefixAdmin}'
     const topicsData = !{JSON.stringify(topics || [])}
     const levelsData = !{JSON.stringify(levels || [])}
+    const partOfSpeechOptions = !{JSON.stringify(partOfSpeechOptions || [])}
 
     const topicTitles = {}
     topicsData.forEach(topic => {
@@ -472,6 +471,16 @@ block scripts
       }
     }
 
+    function createPartOfSpeechOptions(selectedValue = '') {
+      if (!Array.isArray(partOfSpeechOptions)) return ''
+      return partOfSpeechOptions
+        .map(value => {
+          const selected = value === selectedValue ? 'selected' : ''
+          return `<option value="${value}" ${selected}>${value}</option>`
+        })
+        .join('')
+    }
+
     function addHint(sentenceId) {
       hintCounter++
       const hintsContainer = document.querySelector(`.hints-container[data-sentence-id="${sentenceId}"]`)
@@ -494,7 +503,9 @@ block scripts
             </div>
             <div class="col-md-3">
               <label class="form-label">Loại từ <span class="text-danger">*</span></label>
-              <input type="text" class="form-control form-control-sm writing-sentence__type" required placeholder="interjection">
+              <select class="form-select form-select-sm writing-sentence__type" required>
+                ${createPartOfSpeechOptions()}
+              </select>
             </div>
           </div>
           <div class="row mt-2">
@@ -529,20 +540,22 @@ block scripts
       addSentence()
     }
 
-    function editWritingSentence(id) {
-      const item = writingSentencesData.find(w => w._id === id)
+    function populateFormWithItem(item, { isCopy = false } = {}) {
       if (!item) return
-
       const topicId = typeof item.topic === 'string' ? item.topic : item.topic?._id
       const levelId = typeof item.level === 'string' ? item.level : item.level?._id
 
-      document.getElementById('writingSentenceId').value = item._id
-      document.getElementById('writingSentenceTitle').value = item.title
+      document.getElementById('writingSentenceId').value = isCopy ? '' : item._id
+      document.getElementById('writingSentenceTitle').value = isCopy
+        ? `${item.title} (Copy)`
+        : item.title
       document.getElementById('writingSentenceTopic').value = topicId || ''
       document.getElementById('writingSentenceLevel').value = levelId || ''
-      document.getElementById('writingSentenceSlug').value = item.slug
+      document.getElementById('writingSentenceSlug').value = isCopy ? '' : item.slug
       document.getElementById('writingSentencePos').value = item.pos || 1
-      document.getElementById('writingSentenceModalLabel').textContent = 'Chỉnh sửa nội dung viết câu'
+      document.getElementById('writingSentenceModalLabel').textContent = isCopy
+        ? 'Sao chép nội dung viết câu'
+        : 'Chỉnh sửa nội dung viết câu'
 
       document.getElementById('sentencesList').innerHTML = ''
       sentenceCounter = 0
@@ -604,7 +617,9 @@ block scripts
                     </div>
                     <div class="col-md-3">
                       <label class="form-label">Loại từ <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control form-control-sm writing-sentence__type" required value="${hint.type || ''}" placeholder="interjection">
+                      <select class="form-select form-select-sm writing-sentence__type" required>
+                        ${createPartOfSpeechOptions(hint.type || '')}
+                      </select>
                     </div>
                   </div>
                   <div class="row mt-2">
@@ -630,20 +645,16 @@ block scripts
       new bootstrap.Modal(document.getElementById('writingSentenceModal')).show()
     }
 
+    function editWritingSentence(id) {
+      const item = writingSentencesData.find(w => w._id === id)
+      if (!item) return
+      populateFormWithItem(item)
+    }
+
     function copyWritingSentence(id) {
       const item = writingSentencesData.find(w => w._id === id)
       if (!item) return
-
-      const newItem = JSON.parse(JSON.stringify(item))
-      newItem._id = 'new_' + Date.now()
-      newItem.title = item.title + ' (Copy)'
-      newItem.slug = item.slug + '-copy'
-      newItem.create_at = new Date().toISOString()
-      newItem.update_at = new Date().toISOString()
-
-      writingSentencesData.push(newItem)
-      renderWritingSentences()
-      showNotification('success', 'Đã sao chép nội dung thành công!')
+      populateFormWithItem(item, { isCopy: true })
     }
 
     function deleteWritingSentence(id) {
@@ -700,19 +711,8 @@ block scripts
       const title = document.getElementById('writingSentenceTitle').value
       const topic = document.getElementById('writingSentenceTopic').value
       const level = document.getElementById('writingSentenceLevel').value
-      let slug = document.getElementById('writingSentenceSlug').value
+      let slug = document.getElementById('writingSentenceSlug').value || undefined
       const pos = parseInt(document.getElementById('writingSentencePos').value) || 1
-
-      if (!slug) {
-        slug = title.toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .replace(/đ/g, 'd')
-          .replace(/Đ/g, 'D')
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-+|-+$/g, '')
-        document.getElementById('writingSentenceSlug').value = slug
-      }
 
       const sentences = []
       const sentenceItems = document.querySelectorAll('.writing-sentence__item')
@@ -804,7 +804,7 @@ block scripts
             showNotification('error', errorMessage)
           })
       } else {
-        fetch(AdminApiBreakpoint.CREATE_WS || `${prefixAdmin}/api/ws`, {
+        fetch(AdminApiBreakpoint.CREATE_WS_LIST, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -912,32 +912,15 @@ block scripts
         }
       }
 
-      const titleInput = document.getElementById('writingSentenceTitle')
-      if (titleInput) {
-        titleInput.addEventListener('input', function () {
-          const slugInput = document.getElementById('writingSentenceSlug')
-          if (!slugInput?.value) {
-            const slug = this.value
-              .toLowerCase()
-              .normalize('NFD')
-              .replace(/[\u0300-\u036f]/g, '')
-              .replace(/đ/g, 'd')
-              .replace(/Đ/g, 'D')
-              .replace(/[^a-z0-9]+/g, '-')
-              .replace(/^-+|-+$/g, '')
-            slugInput.value = slug
-          }
-        })
-      }
+      window.openAddModal = openAddModal
+      window.saveWritingSentence = saveWritingSentence
+      window.editWritingSentence = editWritingSentence
+      window.copyWritingSentence = copyWritingSentence
+      window.deleteWritingSentence = deleteWritingSentence
+      window.addSentence = addSentence
+      window.removeSentence = removeSentence
+      window.addHint = addHint
+      window.removeHint = removeHint
     })
-
-    window.openAddModal = openAddModal
-    window.saveWritingSentence = saveWritingSentence
-    window.editWritingSentence = editWritingSentence
-    window.copyWritingSentence = copyWritingSentence
-    window.deleteWritingSentence = deleteWritingSentence
-    window.addSentence = addSentence
-    window.removeSentence = removeSentence
-    window.addHint = addHint
-    window.removeHint = removeHint
-
+      
+    

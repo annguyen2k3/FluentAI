@@ -1,6 +1,8 @@
 import { Request, Response } from 'express'
 import { Admin, ObjectId } from 'mongodb'
 import { HttpStatus } from '~/constants/httpStatus'
+import { PartOfSpeech } from '~/constants/enum'
+import WSList from '~/models/schemas/ws-list.schema'
 import categoriesServices from '~/services/categories.services'
 import writingService from '~/services/writing.service'
 
@@ -20,13 +22,15 @@ export const renderManageWsController = async (req: Request, res: Response) => {
     slug: level.slug,
     pos: level.pos
   }))
+  const partOfSpeechOptions = Object.values(PartOfSpeech)
 
   res.render('admin/pages/manage-ws.pug', {
     pageTitle: 'Admin - Quản lý luyện viết câu',
     admin,
     topics,
     levels,
-    prefixAdmin
+    prefixAdmin,
+    partOfSpeechOptions
   })
 }
 
@@ -44,5 +48,23 @@ export const getListWsController = async (req: Request, res: Response) => {
     message: 'Danh sách bài học đã lấy thành công',
     status: HttpStatus.OK,
     ...data
+  })
+}
+
+export const createWSListController = async (req: Request, res: Response) => {
+  const { title, topic, level, list, pos, slug } = req.body
+  const wsList = new WSList({
+    title,
+    topic: new ObjectId(topic),
+    level: new ObjectId(level),
+    list,
+    pos,
+    slug
+  })
+  await writingService.createWSList(wsList)
+  res.status(HttpStatus.CREATED).json({
+    message: 'Bài học đã được tạo thành công',
+    status: HttpStatus.CREATED,
+    wsList
   })
 }

@@ -130,5 +130,10 @@ export const AdminApiBreakpoint = {
   // GET /admin/ws/list
   // Description: Get list of ws
   // Query: page, limit, level, topic
-  GET_WS_LIST: `${adminApiUrl}/ws/list`
+  GET_WS_LIST: `${adminApiUrl}/ws/list`,
+
+  // POST /admin/ws/create
+  // Description: Create ws
+  // Body: {title: string, topic: string, level: string, list: SentenceWriteType[], pos?: number, slug?: string}
+  CREATE_WS_LIST: `${adminApiUrl}/ws/create`
 }

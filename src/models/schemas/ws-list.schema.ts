@@ -5,7 +5,7 @@ import { createSlug } from '~/utils/format'
 export type SentenceWriteType = {
   pos: number
   content: string
-  hint: VocabularyHintType[]
+  hint?: VocabularyHintType[]
 }
 
 interface WSListType {
