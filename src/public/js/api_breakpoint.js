@@ -80,5 +80,20 @@ export const AdminApiBreakpoint = {
   // PUT /admin/users/update
   // Description: Update user manage
   // Body: { userId: string, username: string, email: string, dateOfBirth: string, phoneNumber: string, gender: string }
-  UPDATE_USER_MANAGE: `${adminApiUrl}/users/update`
+  UPDATE_USER_MANAGE: `${adminApiUrl}/users/update`,
+
+  // POST /admin/categories/levels
+  // Description: Create level
+  // Body: {title: string, description: string, fa_class_icon: string, slug: string, pos: number}
+  CREATE_LEVEL: `${adminApiUrl}/categories/levels`,
+
+  // PUT /admin/categories/levels
+  // Description: Update level
+  // Body: {id: string, title: string, description: string, fa_class_icon: string, slug: string, pos: number}
+  UPDATE_LEVEL: `${adminApiUrl}/categories/levels`,
+
+  // DELETE /admin/categories/levels
+  // Description: Delete level
+  // Body: {id: string}
+  DELETE_LEVEL: `${adminApiUrl}/categories/levels`
 }

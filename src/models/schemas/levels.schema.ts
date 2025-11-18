@@ -22,8 +22,8 @@ export default class Levels {
     this._id = levels._id || new ObjectId()
     this.title = levels.title || ''
     this.description = levels.description || ''
-    this.fa_class_icon = levels.fa_class_icon || ''
-    this.pos = levels.pos || 0
+    this.fa_class_icon = levels.fa_class_icon || 'fas fa-question-circle'
+    this.pos = levels.pos || 1
     this.slug = levels.slug || createSlug(levels.title)
   }
 }

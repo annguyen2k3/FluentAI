@@ -58,3 +58,17 @@ export const WRITING_SENTENCE_MESSAGES = {
   USER_TRANSLATION_INVALID: 'Dịch của người dùng không hợp lệ',
   TOPIC_INVALID: 'Chủ đề không hợp lệ'
 } as const
+
+export const CATEGORIES_MESSAGES = {
+  LEVEL_NOT_FOUND: 'Cấp độ không tồn tại',
+  TITLE_REQUIRED: 'Tiêu đề không được để trống',
+  TITLE_INVALID: 'Tiêu đề không hợp lệ',
+  TITLE_LENGTH: 'Tiêu đề phải có ít nhất 1 ký tự và tối đa 50 ký tự',
+  DESCRIPTION_REQUIRED: 'Mô tả không được để trống',
+  DESCRIPTION_INVALID: 'Mô tả không hợp lệ',
+  DESCRIPTION_LENGTH: 'Mô tả phải có ít nhất 1 ký tự và tối đa 255 ký tự',
+  FA_CLASS_ICON_INVALID: 'Class icon FontAwesome không hợp lệ',
+  POS_INVALID: 'Vị trí không hợp lệ',
+  SLUG_INVALID: 'Slug không hợp lệ',
+  SLUG_EXISTS: 'Slug đã tồn tại'
+} as const

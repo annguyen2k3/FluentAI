@@ -25,10 +25,10 @@ block main-content
               i(class="fas fa-plus")
               |  Thêm cấp độ mới
         div(class="card-body")
-          div(class="row" id="levelsList")
+          div(class="row" id="levelsList" data-levels=levels)
 
   //- Level Modal
-  div(class="modal fade" id="levelModal" tabindex="-1" role="dialog" aria-labelledby="levelModalLabel" aria-hidden="true")
+  div(class="modal fade" id="levelModal" tabindex="-1" role="dialog" aria-labelledby="levelModalLabel" aria-hidden="true" )
     div(class="modal-dialog modal-lg" role="document")
       div(class="modal-content")
         div(class="modal-header")
@@ -48,20 +48,23 @@ block main-content
               textarea(class="form-control" id="levelDescription" name="description" rows="3" required placeholder="Nhập mô tả cho cấp độ")
             div(class="form-group")
               label(for="levelSlug" class="form-label") Slug 
-                span(class="text-danger") *
-              input(type="text" class="form-control" id="levelSlug" name="slug" required placeholder="Ví dụ: co-ban, trung-cap, nang-cao")
+              input(type="text" class="form-control" id="levelSlug" name="slug" placeholder="Ví dụ: co-ban, trung-cap, nang-cao")
               small(class="form-text text-muted") Slug sẽ được tự động tạo từ tên nếu để trống
             div(class="form-group")
               label(for="levelIconClass" class="form-label") FontAwesome Icon Class 
-                span(class="text-danger") *
               div(class="row")
                 div(class="col-md-8")
-                  input(type="text" class="form-control" id="levelIconClass" name="fa_class_icon" required placeholder="Ví dụ: fa-solid fa-seedling" oninput="updateIconPreview()")
+                  input(type="text" class="form-control" id="levelIconClass" name="fa_class_icon" placeholder="Ví dụ: fa-solid fa-seedling" oninput="updateIconPreview()")
                   small(class="form-text text-muted") Nhập class icon FontAwesome (ví dụ: fa-solid fa-seedling)
                 div(class="col-md-4")
                   label(class="form-label d-block") Preview Icon
                   div(class="icon-preview__box" id="iconPreview")
                     i(class="fas fa-question-circle")
+            div(class="form-group")
+              label(for="levelPos" class="form-label") Vị trí hiển thị 
+                span(class="text-danger") *
+              input(type="number" class="form-control" id="levelPos" name="pos" required min="1" placeholder="Ví dụ: 1, 2, 3..." value="1")
+              small(class="form-text text-muted") Số càng nhỏ, hiển thị càng trước
         div(class="modal-footer")
           button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
           button(type="button" class="btn btn-primary" onclick="saveLevel()") Lưu
@@ -81,36 +84,20 @@ block main-content
           button(type="button" class="btn btn-danger" id="confirmAction") Xác nhận
 
 block scripts
-  script.
-    let levelsData = [
-      {
-        _id: '690c546bfb74a2323a3431d0',
-        title: 'Cơ bản',
-        description: 'Hoàn hảo cho những người mới bắt đầu hành trình học tiếng Anh. Câu đơn giản, từ vựng cơ bản và ngữ pháp cơ bản.',
-        fa_class_icon: 'fa-solid fa-seedling',
-        slug: 'co-ban'
-      },
-      {
-        _id: '690c546bfb74a2323a3431d1',
-        title: 'Trung cấp',
-        description: 'Dành cho người học sẵn sàng giải quyết các câu phức tạp hơn và từ vựng nâng cao hơn.',
-        fa_class_icon: 'fa-solid fa-layer-group',
-        slug: 'trung-cap'
-      },
-      {
-        _id: '690c546bfb74a2323a3431d2',
-        title: 'Nâng cao',
-        description: 'Thử thách bản thân với những văn bản phức tạp và từ vựng chuyên nghiệp.',
-        fa_class_icon: 'fa-solid fa-rocket',
-        slug: 'nang-cao'
-      }
-    ]
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    let levelsData = JSON.parse(document.getElementById('levelsList').dataset.levels)
+    document.getElementById('levelsList').removeAttribute('data-levels')
+    const prefixAdmin = '#{prefixAdmin}'
 
     function renderLevels() {
       const container = document.getElementById('levelsList')
       container.innerHTML = ''
 
-      levelsData.forEach(level => {
+      const sortedLevels = [...levelsData].sort((a, b) => (a.pos || 0) - (b.pos || 0))
+
+      sortedLevels.forEach(level => {
         const levelCard = `
           <div class="col-md-4 mb-4">
             <div class="card level-card">
@@ -131,6 +118,9 @@ block scripts
                 <h5 class="card-title">${level.title}</h5>
                 <p class="card-text text-muted">${level.description}</p>
                 <div class="level-meta">
+                  <small class="text-muted">
+                    <strong>Vị trí:</strong> ${level.pos || 0}
+                  </small><br>
                   <small class="text-muted">
                     <strong>Slug:</strong> ${level.slug}
                   </small><br>
@@ -160,6 +150,7 @@ block scripts
     function openAddModal() {
       document.getElementById('levelForm').reset()
       document.getElementById('levelId').value = ''
+      document.getElementById('levelPos').value = '1'
       document.getElementById('levelModalLabel').textContent = 'Thêm cấp độ mới'
       updateIconPreview()
     }
@@ -173,6 +164,7 @@ block scripts
       document.getElementById('levelDescription').value = level.description
       document.getElementById('levelSlug').value = level.slug
       document.getElementById('levelIconClass').value = level.fa_class_icon
+      document.getElementById('levelPos').value = level.pos || 1
       document.getElementById('levelModalLabel').textContent = 'Chỉnh sửa cấp độ'
 
       updateIconPreview()
@@ -184,9 +176,41 @@ block scripts
         'Xóa cấp độ',
         'Bạn có chắc chắn muốn xóa cấp độ này? Hành động này không thể hoàn tác!',
         () => {
-          levelsData = levelsData.filter(l => l._id !== id)
-          renderLevels()
-          showNotification('success', 'Đã xóa cấp độ thành công!')
+          fetch(AdminApiBreakpoint.DELETE_LEVEL, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ id })
+          })
+            .then(async response => {
+              if (!response.ok) {
+                const error = await response.json()
+                error.status = response.status
+                return Promise.reject(error)
+              }
+              return response.json()
+            })
+            .then(data => {
+              showNotification('success', data.message || 'Đã xóa cấp độ thành công!')
+              window.location.reload()
+            })
+            .catch(error => {
+              let errorMessage = 'Có lỗi xảy ra khi xóa cấp độ'
+              
+              if (error.status === 422 && error.errors) {
+                errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                  .map(err => `- ${err.msg || err}`)
+                  .join('\n')
+              } else if (error.errors) {
+                const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+                errorMessage = errorMessages || error.message || errorMessage
+              } else if (error.message) {
+                errorMessage = error.message
+              }
+              showNotification('error', errorMessage)
+            })
         }
       )
     }
@@ -201,42 +225,103 @@ block scripts
       const id = document.getElementById('levelId').value
       const title = document.getElementById('levelTitle').value
       const description = document.getElementById('levelDescription').value
-      let slug = document.getElementById('levelSlug').value
+      let slug = document.getElementById('levelSlug').value.trim()
       const fa_class_icon = document.getElementById('levelIconClass').value.trim()
-
-      if (!slug) {
-        slug = title.toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .replace(/đ/g, 'd')
-          .replace(/Đ/g, 'D')
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-+|-+$/g, '')
-        document.getElementById('levelSlug').value = slug
-      }
+      const pos = parseInt(document.getElementById('levelPos').value) || 1
 
       if (id) {
-        const index = levelsData.findIndex(l => l._id === id)
-        if (index !== -1) {
-          levelsData[index] = {
-            ...levelsData[index],
-            title,
-            description,
-            slug,
-            fa_class_icon
-          }
-          showNotification('success', 'Đã cập nhật cấp độ thành công!')
-        }
-      } else {
-        const newLevel = {
-          _id: 'new_' + Date.now(),
+        const levelData = {
+          id,
           title,
           description,
           slug,
-          fa_class_icon
+          fa_class_icon,
+          pos
         }
-        levelsData.push(newLevel)
-        showNotification('success', 'Đã thêm cấp độ mới thành công!')
+
+        fetch(AdminApiBreakpoint.UPDATE_LEVEL, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(levelData)
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const error = await response.json()
+              error.status = response.status
+              return Promise.reject(error)
+            }
+            return response.json()
+          })
+          .then(data => {
+            showNotification('success', data.message || 'Đã cập nhật cấp độ thành công!')
+            bootstrap.Modal.getInstance(document.getElementById('levelModal')).hide()
+            window.location.reload()
+          })
+          .catch(error => {
+            let errorMessage = 'Có lỗi xảy ra khi cập nhật cấp độ'
+            
+            if (error.status === 422 && error.errors) {
+              errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                .map(err => `- ${err.msg || err}`)
+                .join('\n')
+            } else if (error.errors) {
+              const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+              errorMessage = errorMessages || error.message || errorMessage
+            } else if (error.message) {
+              errorMessage = error.message
+            }
+            showNotification('error', errorMessage)
+          })
+        return
+      } else {
+        const levelData = {
+          title,
+          description,
+          slug,
+          fa_class_icon,
+          pos
+        }
+
+        fetch(AdminApiBreakpoint.CREATE_LEVEL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(levelData)
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const error = await response.json()
+              error.status = response.status
+              return Promise.reject(error)
+            }
+            return response.json()
+          })
+          .then(data => {
+            showNotification('success', data.message || 'Đã thêm cấp độ mới thành công!')
+            bootstrap.Modal.getInstance(document.getElementById('levelModal')).hide()
+            window.location.reload()
+          })
+          .catch(error => {
+            let errorMessage = 'Có lỗi xảy ra khi thêm cấp độ'
+            
+            if (error.status === 422 && error.errors) {
+              errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                .map(err => `- ${err.msg || err}`)
+                .join('\n')
+            } else if (error.errors) {
+              const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+              errorMessage = errorMessages || error.message || errorMessage
+            } else if (error.message) {
+              errorMessage = error.message
+            }
+            showNotification('error', errorMessage)
+          })
+        return
       }
 
       bootstrap.Modal.getInstance(document.getElementById('levelModal')).hide()
@@ -286,6 +371,12 @@ block scripts
       }
     }
 
+    window.openAddModal = openAddModal
+    window.saveLevel = saveLevel
+    window.editLevel = editLevel
+    window.deleteLevel = deleteLevel
+    window.updateIconPreview = updateIconPreview
+
     document.addEventListener('DOMContentLoaded', function () {
       renderLevels()
 
@@ -295,7 +386,7 @@ block scripts
       })
 
       if (currentPath.includes('/categories/levels')) {
-        const levelsLink = document.querySelector('a[href="#{prefixAdmin}/categories/levels"]')
+        const levelsLink = document.querySelector(`a[href="${prefixAdmin}/categories/levels"]`)
         if (levelsLink && levelsLink.parentElement) {
           levelsLink.parentElement.classList.add('active')
         }
