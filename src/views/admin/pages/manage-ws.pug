@@ -662,7 +662,7 @@ block scripts
         'Xóa nội dung viết câu',
         'Bạn có chắc chắn muốn xóa nội dung này? Hành động này không thể hoàn tác!',
         () => {
-          fetch(AdminApiBreakpoint.DELETE_WS || `${prefixAdmin}/api/ws/${id}`, {
+          fetch(AdminApiBreakpoint.DELETE_WS_LIST, {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json'

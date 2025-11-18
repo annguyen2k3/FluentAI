@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   createWSListController,
+  deleteWSListController,
   getListWsController,
   renderManageWsController,
   updateWSListController
@@ -48,6 +49,15 @@ manageWsRoutes.put(
   requireAdminAuth,
   updateWSListValidator,
   wrapRequestHandler(updateWSListController)
+)
+
+// DELETE /admin/ws/delete
+// Description: Delete ws
+// Body: {id: string}
+manageWsRoutes.delete(
+  '/delete',
+  requireAdminAuth,
+  wrapRequestHandler(deleteWSListController)
 )
 
 export default manageWsRoutes

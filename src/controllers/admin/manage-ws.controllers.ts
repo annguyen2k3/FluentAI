@@ -5,6 +5,7 @@ import { PartOfSpeech } from '~/constants/enum'
 import WSList from '~/models/schemas/ws-list.schema'
 import categoriesServices from '~/services/categories.services'
 import writingService from '~/services/writing.service'
+import { databaseService } from '~/services/database.service'
 
 const prefixAdmin = process.env.PREFIX_ADMIN
 
@@ -96,5 +97,25 @@ export const updateWSListController = async (req: Request, res: Response) => {
     message: 'Bài học đã được cập nhật thành công',
     status: HttpStatus.OK,
     wsList
+  })
+}
+
+// DELETE /admin/ws/delete
+export const deleteWSListController = async (req: Request, res: Response) => {
+  const { id } = req.body
+  const wsList = await databaseService.wsLists.findOne({
+    _id: new ObjectId(id)
+  })
+  if (!wsList) {
+    res.status(HttpStatus.NOT_FOUND).json({
+      status: HttpStatus.NOT_FOUND,
+      message: 'Bài học không tồn tại'
+    })
+    return
+  }
+  await databaseService.wsLists.deleteOne({ _id: new ObjectId(id) })
+  res.status(HttpStatus.OK).json({
+    message: 'Bài học đã được xóa thành công',
+    status: HttpStatus.OK
   })
 }

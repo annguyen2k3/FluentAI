@@ -140,5 +140,10 @@ export const AdminApiBreakpoint = {
   // PUT /admin/ws/update
   // Description: Update ws
   // Body: {id: string, title: string, topic: string, level: string, list: SentenceWriteType[], pos: number, slug: string}
-  UPDATE_WS_LIST: `${adminApiUrl}/ws/update`
+  UPDATE_WS_LIST: `${adminApiUrl}/ws/update`,
+
+  // DELETE /admin/ws/delete
+  // Description: Delete ws
+  // Body: {id: string}
+  DELETE_WS_LIST: `${adminApiUrl}/ws/delete`
 }
