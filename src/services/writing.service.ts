@@ -35,33 +35,57 @@ function sk(userId: string, practiceId: string) {
 }
 
 function fillTemplate(tpl: string, vars: Record<string, string>) {
-  return Object.keys(vars).reduce((s, k) => s.replaceAll(`{{${k}}}`, vars[k]), tpl)
+  return Object.keys(vars).reduce(
+    (s, k) => s.replaceAll(`{{${k}}}`, vars[k]),
+    tpl
+  )
 }
 
-async function loadPrompt(feature: PromptFeature, writingType: PromptWritingType) {
+async function loadPrompt(
+  feature: PromptFeature,
+  writingType: PromptWritingType
+) {
   const doc = await databaseService.prompts.findOne({
     feature: feature,
     writing_type: writingType,
     status: true
   })
   if (!doc?.content)
-    throw new ErrorWithStatus(`Prompt not found: ${writingType}`, HttpStatus.NOT_FOUND)
+    throw new ErrorWithStatus(
+      `Prompt not found: ${writingType}`,
+      HttpStatus.NOT_FOUND
+    )
   return doc.content
 }
 
 class WritingService {
-  async getWSList(find: { level?: ObjectId; topic?: ObjectId; page?: number; limit?: number }) {
+  async getWSList(find: {
+    level?: ObjectId
+    topic?: ObjectId
+    page?: number
+    limit?: number
+    search?: string
+    sortKey?: string
+    sortOrder?: 'asc' | 'desc'
+  }) {
     const { page = 1, limit = 10, ...matchQuery } = find
     const skip = (page - 1) * limit
     const matchStage: any = {}
     if (matchQuery.level) matchStage.level = matchQuery.level
     if (matchQuery.topic) matchStage.topic = matchQuery.topic
+    if (matchQuery.search)
+      matchStage.title = { $regex: matchQuery.search, $options: 'i' }
 
     const [data, total] = await Promise.all([
       databaseService.wsLists
         .aggregate([
           { $match: matchStage },
-          { $sort: { pos: 1 } },
+          {
+            $sort: {
+              [matchQuery.sortKey as string]:
+                matchQuery.sortOrder === 'asc' ? 1 : -1
+            }
+          },
           {
             $lookup: {
               from: 'levels',
@@ -103,7 +127,10 @@ class WritingService {
 
   // 1) Khởi tạo chat cho user + practiceId, prompt lấy từ DB
   async wsInitChat(userId: string, practiceId: string): Promise<InitResult> {
-    const prompt = await loadPrompt(PromptFeature.WRITE_SENTENCE, PromptWritingType.INITIALIZATION)
+    const prompt = await loadPrompt(
+      PromptFeature.WRITE_SENTENCE,
+      PromptWritingType.INITIALIZATION
+    )
     const text = await resetAndInitSession(userId, practiceId, prompt)
     return JSON.parse(text as string)
   }
@@ -115,7 +142,10 @@ class WritingService {
     sentence_vi: string,
     user_translation: string
   ): Promise<EvaluateResult> {
-    const promptTpl = await loadPrompt(PromptFeature.WRITE_SENTENCE, PromptWritingType.TRANSLATION)
+    const promptTpl = await loadPrompt(
+      PromptFeature.WRITE_SENTENCE,
+      PromptWritingType.TRANSLATION
+    )
     const prompt = fillTemplate(promptTpl, {
       sentence_vi,
       user_translation
@@ -125,8 +155,14 @@ class WritingService {
   }
 
   // 3) Đánh giá tổng quan + kết thúc chat
-  async wsComplete(userId: string, practiceId: string): Promise<EvaluateResult> {
-    const prompt = await loadPrompt(PromptFeature.WRITE_SENTENCE, PromptWritingType.COMPLETION)
+  async wsComplete(
+    userId: string,
+    practiceId: string
+  ): Promise<EvaluateResult> {
+    const prompt = await loadPrompt(
+      PromptFeature.WRITE_SENTENCE,
+      PromptWritingType.COMPLETION
+    )
     const text = await completeAndDeleteSession(userId, practiceId, prompt)
     return { Passed: true, Feedback_html: text as string }
   }
@@ -155,7 +191,10 @@ class WritingService {
   }
 
   async updateWSList(wsList: WSList) {
-    await databaseService.wsLists.updateOne({ _id: wsList._id }, { $set: wsList })
+    await databaseService.wsLists.updateOne(
+      { _id: wsList._id },
+      { $set: wsList }
+    )
     return wsList
   }
 
@@ -231,7 +270,11 @@ class WritingService {
     }
   }
 
-  async wpInitChat(userId: string, practiceId: string, wp_paragraph: string): Promise<InitResult> {
+  async wpInitChat(
+    userId: string,
+    practiceId: string,
+    wp_paragraph: string
+  ): Promise<InitResult> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_PARAGRAPH,
       PromptWritingType.INITIALIZATION
@@ -249,7 +292,10 @@ class WritingService {
     sentence_vi: string,
     user_translation: string
   ): Promise<EvaluateResult> {
-    const promptTpl = await loadPrompt(PromptFeature.WRITE_PARAGRAPH, PromptWritingType.TRANSLATION)
+    const promptTpl = await loadPrompt(
+      PromptFeature.WRITE_PARAGRAPH,
+      PromptWritingType.TRANSLATION
+    )
     const prompt = fillTemplate(promptTpl, {
       sentence_vi,
       user_translation
@@ -258,8 +304,14 @@ class WritingService {
     return JSON.parse(text as string) as EvaluateResult
   }
 
-  async wpComplete(userId: string, practiceId: string): Promise<EvaluateResult> {
-    const prompt = await loadPrompt(PromptFeature.WRITE_PARAGRAPH, PromptWritingType.COMPLETION)
+  async wpComplete(
+    userId: string,
+    practiceId: string
+  ): Promise<EvaluateResult> {
+    const prompt = await loadPrompt(
+      PromptFeature.WRITE_PARAGRAPH,
+      PromptWritingType.COMPLETION
+    )
     const text = await completeAndDeleteSession(userId, practiceId, prompt)
     return { Passed: true, Feedback_html: text as string }
   }

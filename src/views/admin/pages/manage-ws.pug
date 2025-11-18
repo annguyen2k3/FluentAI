@@ -25,28 +25,45 @@ block main-content
               i(class="fas fa-plus")
               |  Thêm nội dung mới
         div(class="card-body")
-          div(class="writing-sentence__filters row g-3 mb-4")
-            div(class="col-md-4 col-sm-6")
+          div(class="writing-sentence__filters row g-3 mb-3 align-items-end")
+            div(class="col-lg-3 col-md-4 col-sm-6")
               label(for="filterTopic" class="form-label mb-1") Lọc theo chủ đề
               select(id="filterTopic" class="form-select writing-sentence__filter-control")
                 option(value="") Tất cả chủ đề
-            div(class="col-md-4 col-sm-6")
+            div(class="col-lg-3 col-md-4 col-sm-6")
               label(for="filterLevel" class="form-label mb-1") Lọc theo cấp độ
               select(id="filterLevel" class="form-select writing-sentence__filter-control")
                 option(value="") Tất cả cấp độ
-            div(class="col-md-2 col-sm-6")
+            div(class="col-lg-2 col-md-4 col-sm-6")
               label(for="filterLimit" class="form-label mb-1") Số mục mỗi trang
               select(id="filterLimit" class="form-select writing-sentence__filter-control")
                 option(value="6") 6 mục
                 option(value="12") 12 mục
                 option(value="24") 24 mục
-            div(class="col-md-2 col-sm-6 d-flex align-items-end writing-sentence__filter-actions")
-              button(type="button" class="btn btn-primary me-2 flex-grow-1" id="filterApplyBtn")
-                i(class="fas fa-filter me-1")
-                |  Áp dụng
-              button(type="button" class="btn btn-outline-secondary flex-grow-1" id="filterResetBtn")
+            div(class="col-lg-4 col-md-8 col-sm-12")
+              label(for="filterSearch" class="form-label mb-1") Tìm kiếm theo tiêu đề
+              input(type="text" id="filterSearch" class="form-control writing-sentence__filter-control" placeholder="Nhập từ khóa tiêu đề")
+          div(class="writing-sentence__filters row g-3 mb-4 writing-sentence__filters--advanced")
+            div(class="col-lg-3 col-md-4 col-sm-6")
+              label(for="filterSortKey" class="form-label mb-1") Sắp xếp theo
+              select(id="filterSortKey" class="form-select writing-sentence__filter-control")
+                option(value="pos") Vị trí
+                option(value="create_at") Ngày tạo
+                option(value="update_at") Ngày cập nhật
+            div(class="col-lg-3 col-md-4 col-sm-6")
+              label(for="filterSortOrder" class="form-label mb-1") Thứ tự
+              select(id="filterSortOrder" class="form-select writing-sentence__filter-control")
+                option(value="asc") Tăng dần
+                option(value="desc") Giảm dần
+            div(class="col-lg-3 col-md-4 col-sm-6 d-flex align-items-end justify-content-center writing-sentence__result-badge")
+              span(id="filterResultCount" class="badge bg-light text-dark px-3 py-2 w-100 text-center") 0 nội dung
+            div(class="col-lg-3 col-md-4 col-sm-12 d-flex align-items-end justify-content-end writing-sentence__filter-actions")
+              button(type="button" class="btn btn-outline-secondary me-2" id="filterResetBtn")
                 i(class="fas fa-undo me-1")
                 |  Đặt lại
+              button(type="button" class="btn btn-primary" id="filterApplyBtn")
+                i(class="fas fa-filter me-1")
+                |  Áp dụng
           div(id="writingSentencesLoading" class="writing-sentence__loading text-center py-5 d-none")
             div(class="spinner-border text-primary" role="status")
               span(class="visually-hidden") Đang tải
@@ -155,7 +172,10 @@ block scripts
       page: 1,
       limit: 6,
       topic: '',
-      level: ''
+      level: '',
+      search: '',
+      sortKey: 'pos',
+      sortOrder: 'asc'
     }
 
     const elements = {
@@ -167,7 +187,10 @@ block scripts
       paginationNext: null,
       filterTopic: null,
       filterLevel: null,
-      filterLimit: null
+      filterLimit: null,
+      filterSearch: null,
+      filterSortKey: null,
+      filterSortOrder: null
     }
 
     function cacheElements() {
@@ -180,6 +203,9 @@ block scripts
       elements.filterTopic = document.getElementById('filterTopic')
       elements.filterLevel = document.getElementById('filterLevel')
       elements.filterLimit = document.getElementById('filterLimit')
+      elements.filterSearch = document.getElementById('filterSearch')
+      elements.filterSortKey = document.getElementById('filterSortKey')
+      elements.filterSortOrder = document.getElementById('filterSortOrder')
     }
 
     async function fetchWritingSentences() {
@@ -189,6 +215,9 @@ block scripts
       params.set('limit', state.limit.toString())
       if (state.topic) params.set('topic', state.topic)
       if (state.level) params.set('level', state.level)
+      if (state.search) params.set('search', state.search)
+      if (state.sortKey) params.set('sortKey', state.sortKey)
+      if (state.sortOrder) params.set('sortOrder', state.sortOrder)
 
       try {
         const response = await fetch(`${AdminApiBreakpoint.GET_WS_LIST}?${params.toString()}`, {
@@ -199,6 +228,11 @@ block scripts
           throw payload
         }
         writingSentencesData = payload.data || []
+      const totalItems = payload.pagination?.total || writingSentencesData.length || 0
+      const resultCountEl = document.getElementById('filterResultCount')
+      if (resultCountEl) {
+        resultCountEl.textContent = `${totalItems} nội dung`
+      }
         pagination = {
           page: payload.pagination?.page || state.page,
           limit: payload.pagination?.limit || state.limit,
@@ -242,9 +276,16 @@ block scripts
         const levelTitle = item.level?.title || levelTitles[levelId] || 'N/A'
         const listCount = item.list ? item.list.length : 0
 
+        const createDate = item.create_at ? new Date(item.create_at).toLocaleString('vi-VN') : 'N/A'
+        const updateDate = item.update_at ? new Date(item.update_at).toLocaleString('vi-VN') : 'N/A'
+
         const card = `
           <div class="col-md-6 mb-4">
-            <div class="card writing-sentence__card">
+            <div class="card writing-sentence__card position-relative">
+              <div class="card-body">
+                <div class="writing-sentence__timestamps text-muted small">
+                  ⌚ <span title="Ngày tạo">${createDate}</span> · ⟳ <span title="Ngày cập nhật">${updateDate}</span>
+                </div>
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                   <div>
@@ -267,7 +308,7 @@ block scripts
                     </button>
                   </div>
                 </div>
-                <p class="text-muted mb-2"><strong>Slug:</strong> ${item.slug}</p>
+                <p class="text-muted mb-1"><strong>Slug:</strong> ${item.slug}</p>
                 <p class="text-muted mb-0"><strong>Vị trí:</strong> ${item.pos || '-'}</p>
                 ${item.list && item.list.length > 0 ? `
                   <div class="writing-sentence__preview mt-3">
@@ -386,6 +427,9 @@ block scripts
         applyBtn.addEventListener('click', () => {
           state.topic = elements.filterTopic?.value || ''
           state.level = elements.filterLevel?.value || ''
+          state.search = elements.filterSearch?.value.trim() || ''
+          state.sortKey = elements.filterSortKey?.value || 'pos'
+          state.sortOrder = elements.filterSortOrder?.value || 'asc'
           state.page = 1
           fetchWritingSentences()
         })
@@ -396,16 +440,29 @@ block scripts
           state.topic = ''
           state.level = ''
           state.limit = 6
+          state.search = ''
+          state.sortKey = 'pos'
+          state.sortOrder = 'asc'
           state.page = 1
           if (elements.filterTopic) elements.filterTopic.value = ''
           if (elements.filterLevel) elements.filterLevel.value = ''
           if (elements.filterLimit) elements.filterLimit.value = '6'
+          if (elements.filterSearch) elements.filterSearch.value = ''
+          if (elements.filterSortKey) elements.filterSortKey.value = 'pos'
+          if (elements.filterSortOrder) elements.filterSortOrder.value = 'asc'
           fetchWritingSentences()
         })
       }
 
       if (elements.filterLimit) {
         elements.filterLimit.value = state.limit.toString()
+      if (elements.filterSortKey) {
+        elements.filterSortKey.value = state.sortKey
+      }
+
+      if (elements.filterSortOrder) {
+        elements.filterSortOrder.value = state.sortOrder
+      }
         elements.filterLimit.addEventListener('change', event => {
           const value = Number(event.target.value) || 6
           state.limit = value

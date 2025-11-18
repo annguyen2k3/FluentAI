@@ -42,6 +42,15 @@ export const getListWsController = async (req: Request, res: Response) => {
   const limit = Number(req.query.limit) || 10
   const levelParam = req.query.level as string | undefined
   const topicParam = req.query.topic as string | undefined
+  const searchParam = req.query.search as string | undefined
+  const sortKeyParam = req.query.sortKey as string | undefined
+  const sortOrderParam = req.query.sortOrder as 'asc' | 'desc' | undefined
+
+  const search = searchParam ? searchParam.trim() : ''
+  const sortKey = sortKeyParam ? sortKeyParam.trim() : 'pos'
+  const sortOrder = sortOrderParam
+    ? (sortOrderParam.trim() as 'asc' | 'desc')
+    : 'asc'
 
   const level =
     levelParam && ObjectId.isValid(levelParam)
@@ -52,7 +61,15 @@ export const getListWsController = async (req: Request, res: Response) => {
       ? new ObjectId(topicParam)
       : undefined
 
-  const data = await writingService.getWSList({ page, limit, level, topic })
+  const data = await writingService.getWSList({
+    page,
+    limit,
+    level,
+    topic,
+    search,
+    sortKey,
+    sortOrder
+  })
   res.status(HttpStatus.OK).json({
     message: 'Danh sách bài học đã lấy thành công',
     status: HttpStatus.OK,
