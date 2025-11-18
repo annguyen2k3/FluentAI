@@ -125,5 +125,10 @@ export const AdminApiBreakpoint = {
   // DELETE /admin/categories/topics
   // Description: Delete topic
   // Body: {id: string}
-  DELETE_TOPIC: `${adminApiUrl}/categories/topics`
+  DELETE_TOPIC: `${adminApiUrl}/categories/topics`,
+
+  // GET /admin/ws/list
+  // Description: Get list of ws
+  // Query: page, limit, level, topic
+  GET_WS_LIST: `${adminApiUrl}/ws/list`
 }

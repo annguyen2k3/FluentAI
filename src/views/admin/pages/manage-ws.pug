@@ -1,0 +1,943 @@
+extends ../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Quản lý nội dung
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Luyện viết câu
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card")
+        div(class="card-header")
+          div(class="d-flex align-items-center justify-content-between")
+            h4(class="card-title") Danh sách nội dung viết câu
+            button(class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#writingSentenceModal" onclick="openAddModal()")
+              i(class="fas fa-plus")
+              |  Thêm nội dung mới
+        div(class="card-body")
+          div(class="writing-sentence__filters row g-3 mb-4")
+            div(class="col-md-4 col-sm-6")
+              label(for="filterTopic" class="form-label mb-1") Lọc theo chủ đề
+              select(id="filterTopic" class="form-select writing-sentence__filter-control")
+                option(value="") Tất cả chủ đề
+            div(class="col-md-4 col-sm-6")
+              label(for="filterLevel" class="form-label mb-1") Lọc theo cấp độ
+              select(id="filterLevel" class="form-select writing-sentence__filter-control")
+                option(value="") Tất cả cấp độ
+            div(class="col-md-2 col-sm-6")
+              label(for="filterLimit" class="form-label mb-1") Số mục mỗi trang
+              select(id="filterLimit" class="form-select writing-sentence__filter-control")
+                option(value="6") 6 mục
+                option(value="12") 12 mục
+                option(value="24") 24 mục
+            div(class="col-md-2 col-sm-6 d-flex align-items-end writing-sentence__filter-actions")
+              button(type="button" class="btn btn-primary me-2 flex-grow-1" id="filterApplyBtn")
+                i(class="fas fa-filter me-1")
+                |  Áp dụng
+              button(type="button" class="btn btn-outline-secondary flex-grow-1" id="filterResetBtn")
+                i(class="fas fa-undo me-1")
+                |  Đặt lại
+          div(id="writingSentencesLoading" class="writing-sentence__loading text-center py-5 d-none")
+            div(class="spinner-border text-primary" role="status")
+              span(class="visually-hidden") Đang tải
+            p(class="text-muted mt-3") Đang tải dữ liệu, vui lòng chờ...
+          div(id="writingSentencesEmpty" class="writing-sentence__empty text-center py-5 d-none")
+            i(class="far fa-folder-open fa-3x text-muted mb-3")
+            p(class="text-muted mb-0") Không tìm thấy nội dung nào
+          div(class="row" id="writingSentencesList")
+          div(class="writing-sentence__pagination d-flex justify-content-between align-items-center mt-4")
+            span(id="writingPaginationInfo" class="text-muted") Đang tải dữ liệu...
+            div(class="d-flex gap-2")
+              button(type="button" class="btn btn-outline-secondary writing-sentence__pagination-btn" id="writingPaginationPrev")
+                i(class="fas fa-chevron-left me-1")
+                |  Trước
+              button(type="button" class="btn btn-outline-secondary writing-sentence__pagination-btn" id="writingPaginationNext")
+                | Sau
+                i(class="fas fa-chevron-right ms-1")
+
+  div(class="modal fade" id="writingSentenceModal" tabindex="-1" role="dialog" aria-labelledby="writingSentenceModalLabel" aria-hidden="true")
+    div(class="modal-dialog modal-xl" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="writingSentenceModalLabel") Thêm nội dung viết câu mới
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          form(id="writingSentenceForm")
+            input(type="hidden" id="writingSentenceId" name="id")
+            div(class="row")
+              div(class="col-md-6")
+                div(class="form-group")
+                  label(for="writingSentenceTitle" class="form-label") Tiêu đề 
+                    span(class="text-danger") *
+                  input(type="text" class="form-control" id="writingSentenceTitle" name="title" required placeholder="Ví dụ: Chào hỏi cơ bản")
+              div(class="col-md-3")
+                div(class="form-group")
+                  label(for="writingSentenceTopic" class="form-label") Chủ đề 
+                    span(class="text-danger") *
+                  select(class="form-control" id="writingSentenceTopic" name="topic" required)
+                    option(value="") Chọn chủ đề
+              div(class="col-md-3")
+                div(class="form-group")
+                  label(for="writingSentenceLevel" class="form-label") Cấp độ 
+                    span(class="text-danger") *
+                  select(class="form-control" id="writingSentenceLevel" name="level" required)
+                    option(value="") Chọn cấp độ
+            div(class="row")
+              div(class="col-md-6")
+                div(class="form-group")
+                  label(for="writingSentenceSlug" class="form-label") Slug 
+                    span(class="text-danger") *
+                  input(type="text" class="form-control" id="writingSentenceSlug" name="slug" required placeholder="Ví dụ: chao-hoi-co-ban")
+                  small(class="form-text text-muted") Slug sẽ được tự động tạo từ tiêu đề nếu để trống
+              div(class="col-md-3")
+                div(class="form-group")
+                  label(for="writingSentencePos" class="form-label") Vị trí 
+                    span(class="text-danger") *
+                  input(type="number" class="form-control" id="writingSentencePos" name="pos" required value="1" min="1")
+            div(class="form-group")
+              label(class="form-label") Danh sách câu 
+                span(class="text-danger") *
+              div(id="sentencesList" class="writing-sentence__list")
+              button(type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addSentence()")
+                i(class="fas fa-plus")
+                |  Thêm câu
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-primary" onclick="saveWritingSentence()") Lưu
+
+  div(class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true")
+    div(class="modal-dialog" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="confirmModalLabel") Xác nhận
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          p(id="confirmMessage") Bạn có chắc chắn muốn thực hiện hành động này?
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-danger" id="confirmAction") Xác nhận
+
+block scripts
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    const prefixAdmin = '#{prefixAdmin}'
+    const topicsData = !{JSON.stringify(topics || [])}
+    const levelsData = !{JSON.stringify(levels || [])}
+
+    const topicTitles = {}
+    topicsData.forEach(topic => {
+      topicTitles[topic._id] = topic.title
+    })
+
+    const levelTitles = {}
+    levelsData.forEach(level => {
+      levelTitles[level._id] = level.title
+    })
+
+    let writingSentencesData = []
+    let pagination = { page: 1, limit: 6, total: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false }
+    let sentenceCounter = 0
+    let hintCounter = 0
+
+    const state = {
+      page: 1,
+      limit: 6,
+      topic: '',
+      level: ''
+    }
+
+    const elements = {
+      list: null,
+      loading: null,
+      empty: null,
+      paginationInfo: null,
+      paginationPrev: null,
+      paginationNext: null,
+      filterTopic: null,
+      filterLevel: null,
+      filterLimit: null
+    }
+
+    function cacheElements() {
+      elements.list = document.getElementById('writingSentencesList')
+      elements.loading = document.getElementById('writingSentencesLoading')
+      elements.empty = document.getElementById('writingSentencesEmpty')
+      elements.paginationInfo = document.getElementById('writingPaginationInfo')
+      elements.paginationPrev = document.getElementById('writingPaginationPrev')
+      elements.paginationNext = document.getElementById('writingPaginationNext')
+      elements.filterTopic = document.getElementById('filterTopic')
+      elements.filterLevel = document.getElementById('filterLevel')
+      elements.filterLimit = document.getElementById('filterLimit')
+    }
+
+    async function fetchWritingSentences() {
+      toggleLoading(true)
+      const params = new URLSearchParams()
+      params.set('page', state.page.toString())
+      params.set('limit', state.limit.toString())
+      if (state.topic) params.set('topic', state.topic)
+      if (state.level) params.set('level', state.level)
+
+      try {
+        const response = await fetch(`${AdminApiBreakpoint.GET_WS_LIST}?${params.toString()}`, {
+          credentials: 'same-origin'
+        })
+        const payload = await response.json()
+        if (!response.ok) {
+          throw payload
+        }
+        writingSentencesData = payload.data || []
+        pagination = {
+          page: payload.pagination?.page || state.page,
+          limit: payload.pagination?.limit || state.limit,
+          total: payload.pagination?.total || 0,
+          totalPages: payload.pagination?.totalPages || 0,
+          hasNextPage: payload.pagination?.hasNextPage || false,
+          hasPrevPage: payload.pagination?.hasPrevPage || false
+        }
+        renderWritingSentences()
+        updatePaginationUI()
+      } catch (error) {
+        const message = error?.message || 'Không thể tải danh sách nội dung'
+        showNotification('error', message)
+        writingSentencesData = []
+        renderWritingSentences()
+        updatePaginationUI()
+      } finally {
+        toggleLoading(false)
+      }
+    }
+
+    function renderWritingSentences() {
+      const container = elements.list || document.getElementById('writingSentencesList')
+      if (!container) return
+      if (!elements.list) elements.list = container
+      container.innerHTML = ''
+
+      if (!writingSentencesData.length) {
+        container.classList.add('d-none')
+        toggleEmpty(true)
+        return
+      }
+
+      container.classList.remove('d-none')
+      toggleEmpty(false)
+
+      writingSentencesData.forEach(item => {
+        const topicId = typeof item.topic === 'string' ? item.topic : item.topic?._id
+        const levelId = typeof item.level === 'string' ? item.level : item.level?._id
+        const topicTitle = item.topic?.title || topicTitles[topicId] || 'N/A'
+        const levelTitle = item.level?.title || levelTitles[levelId] || 'N/A'
+        const listCount = item.list ? item.list.length : 0
+
+        const card = `
+          <div class="col-md-6 mb-4">
+            <div class="card writing-sentence__card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <h5 class="card-title mb-1">${item.title}</h5>
+                    <div class="writing-sentence__meta">
+                      <span class="badge badge-primary me-2">${topicTitle}</span>
+                      <span class="badge badge-info me-2">${levelTitle}</span>
+                      <span class="badge badge-secondary">${listCount} câu</span>
+                    </div>
+                  </div>
+                  <div class="writing-sentence__actions">
+                    <button class="btn btn-sm btn-info" onclick="editWritingSentence('${item._id}')" title="Chỉnh sửa">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="copyWritingSentence('${item._id}')" title="Sao chép">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteWritingSentence('${item._id}')" title="Xóa">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                <p class="text-muted mb-2"><strong>Slug:</strong> ${item.slug}</p>
+                <p class="text-muted mb-0"><strong>Vị trí:</strong> ${item.pos || '-'}</p>
+                ${item.list && item.list.length > 0 ? `
+                  <div class="writing-sentence__preview mt-3">
+                    <strong>Xem trước:</strong>
+                    <ul class="mt-2 mb-0">
+                      ${item.list.slice(0, 2).map(s => `<li>${s.content}</li>`).join('')}
+                      ${item.list.length > 2 ? `<li class="text-muted">... và ${item.list.length - 2} câu khác</li>` : ''}
+                    </ul>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `
+        container.innerHTML += card
+      })
+    }
+
+    function updatePaginationUI() {
+      if (elements.paginationInfo) {
+        if (pagination.total > 0) {
+          const totalPages = Math.max(pagination.totalPages, 1)
+          elements.paginationInfo.textContent = `Trang ${pagination.page}/${totalPages} • ${pagination.total} nội dung`
+        } else {
+          elements.paginationInfo.textContent = 'Không có dữ liệu'
+        }
+      }
+      if (elements.paginationPrev) {
+        elements.paginationPrev.disabled = !pagination.hasPrevPage
+      }
+      if (elements.paginationNext) {
+        elements.paginationNext.disabled = !pagination.hasNextPage
+      }
+    }
+
+    function toggleLoading(show) {
+      const loadingEl = elements.loading || document.getElementById('writingSentencesLoading')
+      const listEl = elements.list || document.getElementById('writingSentencesList')
+      if (!loadingEl || !listEl) return
+      if (!elements.loading) elements.loading = loadingEl
+      if (!elements.list) elements.list = listEl
+
+      if (show) {
+        loadingEl.classList.remove('d-none')
+        listEl.classList.add('d-none')
+        toggleEmpty(false)
+      } else {
+        loadingEl.classList.add('d-none')
+      }
+    }
+
+    function toggleEmpty(show) {
+      const emptyEl = elements.empty || document.getElementById('writingSentencesEmpty')
+      if (!emptyEl) return
+      if (!elements.empty) elements.empty = emptyEl
+      if (show) {
+        emptyEl.classList.remove('d-none')
+      } else {
+        emptyEl.classList.add('d-none')
+      }
+    }
+
+    function populateSelectOptions() {
+      const topicSelect = document.getElementById('writingSentenceTopic')
+      const levelSelect = document.getElementById('writingSentenceLevel')
+
+      if (topicSelect) {
+        topicSelect.innerHTML = '<option value="">Chọn chủ đề</option>'
+      }
+      if (levelSelect) {
+        levelSelect.innerHTML = '<option value="">Chọn cấp độ</option>'
+      }
+      if (elements.filterTopic) {
+        elements.filterTopic.innerHTML = '<option value="">Tất cả chủ đề</option>'
+      }
+      if (elements.filterLevel) {
+        elements.filterLevel.innerHTML = '<option value="">Tất cả cấp độ</option>'
+      }
+
+      topicsData.forEach(topic => {
+        if (topicSelect) {
+          const option = document.createElement('option')
+          option.value = topic._id
+          option.textContent = topic.title
+          topicSelect.appendChild(option)
+        }
+        if (elements.filterTopic) {
+          const filterOption = document.createElement('option')
+          filterOption.value = topic._id
+          filterOption.textContent = topic.title
+          elements.filterTopic.appendChild(filterOption)
+        }
+      })
+
+      levelsData.forEach(level => {
+        if (levelSelect) {
+          const option = document.createElement('option')
+          option.value = level._id
+          option.textContent = level.title
+          levelSelect.appendChild(option)
+        }
+        if (elements.filterLevel) {
+          const filterOption = document.createElement('option')
+          filterOption.value = level._id
+          filterOption.textContent = level.title
+          elements.filterLevel.appendChild(filterOption)
+        }
+      })
+    }
+
+    function handleFilterEvents() {
+      const applyBtn = document.getElementById('filterApplyBtn')
+      const resetBtn = document.getElementById('filterResetBtn')
+
+      if (applyBtn) {
+        applyBtn.addEventListener('click', () => {
+          state.topic = elements.filterTopic?.value || ''
+          state.level = elements.filterLevel?.value || ''
+          state.page = 1
+          fetchWritingSentences()
+        })
+      }
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          state.topic = ''
+          state.level = ''
+          state.limit = 6
+          state.page = 1
+          if (elements.filterTopic) elements.filterTopic.value = ''
+          if (elements.filterLevel) elements.filterLevel.value = ''
+          if (elements.filterLimit) elements.filterLimit.value = '6'
+          fetchWritingSentences()
+        })
+      }
+
+      if (elements.filterLimit) {
+        elements.filterLimit.value = state.limit.toString()
+        elements.filterLimit.addEventListener('change', event => {
+          const value = Number(event.target.value) || 6
+          state.limit = value
+          state.page = 1
+          fetchWritingSentences()
+        })
+      }
+
+      if (elements.paginationPrev) {
+        elements.paginationPrev.addEventListener('click', () => {
+          if (!pagination.hasPrevPage) return
+          state.page = Math.max(1, state.page - 1)
+          fetchWritingSentences()
+        })
+      }
+
+      if (elements.paginationNext) {
+        elements.paginationNext.addEventListener('click', () => {
+          if (!pagination.hasNextPage) return
+          state.page += 1
+          fetchWritingSentences()
+        })
+      }
+    }
+
+    function addSentence() {
+      sentenceCounter++
+      const sentenceHtml = `
+        <div class="writing-sentence__item mb-3 p-3 border rounded" data-sentence-id="${sentenceCounter}">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Câu ${sentenceCounter}</h6>
+            <button type="button" class="btn btn-sm btn-danger" onclick="removeSentence(${sentenceCounter})">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+          <div class="row mb-2">
+            <div class="col-md-2">
+              <label class="form-label">Vị trí</label>
+              <input type="number" class="form-control form-control-sm writing-sentence__pos" value="${sentenceCounter}" min="1">
+            </div>
+            <div class="col-md-10">
+              <label class="form-label">Nội dung câu <span class="text-danger">*</span></label>
+              <input type="text" class="form-control writing-sentence__content" required placeholder="Nhập nội dung câu">
+            </div>
+          </div>
+          <div class="writing-sentence__hints">
+            <label class="form-label">Gợi ý từ vựng</label>
+            <div class="hints-container" data-sentence-id="${sentenceCounter}">
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addHint(${sentenceCounter})">
+              <i class="fas fa-plus"></i> Thêm gợi ý
+            </button>
+          </div>
+        </div>
+      `
+      document.getElementById('sentencesList').insertAdjacentHTML('beforeend', sentenceHtml)
+    }
+
+    function removeSentence(sentenceId) {
+      const sentenceEl = document.querySelector(`[data-sentence-id="${sentenceId}"]`)
+      if (sentenceEl) {
+        sentenceEl.remove()
+      }
+    }
+
+    function addHint(sentenceId) {
+      hintCounter++
+      const hintsContainer = document.querySelector(`.hints-container[data-sentence-id="${sentenceId}"]`)
+      const hintHtml = `
+        <div class="writing-sentence__hint-item mb-2 p-2 border rounded" data-hint-id="${hintCounter}">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>Gợi ý ${hintCounter}</strong>
+            <button type="button" class="btn btn-sm btn-danger btn-sm" onclick="removeHint(${hintCounter})">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="row">
+            <div class="col-md-3">
+              <label class="form-label">Từ vựng (EN) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-sm writing-sentence__vocab-en" required placeholder="hello">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Dịch (VI) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-sm writing-sentence__translate" required placeholder="xin chào">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Loại từ <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-sm writing-sentence__type" required placeholder="interjection">
+            </div>
+          </div>
+          <div class="row mt-2">
+            <div class="col-md-6">
+              <label class="form-label">Ví dụ (EN) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-sm writing-sentence__example-en" required placeholder="Hello, nice to meet you.">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Ví dụ (VI) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-sm writing-sentence__example-vi" required placeholder="Xin chào, rất vui được gặp bạn.">
+            </div>
+          </div>
+        </div>
+      `
+      hintsContainer.insertAdjacentHTML('beforeend', hintHtml)
+    }
+
+    function removeHint(hintId) {
+      const hintEl = document.querySelector(`[data-hint-id="${hintId}"]`)
+      if (hintEl) {
+        hintEl.remove()
+      }
+    }
+
+    function openAddModal() {
+      document.getElementById('writingSentenceForm').reset()
+      document.getElementById('writingSentenceId').value = ''
+      document.getElementById('writingSentenceModalLabel').textContent = 'Thêm nội dung viết câu mới'
+      document.getElementById('sentencesList').innerHTML = ''
+      sentenceCounter = 0
+      hintCounter = 0
+      addSentence()
+    }
+
+    function editWritingSentence(id) {
+      const item = writingSentencesData.find(w => w._id === id)
+      if (!item) return
+
+      const topicId = typeof item.topic === 'string' ? item.topic : item.topic?._id
+      const levelId = typeof item.level === 'string' ? item.level : item.level?._id
+
+      document.getElementById('writingSentenceId').value = item._id
+      document.getElementById('writingSentenceTitle').value = item.title
+      document.getElementById('writingSentenceTopic').value = topicId || ''
+      document.getElementById('writingSentenceLevel').value = levelId || ''
+      document.getElementById('writingSentenceSlug').value = item.slug
+      document.getElementById('writingSentencePos').value = item.pos || 1
+      document.getElementById('writingSentenceModalLabel').textContent = 'Chỉnh sửa nội dung viết câu'
+
+      document.getElementById('sentencesList').innerHTML = ''
+      sentenceCounter = 0
+      hintCounter = 0
+
+      if (item.list && item.list.length > 0) {
+        item.list.forEach(sentence => {
+          sentenceCounter++
+          const sentenceHtml = `
+            <div class="writing-sentence__item mb-3 p-3 border rounded" data-sentence-id="${sentenceCounter}">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Câu ${sentenceCounter}</h6>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeSentence(${sentenceCounter})">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+              <div class="row mb-2">
+                <div class="col-md-2">
+                  <label class="form-label">Vị trí</label>
+                  <input type="number" class="form-control form-control-sm writing-sentence__pos" value="${sentence.pos || sentenceCounter}" min="1">
+                </div>
+                <div class="col-md-10">
+                  <label class="form-label">Nội dung câu <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control writing-sentence__content" required value="${sentence.content || ''}" placeholder="Nhập nội dung câu">
+                </div>
+              </div>
+              <div class="writing-sentence__hints">
+                <label class="form-label">Gợi ý từ vựng</label>
+                <div class="hints-container" data-sentence-id="${sentenceCounter}">
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addHint(${sentenceCounter})">
+                  <i class="fas fa-plus"></i> Thêm gợi ý
+                </button>
+              </div>
+            </div>
+          `
+          document.getElementById('sentencesList').insertAdjacentHTML('beforeend', sentenceHtml)
+
+          if (sentence.hint && sentence.hint.length > 0) {
+            sentence.hint.forEach(hint => {
+              hintCounter++
+              const hintsContainer = document.querySelector(`.hints-container[data-sentence-id="${sentenceCounter}"]`)
+              const hintHtml = `
+                <div class="writing-sentence__hint-item mb-2 p-2 border rounded" data-hint-id="${hintCounter}">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>Gợi ý ${hintCounter}</strong>
+                    <button type="button" class="btn btn-sm btn-danger btn-sm" onclick="removeHint(${hintCounter})">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-3">
+                      <label class="form-label">Từ vựng (EN) <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control form-control-sm writing-sentence__vocab-en" required value="${hint.vocabulary_en || ''}" placeholder="hello">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Dịch (VI) <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control form-control-sm writing-sentence__translate" required value="${hint.translate || ''}" placeholder="xin chào">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Loại từ <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control form-control-sm writing-sentence__type" required value="${hint.type || ''}" placeholder="interjection">
+                    </div>
+                  </div>
+                  <div class="row mt-2">
+                    <div class="col-md-6">
+                      <label class="form-label">Ví dụ (EN) <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control form-control-sm writing-sentence__example-en" required value="${hint.sentence_example?.en || ''}" placeholder="Hello, nice to meet you.">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Ví dụ (VI) <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control form-control-sm writing-sentence__example-vi" required value="${hint.sentence_example?.vi || ''}" placeholder="Xin chào, rất vui được gặp bạn.">
+                    </div>
+                  </div>
+                </div>
+              `
+              hintsContainer.insertAdjacentHTML('beforeend', hintHtml)
+            })
+          }
+        })
+      } else {
+        addSentence()
+      }
+
+      new bootstrap.Modal(document.getElementById('writingSentenceModal')).show()
+    }
+
+    function copyWritingSentence(id) {
+      const item = writingSentencesData.find(w => w._id === id)
+      if (!item) return
+
+      const newItem = JSON.parse(JSON.stringify(item))
+      newItem._id = 'new_' + Date.now()
+      newItem.title = item.title + ' (Copy)'
+      newItem.slug = item.slug + '-copy'
+      newItem.create_at = new Date().toISOString()
+      newItem.update_at = new Date().toISOString()
+
+      writingSentencesData.push(newItem)
+      renderWritingSentences()
+      showNotification('success', 'Đã sao chép nội dung thành công!')
+    }
+
+    function deleteWritingSentence(id) {
+      showConfirmModal(
+        'Xóa nội dung viết câu',
+        'Bạn có chắc chắn muốn xóa nội dung này? Hành động này không thể hoàn tác!',
+        () => {
+          fetch(AdminApiBreakpoint.DELETE_WS || `${prefixAdmin}/api/ws/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ id })
+          })
+            .then(async response => {
+              if (!response.ok) {
+                const error = await response.json()
+                error.status = response.status
+                return Promise.reject(error)
+              }
+              return response.json()
+            })
+            .then(data => {
+              showNotification('success', data.message || 'Đã xóa nội dung thành công!')
+              fetchWritingSentences()
+            })
+            .catch(error => {
+              let errorMessage = 'Có lỗi xảy ra khi xóa nội dung'
+              if (error.status === 422 && error.errors) {
+                errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                  .map(err => `- ${err.msg || err}`)
+                  .join('\n')
+              } else if (error.errors) {
+                const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+                errorMessage = errorMessages || error.message || errorMessage
+              } else if (error.message) {
+                errorMessage = error.message
+              }
+              showNotification('error', errorMessage)
+            })
+        }
+      )
+    }
+
+    function saveWritingSentence() {
+      const form = document.getElementById('writingSentenceForm')
+      if (!form.checkValidity()) {
+        form.reportValidity()
+        return
+      }
+
+      const id = document.getElementById('writingSentenceId').value
+      const title = document.getElementById('writingSentenceTitle').value
+      const topic = document.getElementById('writingSentenceTopic').value
+      const level = document.getElementById('writingSentenceLevel').value
+      let slug = document.getElementById('writingSentenceSlug').value
+      const pos = parseInt(document.getElementById('writingSentencePos').value) || 1
+
+      if (!slug) {
+        slug = title.toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/đ/g, 'd')
+          .replace(/Đ/g, 'D')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+        document.getElementById('writingSentenceSlug').value = slug
+      }
+
+      const sentences = []
+      const sentenceItems = document.querySelectorAll('.writing-sentence__item')
+
+      sentenceItems.forEach(sentenceEl => {
+        const content = sentenceEl.querySelector('.writing-sentence__content').value.trim()
+        if (!content) return
+
+        const sentencePos = parseInt(sentenceEl.querySelector('.writing-sentence__pos').value) || 1
+        const hints = []
+        const hintItems = sentenceEl.querySelectorAll('.writing-sentence__hint-item')
+
+        hintItems.forEach(hintEl => {
+          const vocabEn = hintEl.querySelector('.writing-sentence__vocab-en').value.trim()
+          const translate = hintEl.querySelector('.writing-sentence__translate').value.trim()
+          const type = hintEl.querySelector('.writing-sentence__type').value.trim()
+          const exampleEn = hintEl.querySelector('.writing-sentence__example-en').value.trim()
+          const exampleVi = hintEl.querySelector('.writing-sentence__example-vi').value.trim()
+
+          if (vocabEn && translate && type && exampleEn && exampleVi) {
+            hints.push({
+              vocabulary_en: vocabEn,
+              translate: translate,
+              type: type,
+              sentence_example: {
+                en: exampleEn,
+                vi: exampleVi
+              }
+            })
+          }
+        })
+
+        sentences.push({
+          pos: sentencePos,
+          content: content,
+          hint: hints
+        })
+      })
+
+      if (sentences.length === 0) {
+        showNotification('error', 'Vui lòng thêm ít nhất một câu!')
+        return
+      }
+
+      const wsData = {
+        title,
+        topic,
+        level,
+        slug,
+        pos,
+        list: sentences
+      }
+
+      if (id) {
+        wsData.id = id
+        fetch(AdminApiBreakpoint.UPDATE_WS || `${prefixAdmin}/api/ws/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(wsData)
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const error = await response.json()
+              error.status = response.status
+              return Promise.reject(error)
+            }
+            return response.json()
+          })
+          .then(data => {
+            showNotification('success', data.message || 'Đã cập nhật nội dung thành công!')
+            bootstrap.Modal.getInstance(document.getElementById('writingSentenceModal')).hide()
+            fetchWritingSentences()
+          })
+          .catch(error => {
+            let errorMessage = 'Có lỗi xảy ra khi cập nhật nội dung'
+            if (error.status === 422 && error.errors) {
+              errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                .map(err => `- ${err.msg || err}`)
+                .join('\n')
+            } else if (error.errors) {
+              const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+              errorMessage = errorMessages || error.message || errorMessage
+            } else if (error.message) {
+              errorMessage = error.message
+            }
+            showNotification('error', errorMessage)
+          })
+      } else {
+        fetch(AdminApiBreakpoint.CREATE_WS || `${prefixAdmin}/api/ws`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(wsData)
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const error = await response.json()
+              error.status = response.status
+              return Promise.reject(error)
+            }
+            return response.json()
+          })
+          .then(data => {
+            showNotification('success', data.message || 'Đã thêm nội dung mới thành công!')
+            bootstrap.Modal.getInstance(document.getElementById('writingSentenceModal')).hide()
+            fetchWritingSentences()
+          })
+          .catch(error => {
+            let errorMessage = 'Có lỗi xảy ra khi thêm nội dung'
+            if (error.status === 422 && error.errors) {
+              errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                .map(err => `- ${err.msg || err}`)
+                .join('\n')
+            } else if (error.errors) {
+              const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+              errorMessage = errorMessages || error.message || errorMessage
+            } else if (error.message) {
+              errorMessage = error.message
+            }
+            showNotification('error', errorMessage)
+          })
+      }
+    }
+
+    function showConfirmModal(title, message, callback) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: title,
+          text: message,
+          icon: 'warning',
+          buttons: {
+            cancel: 'Hủy',
+            confirm: 'Xác nhận'
+          },
+          dangerMode: true
+        }).then((willDelete) => {
+          if (willDelete) {
+            callback()
+          }
+        })
+      } else {
+        document.getElementById('confirmModalLabel').textContent = title
+        document.getElementById('confirmMessage').textContent = message
+
+        const confirmBtn = document.getElementById('confirmAction')
+        confirmBtn.onclick = () => {
+          bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide()
+          callback()
+        }
+
+        new bootstrap.Modal(document.getElementById('confirmModal')).show()
+      }
+    }
+
+    function showNotification(type, message) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      cacheElements()
+      populateSelectOptions()
+      handleFilterEvents()
+      fetchWritingSentences()
+
+      const currentPath = window.location.pathname
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active')
+      })
+
+      if (currentPath.includes('/ws')) {
+        const wsLink = document.querySelector(`a[href="${prefixAdmin}/ws"]`)
+        if (wsLink && wsLink.parentElement) {
+          wsLink.parentElement.classList.add('active')
+          const parentCollapse = wsLink.closest('.collapse')
+          if (parentCollapse) {
+            parentCollapse.classList.add('show')
+            const parentLink = parentCollapse.previousElementSibling
+            if (parentLink) {
+              parentLink.classList.remove('collapsed')
+              parentLink.setAttribute('aria-expanded', 'true')
+            }
+          }
+        }
+      }
+
+      const titleInput = document.getElementById('writingSentenceTitle')
+      if (titleInput) {
+        titleInput.addEventListener('input', function () {
+          const slugInput = document.getElementById('writingSentenceSlug')
+          if (!slugInput?.value) {
+            const slug = this.value
+              .toLowerCase()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .replace(/đ/g, 'd')
+              .replace(/Đ/g, 'D')
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-+|-+$/g, '')
+            slugInput.value = slug
+          }
+        })
+      }
+    })
+
+    window.openAddModal = openAddModal
+    window.saveWritingSentence = saveWritingSentence
+    window.editWritingSentence = editWritingSentence
+    window.copyWritingSentence = copyWritingSentence
+    window.deleteWritingSentence = deleteWritingSentence
+    window.addSentence = addSentence
+    window.removeSentence = removeSentence
+    window.addHint = addHint
+    window.removeHint = removeHint
+

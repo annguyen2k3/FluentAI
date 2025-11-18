@@ -5,6 +5,7 @@ import { requireAdminAuth } from '~/middlewares/admin.middleware'
 import { databaseService } from '~/services/database.service'
 import manageUserRoutes from './manage-user.routes'
 import manageCategoryRoutes from './manage-category.routes'
+import manageWsRoutes from './manage-ws.routes'
 
 export default function (app: Express) {
   const prefixAdmin = process.env.PREFIX_ADMIN
@@ -25,4 +26,6 @@ export default function (app: Express) {
   app.use(prefixAdmin + '/users', manageUserRoutes)
 
   app.use(prefixAdmin + '/categories', manageCategoryRoutes)
+
+  app.use(prefixAdmin + '/ws', manageWsRoutes)
 }
