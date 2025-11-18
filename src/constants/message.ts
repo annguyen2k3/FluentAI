@@ -61,6 +61,7 @@ export const WRITING_SENTENCE_MESSAGES = {
 
 export const CATEGORIES_MESSAGES = {
   LEVEL_NOT_FOUND: 'Cấp độ không tồn tại',
+  TYPE_NOT_FOUND: 'Loại không tồn tại',
   TITLE_REQUIRED: 'Tiêu đề không được để trống',
   TITLE_INVALID: 'Tiêu đề không hợp lệ',
   TITLE_LENGTH: 'Tiêu đề phải có ít nhất 1 ký tự và tối đa 50 ký tự',
@@ -70,5 +71,6 @@ export const CATEGORIES_MESSAGES = {
   FA_CLASS_ICON_INVALID: 'Class icon FontAwesome không hợp lệ',
   POS_INVALID: 'Vị trí không hợp lệ',
   SLUG_INVALID: 'Slug không hợp lệ',
+  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự và tối đa 50 ký tự',
   SLUG_EXISTS: 'Slug đã tồn tại'
 } as const

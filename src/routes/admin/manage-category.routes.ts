@@ -3,13 +3,20 @@ import {
   createLevelController,
   deleteLevelController,
   renderLevelsController,
-  updateLevelController
+  updateLevelController,
+  createTypeController,
+  deleteTypeController,
+  renderTypesController,
+  updateTypeController
 } from '~/controllers/admin/manage-category.controllers'
 import { requireAdminAuth } from '~/middlewares/admin.middleware'
 import {
-  createCategoriesValidator,
-  deleteCategoriesValidator,
-  updateCategoriesValidator
+  createLevelValidator,
+  updateLevelValidator,
+  deleteLevelValidator,
+  createTypeValidator,
+  updateTypeValidator,
+  deleteTypeValidator
 } from '~/middlewares/categories.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
 const manageCategoryRoutes = Router()
@@ -24,7 +31,7 @@ manageCategoryRoutes.get('/levels', requireAdminAuth, wrapRequestHandler(renderL
 manageCategoryRoutes.post(
   '/levels',
   requireAdminAuth,
-  createCategoriesValidator,
+  createLevelValidator,
   wrapRequestHandler(createLevelController)
 )
 
@@ -34,7 +41,7 @@ manageCategoryRoutes.post(
 manageCategoryRoutes.put(
   '/levels',
   requireAdminAuth,
-  updateCategoriesValidator,
+  updateLevelValidator,
   wrapRequestHandler(updateLevelController)
 )
 
@@ -44,8 +51,42 @@ manageCategoryRoutes.put(
 manageCategoryRoutes.delete(
   '/levels',
   requireAdminAuth,
-  deleteCategoriesValidator,
+  deleteLevelValidator,
   wrapRequestHandler(deleteLevelController)
+)
+
+// GET /admin/categories/types
+// Description: Render page manage categories types
+manageCategoryRoutes.get('/types', requireAdminAuth, wrapRequestHandler(renderTypesController))
+
+// POST /admin/categories/types
+// Description: Create type
+// Body: {title: string, description: string, fa_class_icon: string, slug: string, pos: number}
+manageCategoryRoutes.post(
+  '/types',
+  requireAdminAuth,
+  createTypeValidator,
+  wrapRequestHandler(createTypeController)
+)
+
+// PUT /admin/categories/types
+// Description: Update type
+// Body: {id: string, title: string, description: string, fa_class_icon: string, slug: string, pos: number}
+manageCategoryRoutes.put(
+  '/types',
+  requireAdminAuth,
+  updateTypeValidator,
+  wrapRequestHandler(updateTypeController)
+)
+
+// DELETE /admin/categories/types
+// Description: Delete type
+// Body: {id: string}
+manageCategoryRoutes.delete(
+  '/types',
+  requireAdminAuth,
+  deleteTypeValidator,
+  wrapRequestHandler(deleteTypeController)
 )
 
 export default manageCategoryRoutes

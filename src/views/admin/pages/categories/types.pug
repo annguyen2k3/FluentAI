@@ -1,0 +1,393 @@
+extends ../../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Phân loại nội dung
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Quản lý loại
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card")
+        div(class="card-header")
+          div(class="d-flex align-items-center justify-content-between")
+            h4(class="card-title") Danh sách loại
+            button(class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#typeModal" onclick="openAddModal()")
+              i(class="fas fa-plus")
+              |  Thêm loại mới
+        div(class="card-body")
+          div(class="row" id="typesList" data-types=types)
+
+  div(class="modal fade" id="typeModal" tabindex="-1" role="dialog" aria-labelledby="typeModalLabel" aria-hidden="true" )
+    div(class="modal-dialog modal-lg" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="typeModalLabel") Thêm loại mới
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          form(id="typeForm")
+            input(type="hidden" id="typeId" name="id")
+            div(class="form-group")
+              label(for="typeTitle" class="form-label") Tên loại 
+                span(class="text-danger") *
+              input(type="text" class="form-control" id="typeTitle" name="title" required placeholder="Ví dụ: Câu, Đoạn văn, Bài viết")
+            div(class="form-group")
+              label(for="typeDescription" class="form-label") Mô tả 
+                span(class="text-danger") *
+              textarea(class="form-control" id="typeDescription" name="description" rows="3" required placeholder="Nhập mô tả cho loại")
+            div(class="form-group")
+              label(for="typeSlug" class="form-label") Slug 
+              input(type="text" class="form-control" id="typeSlug" name="slug" placeholder="Ví dụ: cau, doan-van, bai-viet")
+              small(class="form-text text-muted") Slug sẽ được tự động tạo từ tên nếu để trống
+            div(class="form-group")
+              label(for="typeIconClass" class="form-label") FontAwesome Icon Class 
+              div(class="row")
+                div(class="col-md-8")
+                  input(type="text" class="form-control" id="typeIconClass" name="fa_class_icon" placeholder="Ví dụ: fa-solid fa-tag" oninput="updateIconPreview()")
+                  small(class="form-text text-muted") Nhập class icon FontAwesome (ví dụ: fa-solid fa-tag)
+                div(class="col-md-4")
+                  label(class="form-label d-block") Preview Icon
+                  div(class="icon-preview__box" id="iconPreview")
+                    i(class="fas fa-question-circle")
+            div(class="form-group")
+              label(for="typePos" class="form-label") Vị trí hiển thị 
+                span(class="text-danger") *
+              input(type="number" class="form-control" id="typePos" name="pos" required min="1" placeholder="Ví dụ: 1, 2, 3..." value="1")
+              small(class="form-text text-muted") Số càng nhỏ, hiển thị càng trước
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-primary" onclick="saveType()") Lưu
+
+  div(class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true")
+    div(class="modal-dialog" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="confirmModalLabel") Xác nhận
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          p(id="confirmMessage") Bạn có chắc chắn muốn thực hiện hành động này?
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-danger" id="confirmAction") Xác nhận
+
+block scripts
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    let typesData = JSON.parse(document.getElementById('typesList').dataset.types)
+    document.getElementById('typesList').removeAttribute('data-types')
+    const prefixAdmin = '#{prefixAdmin}'
+
+    function renderTypes() {
+      const container = document.getElementById('typesList')
+      container.innerHTML = ''
+
+      const sortedTypes = [...typesData].sort((a, b) => (a.pos || 0) - (b.pos || 0))
+
+      sortedTypes.forEach(type => {
+        const typeCard = `
+          <div class="col-md-4 mb-4">
+            <div class="card type-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div class="type-icon">
+                    <i class="${type.fa_class_icon}"></i>
+                  </div>
+                  <div class="type-actions">
+                    <button class="btn btn-sm btn-info" onclick="editType('${type._id}')" title="Chỉnh sửa">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteType('${type._id}')" title="Xóa">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                <h5 class="card-title">${type.title}</h5>
+                <p class="card-text text-muted">${type.description}</p>
+                <div class="type-meta">
+                  <small class="text-muted">
+                    <strong>Vị trí:</strong> ${type.pos || 0}
+                  </small><br>
+                  <small class="text-muted">
+                    <strong>Slug:</strong> ${type.slug}
+                  </small><br>
+                  <small class="text-muted">
+                    <strong>Icon:</strong> <code>${type.fa_class_icon}</code>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+        container.innerHTML += typeCard
+      })
+    }
+
+    function updateIconPreview() {
+      const iconClass = document.getElementById('typeIconClass').value.trim()
+      const previewBox = document.getElementById('iconPreview')
+
+      if (iconClass) {
+        previewBox.innerHTML = `<i class="${iconClass}"></i>`
+      } else {
+        previewBox.innerHTML = '<i class="fas fa-question-circle"></i>'
+      }
+    }
+
+    function openAddModal() {
+      document.getElementById('typeForm').reset()
+      document.getElementById('typeId').value = ''
+      document.getElementById('typePos').value = '1'
+      document.getElementById('typeModalLabel').textContent = 'Thêm loại mới'
+      updateIconPreview()
+    }
+
+    function editType(id) {
+      const type = typesData.find(t => t._id === id)
+      if (!type) return
+
+      document.getElementById('typeId').value = type._id
+      document.getElementById('typeTitle').value = type.title
+      document.getElementById('typeDescription').value = type.description
+      document.getElementById('typeSlug').value = type.slug
+      document.getElementById('typeIconClass').value = type.fa_class_icon
+      document.getElementById('typePos').value = type.pos || 1
+      document.getElementById('typeModalLabel').textContent = 'Chỉnh sửa loại'
+
+      updateIconPreview()
+      new bootstrap.Modal(document.getElementById('typeModal')).show()
+    }
+
+    function deleteType(id) {
+      showConfirmModal(
+        'Xóa loại',
+        'Bạn có chắc chắn muốn xóa loại này? Hành động này không thể hoàn tác!',
+        () => {
+          fetch(AdminApiBreakpoint.DELETE_TYPE, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ id })
+          })
+            .then(async response => {
+              if (!response.ok) {
+                const error = await response.json()
+                error.status = response.status
+                return Promise.reject(error)
+              }
+              return response.json()
+            })
+            .then(data => {
+              showNotification('success', data.message || 'Đã xóa loại thành công!')
+              window.location.reload()
+            })
+            .catch(error => {
+              let errorMessage = 'Có lỗi xảy ra khi xóa loại'
+              
+              if (error.status === 422 && error.errors) {
+                errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                  .map(err => `- ${err.msg || err}`)
+                  .join('\n')
+              } else if (error.errors) {
+                const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+                errorMessage = errorMessages || error.message || errorMessage
+              } else if (error.message) {
+                errorMessage = error.message
+              }
+              showNotification('error', errorMessage)
+            })
+        }
+      )
+    }
+
+    function saveType() {
+      const form = document.getElementById('typeForm')
+      if (!form.checkValidity()) {
+        form.reportValidity()
+        return
+      }
+
+      const id = document.getElementById('typeId').value
+      const title = document.getElementById('typeTitle').value
+      const description = document.getElementById('typeDescription').value
+      let slug = document.getElementById('typeSlug').value.trim()
+      const fa_class_icon = document.getElementById('typeIconClass').value.trim()
+      const pos = parseInt(document.getElementById('typePos').value) || 1
+
+      if (id) {
+        const typeData = {
+          id,
+          title,
+          description,
+          slug,
+          fa_class_icon,
+          pos
+        }
+
+        fetch(AdminApiBreakpoint.UPDATE_TYPE, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(typeData)
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const error = await response.json()
+              error.status = response.status
+              return Promise.reject(error)
+            }
+            return response.json()
+          })
+          .then(data => {
+            showNotification('success', data.message || 'Đã cập nhật loại thành công!')
+            bootstrap.Modal.getInstance(document.getElementById('typeModal')).hide()
+            window.location.reload()
+          })
+          .catch(error => {
+            let errorMessage = 'Có lỗi xảy ra khi cập nhật loại'
+            
+            if (error.status === 422 && error.errors) {
+              errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                .map(err => `- ${err.msg || err}`)
+                .join('\n')
+            } else if (error.errors) {
+              const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+              errorMessage = errorMessages || error.message || errorMessage
+            } else if (error.message) {
+              errorMessage = error.message
+            }
+            showNotification('error', errorMessage)
+          })
+        return
+      } else {
+        const typeData = {
+          title,
+          description,
+          slug,
+          fa_class_icon,
+          pos
+        }
+
+        fetch(AdminApiBreakpoint.CREATE_TYPE, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(typeData)
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const error = await response.json()
+              error.status = response.status
+              return Promise.reject(error)
+            }
+            return response.json()
+          })
+          .then(data => {
+            showNotification('success', data.message || 'Đã thêm loại mới thành công!')
+            bootstrap.Modal.getInstance(document.getElementById('typeModal')).hide()
+            window.location.reload()
+          })
+          .catch(error => {
+            let errorMessage = 'Có lỗi xảy ra khi thêm loại'
+            
+            if (error.status === 422 && error.errors) {
+              errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                .map(err => `- ${err.msg || err}`)
+                .join('\n')
+            } else if (error.errors) {
+              const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+              errorMessage = errorMessages || error.message || errorMessage
+            } else if (error.message) {
+              errorMessage = error.message
+            }
+            showNotification('error', errorMessage)
+          })
+        return
+      }
+
+      bootstrap.Modal.getInstance(document.getElementById('typeModal')).hide()
+      renderTypes()
+    }
+
+    function showConfirmModal(title, message, callback) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: title,
+          text: message,
+          icon: 'warning',
+          buttons: {
+            cancel: 'Hủy',
+            confirm: 'Xác nhận'
+          },
+          dangerMode: true
+        }).then((willDelete) => {
+          if (willDelete) {
+            callback()
+          }
+        })
+      } else {
+        document.getElementById('confirmModalLabel').textContent = title
+        document.getElementById('confirmMessage').textContent = message
+
+        const confirmBtn = document.getElementById('confirmAction')
+        confirmBtn.onclick = () => {
+          bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide()
+          callback()
+        }
+
+        new bootstrap.Modal(document.getElementById('confirmModal')).show()
+      }
+    }
+
+    function showNotification(type, message) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+
+    window.openAddModal = openAddModal
+    window.saveType = saveType
+    window.editType = editType
+    window.deleteType = deleteType
+    window.updateIconPreview = updateIconPreview
+
+    document.addEventListener('DOMContentLoaded', function () {
+      renderTypes()
+
+      const currentPath = window.location.pathname
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active')
+      })
+
+      if (currentPath.includes('/categories/types')) {
+        const typesLink = document.querySelector(`a[href="${prefixAdmin}/categories/types"]`)
+        if (typesLink && typesLink.parentElement) {
+          typesLink.parentElement.classList.add('active')
+        }
+      }
+    })
+

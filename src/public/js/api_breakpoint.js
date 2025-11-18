@@ -95,5 +95,20 @@ export const AdminApiBreakpoint = {
   // DELETE /admin/categories/levels
   // Description: Delete level
   // Body: {id: string}
-  DELETE_LEVEL: `${adminApiUrl}/categories/levels`
+  DELETE_LEVEL: `${adminApiUrl}/categories/levels`,
+
+  // POST /admin/categories/types
+  // Description: Create type
+  // Body: {title: string, description: string, fa_class_icon: string, slug: string, pos: number}
+  CREATE_TYPE: `${adminApiUrl}/categories/types`,
+
+  // PUT /admin/categories/types
+  // Description: Update type
+  // Body: {id: string, title: string, description: string, fa_class_icon: string, slug: string, pos: number}
+  UPDATE_TYPE: `${adminApiUrl}/categories/types`,
+
+  // DELETE /admin/categories/types
+  // Description: Delete type
+  // Body: {id: string}
+  DELETE_TYPE: `${adminApiUrl}/categories/types`
 }

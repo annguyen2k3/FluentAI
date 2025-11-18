@@ -14,7 +14,7 @@ import writingService from '~/services/writing.service'
 export const getSetupWPController = async (req: Request, res: Response) => {
   const user = req.user as User
   const levels = await databaseService.levels.find({}).sort({ pos: 1 }).toArray()
-  const types = await databaseService.types.find({}).toArray()
+  const types = await databaseService.types.find({}).sort({ pos: 1 }).toArray()
   res.render('client/pages/writing-paragraph/setup.pug', {
     pageTitle: 'Chọn mức độ và chủ đề',
     user: user,
@@ -197,7 +197,8 @@ export const postCustomTopicPreviewWPController = async (req: Request, res: Resp
     level: level._id as ObjectId,
     topic: new ObjectId(),
     type: new ObjectId(),
-    slug: (('paractice-custom-topic-' + user._id?.toString()) as string) + '-' + new Date().getTime()
+    slug:
+      (('paractice-custom-topic-' + user._id?.toString()) as string) + '-' + new Date().getTime()
   })
 
   if (previewResult.passed) {
@@ -252,7 +253,8 @@ export const postPreviewContentWPController = async (req: Request, res: Response
     level: new ObjectId(),
     topic: new ObjectId(),
     type: new ObjectId(),
-    slug: (('paractice-custom-content-' + user._id?.toString()) as string) + '-' + new Date().getTime()
+    slug:
+      (('paractice-custom-content-' + user._id?.toString()) as string) + '-' + new Date().getTime()
   })
 
   if (previewResult.passed) {
