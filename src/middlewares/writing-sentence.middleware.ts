@@ -1,7 +1,11 @@
 import { checkSchema } from 'express-validator'
 import { ObjectId } from 'mongodb'
 import { HttpStatus } from '~/constants/httpStatus'
-import { PROPERTY_MESSAGES, WRITING_SENTENCE_MESSAGES } from '~/constants/message'
+import {
+  PROPERTY_MESSAGES,
+  WRITING_SENTENCE_MESSAGES
+} from '~/constants/message'
+import { SLUG_REGEX } from '~/constants/regex'
 import { ErrorWithStatus } from '~/models/Errors'
 import { SentenceWriteType } from '~/models/schemas/ws-list.schema'
 import { databaseService } from '~/services/database.service'
@@ -19,9 +23,14 @@ export const renderWSPraticeValidator = validate(
           options: async (value, { req }) => {
             const ws = await databaseService.wsLists.findOne({ slug: value })
             if (!ws) {
-              const wsPreview = await databaseService.wsListPreviews.findOne({ slug: value })
+              const wsPreview = await databaseService.wsListPreviews.findOne({
+                slug: value
+              })
               if (!wsPreview) {
-                throw new ErrorWithStatus(PROPERTY_MESSAGES.SLUG_NOT_FOUND, HttpStatus.NOT_FOUND)
+                throw new ErrorWithStatus(
+                  PROPERTY_MESSAGES.SLUG_NOT_FOUND,
+                  HttpStatus.NOT_FOUND
+                )
               }
               req.ws = wsPreview
               return true
@@ -71,7 +80,10 @@ export const postCustomTopicPreviewWSValidator = validate(
           options: async (value, { req }) => {
             const level = await databaseService.levels.findOne({ slug: value })
             if (!level) {
-              throw new ErrorWithStatus(PROPERTY_MESSAGES.LEVEL_NOT_FOUND, HttpStatus.NOT_FOUND)
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.LEVEL_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
             }
             req.level = level
             return true
@@ -99,9 +111,14 @@ export const createWSListValidator = validate(
         trim: true,
         custom: {
           options: async (value, { req }) => {
-            const topic = await databaseService.topics.findOne({ _id: new ObjectId(value) })
+            const topic = await databaseService.topics.findOne({
+              _id: new ObjectId(value)
+            })
             if (!topic) {
-              throw new ErrorWithStatus(PROPERTY_MESSAGES.TOPIC_NOT_FOUND, HttpStatus.NOT_FOUND)
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.TOPIC_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
             }
             req.topic = topic
             return true
@@ -115,9 +132,14 @@ export const createWSListValidator = validate(
         trim: true,
         custom: {
           options: async (value, { req }) => {
-            const level = await databaseService.levels.findOne({ _id: new ObjectId(value) })
+            const level = await databaseService.levels.findOne({
+              _id: new ObjectId(value)
+            })
             if (!level) {
-              throw new ErrorWithStatus(PROPERTY_MESSAGES.LEVEL_NOT_FOUND, HttpStatus.NOT_FOUND)
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.LEVEL_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
             }
             req.level = level
             return true
@@ -166,6 +188,152 @@ export const createWSListValidator = validate(
             if (slug) {
               throw new ErrorWithStatus(
                 WRITING_SENTENCE_MESSAGES.SLUG_EXISTS,
+                HttpStatus.BAD_REQUEST
+              )
+            }
+            if (!SLUG_REGEX.test(value)) {
+              throw new ErrorWithStatus(
+                WRITING_SENTENCE_MESSAGES.SLUG_INVALID,
+                HttpStatus.BAD_REQUEST
+              )
+            }
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export const updateWSListValidator = validate(
+  checkSchema(
+    {
+      id: {
+        isString: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.ID_INVALID
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const wsList = await databaseService.wsLists.findOne({
+              _id: new ObjectId(value)
+            })
+            if (!wsList) {
+              throw new ErrorWithStatus(
+                WRITING_SENTENCE_MESSAGES.WS_LIST_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
+            }
+            req.wsList = wsList
+            return true
+          }
+        }
+      },
+      title: {
+        isString: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.TITLE_INVALID
+        },
+        trim: true
+      },
+      topic: {
+        isString: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.TOPIC_INVALID
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const topic = await databaseService.topics.findOne({
+              _id: new ObjectId(value)
+            })
+            if (!topic) {
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.TOPIC_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
+            }
+            req.topic = topic
+            return true
+          }
+        }
+      },
+      level: {
+        isString: {
+          errorMessage: PROPERTY_MESSAGES.LEVEL_NOT_FOUND
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const level = await databaseService.levels.findOne({
+              _id: new ObjectId(value)
+            })
+            if (!level) {
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.LEVEL_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
+            }
+            req.level = level
+            return true
+          }
+        }
+      },
+      list: {
+        isArray: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.LIST_INVALID
+        },
+        custom: {
+          options: async (value, { req }) => {
+            const checkList = value.every((item: SentenceWriteType) => {
+              return (
+                typeof item.pos === 'number' &&
+                typeof item.content === 'string' &&
+                (!item.hint || Array.isArray(item.hint))
+              )
+            })
+            if (!checkList) {
+              throw new ErrorWithStatus(
+                WRITING_SENTENCE_MESSAGES.LIST_INVALID,
+                HttpStatus.BAD_REQUEST
+              )
+            }
+            return true
+          }
+        }
+      },
+      pos: {
+        isInt: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.POS_INVALID
+        },
+        trim: true
+      },
+      slug: {
+        isString: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.SLUG_INVALID
+        },
+        isLength: {
+          options: {
+            min: 1,
+            max: 50
+          },
+          errorMessage: WRITING_SENTENCE_MESSAGES.SLUG_LENGTH
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const slug = await databaseService.wsLists.findOne({
+              slug: value,
+              _id: { $ne: new ObjectId(req.body.id) }
+            })
+            if (slug) {
+              throw new ErrorWithStatus(
+                WRITING_SENTENCE_MESSAGES.SLUG_EXISTS,
+                HttpStatus.BAD_REQUEST
+              )
+            }
+            if (!SLUG_REGEX.test(value)) {
+              throw new ErrorWithStatus(
+                WRITING_SENTENCE_MESSAGES.SLUG_INVALID,
                 HttpStatus.BAD_REQUEST
               )
             }

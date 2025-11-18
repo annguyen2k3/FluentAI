@@ -27,7 +27,8 @@ export const USER_MESSAGES = {
   OTP_INVALID: 'Mã xác thực không hợp lệ',
   RESET_PASSWORD_SUCCESS: 'Đặt lại mật khẩu thành công',
   USERNAME_LENGTH: 'Tên người dùng phải có ít nhất 1 ký tự và tối đa 50 ký tự',
-  USERNAME_INVALID: 'Tên người dùng chỉ được chứa chữ cái, số, dấu cách và dấu gạch dưới ( _ )',
+  USERNAME_INVALID:
+    'Tên người dùng chỉ được chứa chữ cái, số, dấu cách và dấu gạch dưới ( _ )',
   USERNAME_EXISTS: 'Tên người dùng đã tồn tại',
   DATE_OF_BIRTH_INVALID: 'Ngày sinh không hợp lệ',
   PHONE_NUMBER_INVALID: 'Số điện thoại không hợp lệ',
@@ -53,6 +54,8 @@ export const PROPERTY_MESSAGES = {
 } as const
 
 export const WRITING_SENTENCE_MESSAGES = {
+  ID_INVALID: 'ID không hợp lệ',
+  WS_LIST_NOT_FOUND: 'Danh sách nội dung viết câu không tồn tại',
   TITLE_INVALID: 'Tiêu đề không hợp lệ',
   INIT_CHAT_FAILED: 'Khởi tạo chat thất bại',
   SENTENCE_VI_INVALID: 'Câu tiếng Việt không hợp lệ',
@@ -61,7 +64,8 @@ export const WRITING_SENTENCE_MESSAGES = {
   LEVEL_INVALID: 'Cấp độ không hợp lệ',
   LIST_INVALID: 'Danh sách câu không hợp lệ',
   POS_INVALID: 'Vị trí không hợp lệ',
-  SLUG_INVALID: 'Slug không hợp lệ',
+  SLUG_INVALID:
+    'Slug không hợp lệ. Chỉ được chứa chữ cái, số, dấu gạch dưới ( _ ) và dấu gạch ngang ( - )',
   SLUG_EXISTS: 'Slug đã tồn tại',
   SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự và tối đa 50 ký tự'
 } as const
@@ -78,7 +82,8 @@ export const CATEGORIES_MESSAGES = {
   DESCRIPTION_LENGTH: 'Mô tả phải có ít nhất 1 ký tự và tối đa 255 ký tự',
   FA_CLASS_ICON_INVALID: 'Class icon FontAwesome không hợp lệ',
   POS_INVALID: 'Vị trí không hợp lệ',
-  SLUG_INVALID: 'Slug không hợp lệ',
+  SLUG_INVALID:
+    'Slug không hợp lệ. Chỉ được chứa chữ cái, số, dấu gạch dưới ( _ ) và dấu gạch ngang ( - )',
   SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự và tối đa 50 ký tự',
   SLUG_EXISTS: 'Slug đã tồn tại'
 } as const

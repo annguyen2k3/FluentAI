@@ -1,6 +1,7 @@
 import { checkSchema } from 'express-validator'
 import { ObjectId } from 'mongodb'
 import { CATEGORIES_MESSAGES, PROPERTY_MESSAGES } from '~/constants/message'
+import { SLUG_REGEX } from '~/constants/regex'
 import { databaseService } from '~/services/database.service'
 import { validate } from '~/utils/validation'
 
@@ -59,6 +60,9 @@ export const createLevelValidator = validate(
             if (level) {
               throw new Error(CATEGORIES_MESSAGES.SLUG_EXISTS)
             }
+            if (!SLUG_REGEX.test(value)) {
+              throw new Error(CATEGORIES_MESSAGES.SLUG_INVALID)
+            }
             return true
           }
         }
@@ -89,7 +93,9 @@ export const updateLevelValidator = validate(
       id: {
         custom: {
           options: async (value, { req }) => {
-            const level = await databaseService.levels.findOne({ _id: new ObjectId(value) })
+            const level = await databaseService.levels.findOne({
+              _id: new ObjectId(value)
+            })
             if (!level) {
               throw new Error(CATEGORIES_MESSAGES.LEVEL_NOT_FOUND)
             }
@@ -158,6 +164,9 @@ export const updateLevelValidator = validate(
             if (existingLevel) {
               throw new Error(CATEGORIES_MESSAGES.SLUG_EXISTS)
             }
+            if (!SLUG_REGEX.test(value)) {
+              throw new Error(CATEGORIES_MESSAGES.SLUG_INVALID)
+            }
             return true
           }
         }
@@ -188,7 +197,9 @@ export const deleteLevelValidator = validate(
       id: {
         custom: {
           options: async (value, { req }) => {
-            const level = await databaseService.levels.findOne({ _id: new ObjectId(value) })
+            const level = await databaseService.levels.findOne({
+              _id: new ObjectId(value)
+            })
             if (!level) {
               throw new Error(CATEGORIES_MESSAGES.LEVEL_NOT_FOUND)
             }
@@ -255,6 +266,9 @@ export const createTypeValidator = validate(
             if (type) {
               throw new Error(CATEGORIES_MESSAGES.SLUG_EXISTS)
             }
+            if (!SLUG_REGEX.test(value)) {
+              throw new Error(CATEGORIES_MESSAGES.SLUG_INVALID)
+            }
             return true
           }
         }
@@ -285,7 +299,9 @@ export const updateTypeValidator = validate(
       id: {
         custom: {
           options: async (value, { req }) => {
-            const type = await databaseService.types.findOne({ _id: new ObjectId(value) })
+            const type = await databaseService.types.findOne({
+              _id: new ObjectId(value)
+            })
             if (!type) {
               throw new Error(CATEGORIES_MESSAGES.TYPE_NOT_FOUND)
             }
@@ -354,6 +370,9 @@ export const updateTypeValidator = validate(
             if (existingType) {
               throw new Error(CATEGORIES_MESSAGES.SLUG_EXISTS)
             }
+            if (!SLUG_REGEX.test(value)) {
+              throw new Error(CATEGORIES_MESSAGES.SLUG_INVALID)
+            }
             return true
           }
         }
@@ -384,7 +403,9 @@ export const deleteTypeValidator = validate(
       id: {
         custom: {
           options: async (value, { req }) => {
-            const type = await databaseService.types.findOne({ _id: new ObjectId(value) })
+            const type = await databaseService.types.findOne({
+              _id: new ObjectId(value)
+            })
             if (!type) {
               throw new Error(CATEGORIES_MESSAGES.TYPE_NOT_FOUND)
             }
@@ -452,6 +473,9 @@ export const createTopicValidator = validate(
             if (topic) {
               throw new Error(CATEGORIES_MESSAGES.SLUG_EXISTS)
             }
+            if (!SLUG_REGEX.test(value)) {
+              throw new Error(CATEGORIES_MESSAGES.SLUG_INVALID)
+            }
             return true
           }
         }
@@ -482,7 +506,9 @@ export const updateTopicValidator = validate(
       id: {
         custom: {
           options: async (value, { req }) => {
-            const topic = await databaseService.topics.findOne({ _id: new ObjectId(value) })
+            const topic = await databaseService.topics.findOne({
+              _id: new ObjectId(value)
+            })
             if (!topic) {
               throw new Error(CATEGORIES_MESSAGES.TOPIC_NOT_FOUND)
             }
@@ -551,6 +577,9 @@ export const updateTopicValidator = validate(
             if (existingTopic) {
               throw new Error(CATEGORIES_MESSAGES.SLUG_EXISTS)
             }
+            if (!SLUG_REGEX.test(value)) {
+              throw new Error(CATEGORIES_MESSAGES.SLUG_INVALID)
+            }
             return true
           }
         }
@@ -581,7 +610,9 @@ export const deleteTopicValidator = validate(
       id: {
         custom: {
           options: async (value, { req }) => {
-            const topic = await databaseService.topics.findOne({ _id: new ObjectId(value) })
+            const topic = await databaseService.topics.findOne({
+              _id: new ObjectId(value)
+            })
             if (!topic) {
               throw new Error(CATEGORIES_MESSAGES.TOPIC_NOT_FOUND)
             }

@@ -551,7 +551,7 @@ block scripts
         : item.title
       document.getElementById('writingSentenceTopic').value = topicId || ''
       document.getElementById('writingSentenceLevel').value = levelId || ''
-      document.getElementById('writingSentenceSlug').value = isCopy ? '' : item.slug
+      document.getElementById('writingSentenceSlug').value = isCopy ? '' : item.slug || ''
       document.getElementById('writingSentencePos').value = item.pos || 1
       document.getElementById('writingSentenceModalLabel').textContent = isCopy
         ? 'Sao chép nội dung viết câu'
@@ -711,7 +711,7 @@ block scripts
       const title = document.getElementById('writingSentenceTitle').value
       const topic = document.getElementById('writingSentenceTopic').value
       const level = document.getElementById('writingSentenceLevel').value
-      let slug = document.getElementById('writingSentenceSlug').value || undefined
+      let slug = document.getElementById('writingSentenceSlug').value.trim()
       const pos = parseInt(document.getElementById('writingSentencePos').value) || 1
 
       const sentences = []
@@ -768,7 +768,7 @@ block scripts
 
       if (id) {
         wsData.id = id
-        fetch(AdminApiBreakpoint.UPDATE_WS || `${prefixAdmin}/api/ws/${id}`, {
+        fetch(AdminApiBreakpoint.UPDATE_WS_LIST, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -912,15 +912,14 @@ block scripts
         }
       }
 
-      window.openAddModal = openAddModal
-      window.saveWritingSentence = saveWritingSentence
-      window.editWritingSentence = editWritingSentence
-      window.copyWritingSentence = copyWritingSentence
-      window.deleteWritingSentence = deleteWritingSentence
-      window.addSentence = addSentence
-      window.removeSentence = removeSentence
-      window.addHint = addHint
-      window.removeHint = removeHint
     })
-      
-    
+
+    window.openAddModal = openAddModal
+    window.saveWritingSentence = saveWritingSentence
+    window.editWritingSentence = editWritingSentence
+    window.copyWritingSentence = copyWritingSentence
+    window.deleteWritingSentence = deleteWritingSentence
+    window.addSentence = addSentence
+    window.removeSentence = removeSentence
+    window.addHint = addHint
+    window.removeHint = removeHint

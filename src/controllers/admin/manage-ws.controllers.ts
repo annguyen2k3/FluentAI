@@ -8,6 +8,7 @@ import writingService from '~/services/writing.service'
 
 const prefixAdmin = process.env.PREFIX_ADMIN
 
+// GET /admin/ws
 export const renderManageWsController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
   const topics = (await categoriesServices.getTopics()).map((topic) => ({
@@ -34,14 +35,21 @@ export const renderManageWsController = async (req: Request, res: Response) => {
   })
 }
 
+// GET /admin/ws/list
 export const getListWsController = async (req: Request, res: Response) => {
   const page = Number(req.query.page) || 1
   const limit = Number(req.query.limit) || 10
   const levelParam = req.query.level as string | undefined
   const topicParam = req.query.topic as string | undefined
 
-  const level = levelParam && ObjectId.isValid(levelParam) ? new ObjectId(levelParam) : undefined
-  const topic = topicParam && ObjectId.isValid(topicParam) ? new ObjectId(topicParam) : undefined
+  const level =
+    levelParam && ObjectId.isValid(levelParam)
+      ? new ObjectId(levelParam)
+      : undefined
+  const topic =
+    topicParam && ObjectId.isValid(topicParam)
+      ? new ObjectId(topicParam)
+      : undefined
 
   const data = await writingService.getWSList({ page, limit, level, topic })
   res.status(HttpStatus.OK).json({
@@ -51,6 +59,7 @@ export const getListWsController = async (req: Request, res: Response) => {
   })
 }
 
+// POST /admin/ws/create
 export const createWSListController = async (req: Request, res: Response) => {
   const { title, topic, level, list, pos, slug } = req.body
   const wsList = new WSList({
@@ -65,6 +74,27 @@ export const createWSListController = async (req: Request, res: Response) => {
   res.status(HttpStatus.CREATED).json({
     message: 'Bài học đã được tạo thành công',
     status: HttpStatus.CREATED,
+    wsList
+  })
+}
+
+// PUT /admin/ws/update
+export const updateWSListController = async (req: Request, res: Response) => {
+  const { id, title, topic, level, list, pos, slug } = req.body
+  const wsList = new WSList({
+    _id: new ObjectId(id),
+    title,
+    topic: new ObjectId(topic),
+    level: new ObjectId(level),
+    list,
+    pos,
+    slug,
+    update_at: new Date()
+  })
+  await writingService.updateWSList(wsList)
+  res.status(HttpStatus.OK).json({
+    message: 'Bài học đã được cập nhật thành công',
+    status: HttpStatus.OK,
     wsList
   })
 }

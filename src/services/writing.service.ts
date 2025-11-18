@@ -154,6 +154,16 @@ class WritingService {
     return newWSList
   }
 
+  async updateWSList(wsList: WSList) {
+    await databaseService.wsLists.updateOne({ _id: wsList._id }, { $set: wsList })
+    return wsList
+  }
+
+  async deleteWSList(id: string) {
+    await databaseService.wsLists.deleteOne({ _id: new ObjectId(id) })
+    return true
+  }
+
   async getWPList(find: {
     level?: ObjectId
     topic?: ObjectId
