@@ -412,6 +412,41 @@ if (wsListChoose) {
       loadWSList(levelId, topicId, currentPage, limit)
     })
   }
+
+  const btnRandom = document.querySelector('[btn-random]')
+  if (btnRandom) {
+    btnRandom.addEventListener('click', function () {
+      const levelRandom = wsListChoose.getAttribute('level')
+      const topicRandom =
+        document.querySelector('select[filter-topic]').value || ''
+
+      console.log('levelRandom', levelRandom)
+      console.log('topicRandom', topicRandom)
+      const requestUrl = new URL(ApiBreakpoint.GET_RANDOM_WS)
+      if (levelRandom) {
+        requestUrl.searchParams.set('level', levelRandom)
+      }
+      if (topicRandom) {
+        requestUrl.searchParams.set('topic', topicRandom)
+      }
+      fetch(requestUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        }
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === 200) {
+            window.location.href = `/writing-sentence/practice/${data.ws.slug}`
+          } else {
+            alertError(data.message)
+          }
+        })
+        .catch((error) => console.error('Error:', error))
+    })
+  }
 }
 
 // Write-sentence practice interactions

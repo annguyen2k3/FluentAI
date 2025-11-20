@@ -17,6 +17,11 @@ export const ApiBreakpoint = {
   // Query: level, topic, page, limit, search, sortKey, sortOrder
   GET_WS_LIST: `${apiUrl}/writing-sentence/list`,
 
+  // GET /writing-sentence/random
+  // Description: Get random writing sentence
+  // Query: level, topic
+  GET_RANDOM_WS: `${apiUrl}/writing-sentence/random`,
+
   POST_PRACTICE_WS: `${apiUrl}/writing-sentence/practice`, // Post practice writing sentence
   GET_COMPLETE_WS: `${apiUrl}/writing-sentence/practice/complete/{slug}`, // Get complete writing sentence
   POST_CUSTOM_TOPIC_PREVIEW_WS: `${apiUrl}/writing-sentence/custom-topic/preview`, // Post custom topic preview

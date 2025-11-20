@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
 import { HttpStatus } from '~/constants/httpStatus'
+import { WRITING_SENTENCE_MESSAGES } from '~/constants/message'
 import User from '~/models/schemas/users.schema'
 import WSList from '~/models/schemas/ws-list.schema'
 import { databaseService } from '~/services/database.service'
@@ -95,8 +96,6 @@ export const getWSListController = async (req: Request, res: Response) => {
   if (req.query.sortOrder) {
     find.sortOrder = req.query.sortOrder as 'asc' | 'desc'
   }
-
-  console.log('find', find)
 
   const data = await writingService.getWSList(find)
 
@@ -248,11 +247,28 @@ export const getPracticeCustomTopicWSController = async (
 }
 
 // GET /writing-sentence/practice/random
-export const getPracticeRandomWSController = async (
-  req: Request,
-  res: Response
-) => {
-  const user = req.user as User
-  const randomWS = (await writingService.wsRandom(1))[0]
-  return res.redirect(`/writing-sentence/practice/${randomWS.slug}`)
+export const getRandomWSController = async (req: Request, res: Response) => {
+  const level = req.query.level
+    ? new ObjectId(req.query.level as string)
+    : undefined
+  const topic = req.query.topic
+    ? new ObjectId(req.query.topic as string)
+    : undefined
+
+  console.log('level', level)
+  console.log('topic', topic)
+  const randomWS = (await writingService.wsRandom(1, level, topic))[0]
+
+  if (!randomWS) {
+    return res.status(HttpStatus.NOT_FOUND).json({
+      message: WRITING_SENTENCE_MESSAGES.RANDOM_WS_NOT_FOUND,
+      status: HttpStatus.NOT_FOUND
+    })
+  }
+
+  res.status(HttpStatus.OK).json({
+    message: WRITING_SENTENCE_MESSAGES.RANDOM_WS_SUCCESS,
+    status: HttpStatus.OK,
+    ws: randomWS
+  })
 }

@@ -2,8 +2,8 @@ import { Router } from 'express'
 import {
   getCompleteWSController,
   getPracticeCustomTopicWSController,
-  getPracticeRandomWSController,
   getPracticeWSController,
+  getRandomWSController,
   getSetupWritingSentenceController,
   getSystemListWSController,
   getWSListController,
@@ -40,7 +40,7 @@ writingSentenceRoutes.get(
 // GET /writing-sentence/list
 // Description: Get list of writing sentences
 // Method: GET
-// Params: level, topic, page, limit, search, sortKey, sortOrder
+// Query: level, topic, page, limit, search, sortKey, sortOrder
 writingSentenceRoutes.get(
   '/list',
   requireAuth,
@@ -57,10 +57,14 @@ writingSentenceRoutes.get(
   wrapRequestHandler(getPracticeWSController)
 )
 
+// GET /writing-sentence/random
+// Description: Get random writing sentence
+// Method: GET
+// Query: level, topic
 writingSentenceRoutes.get(
   '/random',
   requireAuth,
-  wrapRequestHandler(getPracticeRandomWSController)
+  wrapRequestHandler(getRandomWSController)
 )
 
 // POST /writing-sentence/practice/:slug

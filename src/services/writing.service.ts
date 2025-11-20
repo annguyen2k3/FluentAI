@@ -374,10 +374,17 @@ class WritingService {
     return JSON.parse(text as string) as PreviewTopicWPResult
   }
 
-  async wsRandom(size: number) {
-    const randomWS = await databaseService.wsLists
-      .aggregate([{ $sample: { size: size } }])
-      .toArray()
+  async wsRandom(size: number, level?: ObjectId, topic?: ObjectId) {
+    const matchStage: any = {}
+    if (level) matchStage.level = level
+    if (topic) matchStage.topic = topic
+    const pipeline = []
+    if (Object.keys(matchStage).length) {
+      pipeline.push({ $match: matchStage })
+    }
+    pipeline.push({ $sample: { size } })
+
+    const randomWS = await databaseService.wsLists.aggregate(pipeline).toArray()
     return randomWS as WSList[]
   }
 }

@@ -67,7 +67,9 @@ export const WRITING_SENTENCE_MESSAGES = {
   SLUG_INVALID:
     'Slug không hợp lệ. Chỉ được chứa chữ cái, số, dấu gạch dưới ( _ ) và dấu gạch ngang ( - )',
   SLUG_EXISTS: 'Slug đã tồn tại',
-  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự và tối đa 50 ký tự'
+  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự và tối đa 50 ký tự',
+  RANDOM_WS_NOT_FOUND: 'Không tìm thấy danh sách câu học',
+  RANDOM_WS_SUCCESS: 'Danh sách câu học đã lấy thành công'
 } as const
 
 export const CATEGORIES_MESSAGES = {
