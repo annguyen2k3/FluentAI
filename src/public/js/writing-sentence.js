@@ -11,7 +11,9 @@ if (wsSetup) {
 
   levelOptions.forEach((opt) => {
     opt.addEventListener('click', function () {
-      levelOptions.forEach((o) => o.classList.remove('ws-setup__option--active'))
+      levelOptions.forEach((o) =>
+        o.classList.remove('ws-setup__option--active')
+      )
       this.classList.add('ws-setup__option--active')
     })
   })
@@ -32,7 +34,9 @@ if (wsSetup) {
   if (startBtn) {
     startBtn.addEventListener('click', function (e) {
       e.preventDefault()
-      const levelChoose = wsSetup.querySelector('.ws-setup__option--level[active]')
+      const levelChoose = wsSetup.querySelector(
+        '.ws-setup__option--level[active]'
+      )
       const topicChoose = wsSetup.querySelector('.ws-setup__topic[active]')
 
       if (!levelChoose) {
@@ -69,7 +73,10 @@ if (wsSetup) {
               const wsListPreview = data.wsListPreview || {}
               const modalEl = document.getElementById('wsPreviewModal')
               if (!modalEl) return
-              modalEl.setAttribute('id-ws-list-preview', wsListPreview._id.toString())
+              modalEl.setAttribute(
+                'id-ws-list-preview',
+                wsListPreview._id.toString()
+              )
               const statusEl = document.getElementById('wsPreviewStatus')
               const descEl = document.getElementById('wsPreviewDescription')
               const countEl = document.getElementById('wsPreviewCount')
@@ -77,13 +84,17 @@ if (wsSetup) {
               if (statusEl) {
                 statusEl.textContent = preview.passed ? 'Đạt' : 'Chưa đạt'
                 statusEl.classList.remove('bg-success', 'bg-danger')
-                statusEl.classList.add(preview.passed ? 'bg-success' : 'bg-danger')
+                statusEl.classList.add(
+                  preview.passed ? 'bg-success' : 'bg-danger'
+                )
               }
               if (descEl) {
                 descEl.textContent = preview.description || ''
               }
               if (countEl) {
-                countEl.textContent = Array.isArray(preview.list) ? preview.list.length : 0
+                countEl.textContent = Array.isArray(preview.list)
+                  ? preview.list.length
+                  : 0
               }
               if (listEl) {
                 listEl.innerHTML = ''
@@ -96,7 +107,9 @@ if (wsSetup) {
                   })
                 }
               }
-              const regenerateBtn = document.getElementById('wsPreviewRegenerate')
+              const regenerateBtn = document.getElementById(
+                'wsPreviewRegenerate'
+              )
               if (regenerateBtn) {
                 regenerateBtn.onclick = () => {
                   const reqUrl = `${ApiBreakpoint.POST_CUSTOM_TOPIC_PREVIEW_WS}`
@@ -115,10 +128,15 @@ if (wsSetup) {
                         if (statusEl) {
                           statusEl.textContent = p.passed ? 'Đạt' : 'Chưa đạt'
                           statusEl.classList.remove('bg-success', 'bg-danger')
-                          statusEl.classList.add(p.passed ? 'bg-success' : 'bg-danger')
+                          statusEl.classList.add(
+                            p.passed ? 'bg-success' : 'bg-danger'
+                          )
                         }
                         if (descEl) descEl.textContent = p.description || ''
-                        if (countEl) countEl.textContent = Array.isArray(p.list) ? p.list.length : 0
+                        if (countEl)
+                          countEl.textContent = Array.isArray(p.list)
+                            ? p.list.length
+                            : 0
                         if (listEl) {
                           listEl.innerHTML = ''
                           if (Array.isArray(p.list)) {
@@ -141,11 +159,17 @@ if (wsSetup) {
               if (startBtn) {
                 startBtn.onclick = () => {
                   const templateUrl = `${ApiBreakpoint.GET_PRACTICE_CUSTOM_TOPIC_WS}`
-                  const requestUrl = templateUrl.replace('{idPreview}', wsListPreview._id.toString())
+                  const requestUrl = templateUrl.replace(
+                    '{idPreview}',
+                    wsListPreview._id.toString()
+                  )
                   window.location.href = requestUrl
                 }
               }
-              const modal = typeof bootstrap !== 'undefined' ? new bootstrap.Modal(modalEl) : null
+              const modal =
+                typeof bootstrap !== 'undefined'
+                  ? new bootstrap.Modal(modalEl)
+                  : null
               if (modal) modal.show()
             } else {
               alertError(data.message)
@@ -175,6 +199,120 @@ if (wsSetup) {
 // Write-sentence list interactions
 const wsListChoose = document.querySelector('div[ws-list-choose]')
 if (wsListChoose) {
+  let currentPage = 1
+  const limit = 10
+  let levelId = wsListChoose.getAttribute('level')
+  let topicId = wsListChoose.getAttribute('topic') || ''
+
+  function renderPagination(pagination) {
+    const paginationContainer = document.querySelector('.wp-choose__pagination')
+    if (!paginationContainer) return
+
+    const infoEl = paginationContainer.querySelector(
+      '.wp-choose__pagination-info'
+    )
+    const buttonsContainer = paginationContainer.querySelector(
+      '.d-flex.align-items-center.gap-2'
+    )
+
+    if (!infoEl || !buttonsContainer) return
+
+    const { page, limit, total, totalPages } = pagination
+    const startItem = (page - 1) * limit + 1
+    const endItem = Math.min(page * limit, total)
+
+    infoEl.innerHTML = `
+      <span class="wp-choose__pagination-text">Hiển thị các mục ${startItem}-${endItem} trên tổng số ${total}</span>
+    `
+
+    buttonsContainer.innerHTML = ''
+
+    const prevBtn = document.createElement('button')
+    prevBtn.className = 'btn btn-light wp-choose__page'
+    prevBtn.disabled = !pagination.hasPrevPage
+    prevBtn.innerHTML = '<i class="fas fa-angle-left"></i>'
+    if (pagination.hasPrevPage) {
+      prevBtn.addEventListener('click', () => {
+        currentPage = page - 1
+        loadWSList(levelId, topicId, currentPage, limit)
+      })
+    }
+    buttonsContainer.appendChild(prevBtn)
+
+    const maxVisiblePages = 5
+    let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2))
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+    }
+
+    if (startPage > 1) {
+      const firstBtn = document.createElement('button')
+      firstBtn.className = 'btn btn-outline-primary wp-choose__page'
+      firstBtn.textContent = '1'
+      firstBtn.addEventListener('click', () => {
+        currentPage = 1
+        loadWSList(levelId, topicId, currentPage, limit)
+      })
+      buttonsContainer.appendChild(firstBtn)
+
+      if (startPage > 2) {
+        const ellipsis = document.createElement('button')
+        ellipsis.className = 'btn btn-outline-primary wp-choose__page'
+        ellipsis.disabled = true
+        ellipsis.textContent = '...'
+        buttonsContainer.appendChild(ellipsis)
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const pageBtn = document.createElement('button')
+      if (i === page) {
+        pageBtn.className = 'btn btn-primary wp-choose__page is-active'
+      } else {
+        pageBtn.className = 'btn btn-outline-primary wp-choose__page'
+      }
+      pageBtn.textContent = i
+      pageBtn.addEventListener('click', () => {
+        currentPage = i
+        loadWSList(levelId, topicId, currentPage, limit)
+      })
+      buttonsContainer.appendChild(pageBtn)
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const ellipsis = document.createElement('button')
+        ellipsis.className = 'btn btn-outline-primary wp-choose__page'
+        ellipsis.disabled = true
+        ellipsis.textContent = '...'
+        buttonsContainer.appendChild(ellipsis)
+      }
+
+      const lastBtn = document.createElement('button')
+      lastBtn.className = 'btn btn-outline-primary wp-choose__page'
+      lastBtn.textContent = totalPages
+      lastBtn.addEventListener('click', () => {
+        currentPage = totalPages
+        loadWSList(levelId, topicId, currentPage, limit)
+      })
+      buttonsContainer.appendChild(lastBtn)
+    }
+
+    const nextBtn = document.createElement('button')
+    nextBtn.className = 'btn btn-light wp-choose__page'
+    nextBtn.disabled = !pagination.hasNextPage
+    nextBtn.innerHTML = '<i class="fas fa-angle-right"></i>'
+    if (pagination.hasNextPage) {
+      nextBtn.addEventListener('click', () => {
+        currentPage = page + 1
+        loadWSList(levelId, topicId, currentPage, limit)
+      })
+    }
+    buttonsContainer.appendChild(nextBtn)
+  }
+
   function loadWSList(level, topic = '', page = 1, limit = 10) {
     const requestUrl = new URL(ApiBreakpoint.GET_WS_LIST)
 
@@ -191,6 +329,12 @@ if (wsListChoose) {
       requestUrl.searchParams.set('limit', limit)
     }
 
+    const wsListCards = document.querySelector('div[ws-list-cards]')
+    if (wsListCards) {
+      wsListCards.innerHTML =
+        '<p class="text-center">Đang tải danh sách câu...</p>'
+    }
+
     fetch(requestUrl, {
       method: 'GET',
       headers: {
@@ -201,9 +345,10 @@ if (wsListChoose) {
       .then((response) => response.json())
       .then((data) => {
         if (data.status === 200) {
-          const wsList = data.data
+          const wsList = data.data || []
+          const pagination = data.pagination
+
           if (wsList.length > 0) {
-            const wsListCards = document.querySelector('div[ws-list-cards]')
             wsListCards.innerHTML = ''
             wsList.forEach((ws) => {
               const sentenceCount = ws.list ? ws.list.length : 0
@@ -228,29 +373,41 @@ if (wsListChoose) {
             `
             })
           } else {
-            const wsListCards = document.querySelector('div[ws-list-cards]')
             wsListCards.innerHTML = `
               <p class="text-center">Không có dữ liệu</p>
             `
           }
+
+          if (pagination) {
+            renderPagination(pagination)
+          }
         } else {
           alertError(data.message)
+          if (wsListCards) {
+            wsListCards.innerHTML = `
+              <p class="text-center text-danger">Đã xảy ra lỗi khi tải dữ liệu</p>
+            `
+          }
         }
       })
-      .catch((error) => console.error('Error:', error))
+      .catch((error) => {
+        console.error('Error:', error)
+        if (wsListCards) {
+          wsListCards.innerHTML = `
+            <p class="text-center text-danger">Đã xảy ra lỗi khi tải dữ liệu</p>
+          `
+        }
+      })
   }
 
-  // Initialize startup
-  let levelId = wsListChoose.getAttribute('level')
-  let topicId = wsListChoose.getAttribute('topic')
-  loadWSList(levelId, topicId)
+  loadWSList(levelId, topicId, currentPage, limit)
 
-  // Add event listener to filter topic
   const filterTopic = document.querySelector('select[filter-topic]')
   if (filterTopic) {
     filterTopic.addEventListener('change', function () {
       topicId = this.value || ''
-      loadWSList(levelId, topicId)
+      currentPage = 1
+      loadWSList(levelId, topicId, currentPage, limit)
     })
   }
 }
@@ -328,8 +485,10 @@ if (wsPractice) {
 
   if (buttonSubmit) {
     buttonSubmit.addEventListener('click', function () {
-      const sentenceVi = document.querySelector('[sentence_vi]').textContent || ''
-      const userTranslation = document.querySelector('[user_translation]').value || ''
+      const sentenceVi =
+        document.querySelector('[sentence_vi]').textContent || ''
+      const userTranslation =
+        document.querySelector('[user_translation]').value || ''
       console.log(sentenceVi)
       console.log(userTranslation)
       if (!userTranslation) {
@@ -343,7 +502,10 @@ if (wsPractice) {
           'Content-Type': 'application/json',
           Accept: 'application/json'
         },
-        body: JSON.stringify({ sentence_vi: sentenceVi, user_translation: userTranslation })
+        body: JSON.stringify({
+          sentence_vi: sentenceVi,
+          user_translation: userTranslation
+        })
       })
         .then((response) => response.json())
         .then((data) => {

@@ -11,7 +11,12 @@ export const ApiBreakpoint = {
   UPDATE_PROFILE: `${apiUrl}/users/profile`,
   CHANGE_PASSWORD: `${apiUrl}/users/profile/change-password`,
   UPDATE_AVATAR_PROFILE: `${apiUrl}/users/profile/avatar`,
-  GET_WS_LIST: `${apiUrl}/writing-sentence/list`, // Get list of writing sentences
+
+  // GET /writing-sentence/list
+  // Description: Get list of writing sentences
+  // Query: level, topic, page, limit, search, sortKey, sortOrder
+  GET_WS_LIST: `${apiUrl}/writing-sentence/list`,
+
   POST_PRACTICE_WS: `${apiUrl}/writing-sentence/practice`, // Post practice writing sentence
   GET_COMPLETE_WS: `${apiUrl}/writing-sentence/practice/complete/{slug}`, // Get complete writing sentence
   POST_CUSTOM_TOPIC_PREVIEW_WS: `${apiUrl}/writing-sentence/custom-topic/preview`, // Post custom topic preview
@@ -145,5 +150,25 @@ export const AdminApiBreakpoint = {
   // DELETE /admin/ws/delete
   // Description: Delete ws
   // Body: {id: string}
-  DELETE_WS_LIST: `${adminApiUrl}/ws/delete`
+  DELETE_WS_LIST: `${adminApiUrl}/ws/delete`,
+
+  // GET /admin/wp/list
+  // Description: Get list of wp
+  // Query: page, limit, level, topic, type, search, sortKey, sortOrder
+  GET_WP_LIST: `${adminApiUrl}/wp/list`,
+
+  // POST /admin/wp/create
+  // Description: Create wp
+  // Body: {title: string, topic: string, level: string, type: string, content: string, hint?: VocabularyHintType[], pos?: number, slug?: string}
+  CREATE_WP_LIST: `${adminApiUrl}/wp/create`,
+
+  // PUT /admin/wp/update
+  // Description: Update wp
+  // Body: {id: string, title: string, topic: string, level: string, type: string, content: string, hint?: VocabularyHintType[], pos: number, slug: string}
+  UPDATE_WP_LIST: `${adminApiUrl}/wp/update`,
+
+  // DELETE /admin/wp/delete
+  // Description: Delete wp
+  // Body: {id: string}
+  DELETE_WP_LIST: `${adminApiUrl}/wp/delete`
 }

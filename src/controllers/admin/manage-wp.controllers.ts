@@ -2,15 +2,14 @@ import { Request, Response } from 'express'
 import { Admin, ObjectId } from 'mongodb'
 import { HttpStatus } from '~/constants/httpStatus'
 import { PartOfSpeech } from '~/constants/enum'
-import WSList from '~/models/schemas/ws-list.schema'
+import WPParagraph from '~/models/schemas/wp-paragraph.schema'
 import categoriesServices from '~/services/categories.services'
 import writingService from '~/services/writing.service'
 import { databaseService } from '~/services/database.service'
 
 const prefixAdmin = process.env.PREFIX_ADMIN
 
-// GET /admin/ws
-export const renderManageWsController = async (req: Request, res: Response) => {
+export const renderManageWpController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
   const topics = (await categoriesServices.getTopics()).map((topic) => ({
     _id: topic._id?.toString() || '',
@@ -24,24 +23,31 @@ export const renderManageWsController = async (req: Request, res: Response) => {
     slug: level.slug,
     pos: level.pos
   }))
+  const types = (await categoriesServices.getTypes()).map((type) => ({
+    _id: type._id?.toString() || '',
+    title: type.title,
+    slug: type.slug,
+    pos: type.pos
+  }))
   const partOfSpeechOptions = Object.values(PartOfSpeech)
 
-  res.render('admin/pages/manage-ws.pug', {
-    pageTitle: 'Admin - Quản lý luyện viết câu',
+  res.render('admin/pages/manage-wp.pug', {
+    pageTitle: 'Admin - Quản lý luyện viết đoạn văn',
     admin,
     topics,
     levels,
+    types,
     prefixAdmin,
     partOfSpeechOptions
   })
 }
 
-// GET /admin/ws/list
-export const getListWsController = async (req: Request, res: Response) => {
+export const getListWpController = async (req: Request, res: Response) => {
   const page = Number(req.query.page) || 1
   const limit = Number(req.query.limit) || 10
   const levelParam = req.query.level as string | undefined
   const topicParam = req.query.topic as string | undefined
+  const typeParam = req.query.type as string | undefined
   const searchParam = req.query.search as string | undefined
   const sortKeyParam = req.query.sortKey as string | undefined
   const sortOrderParam = req.query.sortOrder as 'asc' | 'desc' | undefined
@@ -60,79 +66,85 @@ export const getListWsController = async (req: Request, res: Response) => {
     topicParam && ObjectId.isValid(topicParam)
       ? new ObjectId(topicParam)
       : undefined
+  const type =
+    typeParam && ObjectId.isValid(typeParam)
+      ? new ObjectId(typeParam)
+      : undefined
 
-  const data = await writingService.getWSList({
+  const data = await writingService.getWPList({
     page,
     limit,
     level,
     topic,
+    type,
     search,
     sortKey,
     sortOrder
   })
   res.status(HttpStatus.OK).json({
-    message: 'Danh sách bài học đã lấy thành công',
+    message: 'Danh sách nội dung viết đoạn văn đã lấy thành công',
     status: HttpStatus.OK,
     ...data
   })
 }
 
-// POST /admin/ws/create
-export const createWSListController = async (req: Request, res: Response) => {
-  const { title, topic, level, list, pos, slug } = req.body
-  const wsList = new WSList({
+export const createWPListController = async (req: Request, res: Response) => {
+  const { title, topic, level, type, content, hint, pos, slug } = req.body
+  const wpParagraph = new WPParagraph({
     title,
     topic: new ObjectId(topic),
     level: new ObjectId(level),
-    list,
+    type: new ObjectId(type),
+    content,
+    hint: hint || [],
     pos: Number(pos),
     slug
   })
-  await writingService.createWSList(wsList)
+  await writingService.createWPParagraph(wpParagraph)
   res.status(HttpStatus.CREATED).json({
-    message: 'Bài học đã được tạo thành công',
+    message: 'Nội dung viết đoạn văn đã được tạo thành công',
     status: HttpStatus.CREATED,
-    wsList
+    wpParagraph
   })
 }
 
-// PUT /admin/ws/update
-export const updateWSListController = async (req: Request, res: Response) => {
-  const { id, title, topic, level, list, pos, slug } = req.body
-  const wsList = new WSList({
+export const updateWPListController = async (req: Request, res: Response) => {
+  const { id, title, topic, level, type, content, hint, pos, slug } = req.body
+  const wpParagraph = new WPParagraph({
     _id: new ObjectId(id),
     title,
     topic: new ObjectId(topic),
     level: new ObjectId(level),
-    list,
+    type: new ObjectId(type),
+    content,
+    hint: hint || [],
     pos: Number(pos),
     slug,
     update_at: new Date()
   })
-  await writingService.updateWSList(wsList)
+  await writingService.updateWPParagraph(wpParagraph)
   res.status(HttpStatus.OK).json({
-    message: 'Bài học đã được cập nhật thành công',
+    message: 'Nội dung viết đoạn văn đã được cập nhật thành công',
     status: HttpStatus.OK,
-    wsList
+    wpParagraph
   })
 }
 
-// DELETE /admin/ws/delete
-export const deleteWSListController = async (req: Request, res: Response) => {
+export const deleteWPListController = async (req: Request, res: Response) => {
   const { id } = req.body
-  const wsList = await databaseService.wsLists.findOne({
+  const wpParagraph = await databaseService.wpParagraphs.findOne({
     _id: new ObjectId(id)
   })
-  if (!wsList) {
+  if (!wpParagraph) {
     res.status(HttpStatus.NOT_FOUND).json({
       status: HttpStatus.NOT_FOUND,
-      message: 'Bài học không tồn tại'
+      message: 'Nội dung viết đoạn văn không tồn tại'
     })
     return
   }
-  await databaseService.wsLists.deleteOne({ _id: new ObjectId(id) })
+  await databaseService.wpParagraphs.deleteOne({ _id: new ObjectId(id) })
   res.status(HttpStatus.OK).json({
-    message: 'Bài học đã được xóa thành công',
+    message: 'Nội dung viết đoạn văn đã được xóa thành công',
     status: HttpStatus.OK
   })
 }

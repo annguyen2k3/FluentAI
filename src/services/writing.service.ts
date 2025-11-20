@@ -11,6 +11,7 @@ import { PromptFeature, PromptWritingType } from '~/constants/enum'
 import { ErrorWithStatus } from '~/models/Errors'
 import { HttpStatus } from '~/constants/httpStatus'
 import WSList, { SentenceWriteType } from '~/models/schemas/ws-list.schema'
+import WPParagraph from '~/models/schemas/wp-paragraph.schema'
 import { VocabularyHintType } from '~/models/Other'
 config()
 
@@ -209,6 +210,9 @@ class WritingService {
     type?: ObjectId
     page?: number
     limit?: number
+    search?: string
+    sortKey?: string
+    sortOrder?: 'asc' | 'desc'
   }) {
     const { page = 1, limit = 10, ...matchQuery } = find
     const skip = (page - 1) * limit
@@ -216,12 +220,19 @@ class WritingService {
     if (matchQuery.level) matchStage.level = matchQuery.level
     if (matchQuery.topic) matchStage.topic = matchQuery.topic
     if (matchQuery.type) matchStage.type = matchQuery.type
+    if (matchQuery.search)
+      matchStage.title = { $regex: matchQuery.search, $options: 'i' }
 
-    const [list, total] = await Promise.all([
+    const [data, total] = await Promise.all([
       databaseService.wpParagraphs
         .aggregate([
           { $match: matchStage },
-          { $sort: { pos: 1 } },
+          {
+            $sort: {
+              [matchQuery.sortKey as string]:
+                matchQuery.sortOrder === 'asc' ? 1 : -1
+            }
+          },
           {
             $lookup: {
               from: 'levels',
@@ -258,7 +269,7 @@ class WritingService {
 
     const totalPages = Math.ceil(total / limit)
     return {
-      list,
+      data,
       pagination: {
         page,
         limit,
@@ -268,6 +279,25 @@ class WritingService {
         hasPrevPage: page > 1
       }
     }
+  }
+
+  async createWPParagraph(wpParagraph: WPParagraph) {
+    const newWPParagraph = new WPParagraph(wpParagraph)
+    await databaseService.wpParagraphs.insertOne(newWPParagraph)
+    return newWPParagraph
+  }
+
+  async updateWPParagraph(wpParagraph: WPParagraph) {
+    await databaseService.wpParagraphs.updateOne(
+      { _id: wpParagraph._id },
+      { $set: wpParagraph }
+    )
+    return wpParagraph
+  }
+
+  async deleteWPParagraph(id: string) {
+    await databaseService.wpParagraphs.deleteOne({ _id: new ObjectId(id) })
+    return true
   }
 
   async wpInitChat(

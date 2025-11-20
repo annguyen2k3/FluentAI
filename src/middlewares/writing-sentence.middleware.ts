@@ -184,18 +184,22 @@ export const createWSListValidator = validate(
         trim: true,
         custom: {
           options: async (value, { req }) => {
-            const slug = await databaseService.wsLists.findOne({ slug: value })
-            if (slug) {
-              throw new ErrorWithStatus(
-                WRITING_SENTENCE_MESSAGES.SLUG_EXISTS,
-                HttpStatus.BAD_REQUEST
-              )
-            }
-            if (!SLUG_REGEX.test(value)) {
-              throw new ErrorWithStatus(
-                WRITING_SENTENCE_MESSAGES.SLUG_INVALID,
-                HttpStatus.BAD_REQUEST
-              )
+            if (value) {
+              const slug = await databaseService.wsLists.findOne({
+                slug: value
+              })
+              if (slug) {
+                throw new ErrorWithStatus(
+                  WRITING_SENTENCE_MESSAGES.SLUG_EXISTS,
+                  HttpStatus.BAD_REQUEST
+                )
+              }
+              if (!SLUG_REGEX.test(value)) {
+                throw new ErrorWithStatus(
+                  WRITING_SENTENCE_MESSAGES.SLUG_INVALID,
+                  HttpStatus.BAD_REQUEST
+                )
+              }
             }
             return true
           }

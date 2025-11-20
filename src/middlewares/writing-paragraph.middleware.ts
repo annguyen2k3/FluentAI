@@ -1,6 +1,11 @@
 import { checkSchema } from 'express-validator'
+import { ObjectId } from 'mongodb'
 import { HttpStatus } from '~/constants/httpStatus'
-import { PROPERTY_MESSAGES } from '~/constants/message'
+import {
+  PROPERTY_MESSAGES,
+  WRITING_SENTENCE_MESSAGES
+} from '~/constants/message'
+import { SLUG_REGEX } from '~/constants/regex'
 import { ErrorWithStatus } from '~/models/Errors'
 import { databaseService } from '~/services/database.service'
 import { validate } from '~/utils/validation'
@@ -14,7 +19,10 @@ export const getSystemListWPValidator = validate(
           options: async (value, { req }) => {
             const level = await databaseService.levels.findOne({ slug: value })
             if (!level) {
-              throw new ErrorWithStatus(PROPERTY_MESSAGES.LEVEL_NOT_FOUND, HttpStatus.NOT_FOUND)
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.LEVEL_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
             }
             req.level = level
             return true
@@ -27,7 +35,10 @@ export const getSystemListWPValidator = validate(
           options: async (value, { req }) => {
             const type = await databaseService.types.findOne({ slug: value })
             if (!type) {
-              throw new ErrorWithStatus(PROPERTY_MESSAGES.TYPE_NOT_FOUND, HttpStatus.NOT_FOUND)
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.TYPE_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
             }
             req.type = type
             return true
@@ -49,7 +60,10 @@ export const getListWPValidator = validate(
           options: async (value, { req }) => {
             const level = await databaseService.levels.findOne({ slug: value })
             if (!level) {
-              throw new ErrorWithStatus(PROPERTY_MESSAGES.LEVEL_NOT_FOUND, HttpStatus.NOT_FOUND)
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.LEVEL_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
             }
             req.level = level
             return true
@@ -63,7 +77,10 @@ export const getListWPValidator = validate(
           options: async (value, { req }) => {
             const type = await databaseService.types.findOne({ slug: value })
             if (!type) {
-              throw new ErrorWithStatus(PROPERTY_MESSAGES.TYPE_NOT_FOUND, HttpStatus.NOT_FOUND)
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.TYPE_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
             }
             req.type = type
             return true
@@ -78,7 +95,10 @@ export const getListWPValidator = validate(
             console.log('value', value)
             const topic = await databaseService.topics.findOne({ slug: value })
             if (!topic) {
-              throw new ErrorWithStatus(PROPERTY_MESSAGES.TOPIC_NOT_FOUND, HttpStatus.NOT_FOUND)
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.TOPIC_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
             }
             req.topic = topic
             return true
@@ -100,11 +120,18 @@ export const renderWPPraticeValidator = validate(
         trim: true,
         custom: {
           options: async (value, { req }) => {
-            const wp = await databaseService.wpParagraphs.findOne({ slug: value })
+            const wp = await databaseService.wpParagraphs.findOne({
+              slug: value
+            })
             if (!wp) {
-              const wpPreview = await databaseService.wpPreviews.findOne({ slug: value })
+              const wpPreview = await databaseService.wpPreviews.findOne({
+                slug: value
+              })
               if (!wpPreview) {
-                throw new ErrorWithStatus(PROPERTY_MESSAGES.SLUG_NOT_FOUND, HttpStatus.NOT_FOUND)
+                throw new ErrorWithStatus(
+                  PROPERTY_MESSAGES.SLUG_NOT_FOUND,
+                  HttpStatus.NOT_FOUND
+                )
               }
               req.wp = wpPreview
               return true
@@ -133,7 +160,10 @@ export const postCustomTopicPreviewWPValidator = validate(
         options: async (value, { req }) => {
           const level = await databaseService.levels.findOne({ slug: value })
           if (!level) {
-            throw new ErrorWithStatus(PROPERTY_MESSAGES.LEVEL_NOT_FOUND, HttpStatus.NOT_FOUND)
+            throw new ErrorWithStatus(
+              PROPERTY_MESSAGES.LEVEL_NOT_FOUND,
+              HttpStatus.NOT_FOUND
+            )
           }
           req.level = level
           return true
@@ -141,4 +171,279 @@ export const postCustomTopicPreviewWPValidator = validate(
       }
     }
   })
+)
+
+export const createWPListValidator = validate(
+  checkSchema(
+    {
+      title: {
+        isString: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.TITLE_INVALID
+        },
+        trim: true
+      },
+      topic: {
+        isString: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.TOPIC_INVALID
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const topic = await databaseService.topics.findOne({
+              _id: new ObjectId(value)
+            })
+            if (!topic) {
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.TOPIC_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
+            }
+            req.topic = topic
+            return true
+          }
+        }
+      },
+      level: {
+        isString: {
+          errorMessage: PROPERTY_MESSAGES.LEVEL_NOT_FOUND
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const level = await databaseService.levels.findOne({
+              _id: new ObjectId(value)
+            })
+            if (!level) {
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.LEVEL_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
+            }
+            req.level = level
+            return true
+          }
+        }
+      },
+      type: {
+        isString: {
+          errorMessage: PROPERTY_MESSAGES.TYPE_NOT_FOUND
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const type = await databaseService.types.findOne({
+              _id: new ObjectId(value)
+            })
+            if (!type) {
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.TYPE_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
+            }
+            req.type = type
+            return true
+          }
+        }
+      },
+      content: {
+        isString: {
+          errorMessage: 'Nội dung đoạn văn không hợp lệ'
+        },
+        trim: true
+      },
+      hint: {
+        optional: true,
+        isArray: {
+          errorMessage: 'Gợi ý từ vựng không hợp lệ'
+        }
+      },
+      pos: {
+        optional: true,
+        isInt: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.POS_INVALID
+        },
+        trim: true
+      },
+      slug: {
+        optional: true,
+        isString: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.SLUG_INVALID
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            if (value) {
+              const slug = await databaseService.wpParagraphs.findOne({
+                slug: value
+              })
+              if (slug) {
+                throw new ErrorWithStatus(
+                  WRITING_SENTENCE_MESSAGES.SLUG_EXISTS,
+                  HttpStatus.BAD_REQUEST
+                )
+              }
+              if (!SLUG_REGEX.test(value)) {
+                throw new ErrorWithStatus(
+                  WRITING_SENTENCE_MESSAGES.SLUG_INVALID,
+                  HttpStatus.BAD_REQUEST
+                )
+              }
+            }
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export const updateWPListValidator = validate(
+  checkSchema(
+    {
+      id: {
+        isString: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.ID_INVALID
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const wpParagraph = await databaseService.wpParagraphs.findOne({
+              _id: new ObjectId(value)
+            })
+            if (!wpParagraph) {
+              throw new ErrorWithStatus(
+                'Nội dung viết đoạn văn không tồn tại',
+                HttpStatus.NOT_FOUND
+              )
+            }
+            req.wpParagraph = wpParagraph
+            return true
+          }
+        }
+      },
+      title: {
+        isString: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.TITLE_INVALID
+        },
+        trim: true
+      },
+      topic: {
+        isString: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.TOPIC_INVALID
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const topic = await databaseService.topics.findOne({
+              _id: new ObjectId(value)
+            })
+            if (!topic) {
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.TOPIC_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
+            }
+            req.topic = topic
+            return true
+          }
+        }
+      },
+      level: {
+        isString: {
+          errorMessage: PROPERTY_MESSAGES.LEVEL_NOT_FOUND
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const level = await databaseService.levels.findOne({
+              _id: new ObjectId(value)
+            })
+            if (!level) {
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.LEVEL_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
+            }
+            req.level = level
+            return true
+          }
+        }
+      },
+      type: {
+        isString: {
+          errorMessage: PROPERTY_MESSAGES.TYPE_NOT_FOUND
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const type = await databaseService.types.findOne({
+              _id: new ObjectId(value)
+            })
+            if (!type) {
+              throw new ErrorWithStatus(
+                PROPERTY_MESSAGES.TYPE_NOT_FOUND,
+                HttpStatus.NOT_FOUND
+              )
+            }
+            req.type = type
+            return true
+          }
+        }
+      },
+      content: {
+        isString: {
+          errorMessage: 'Nội dung đoạn văn không hợp lệ'
+        },
+        trim: true
+      },
+      hint: {
+        optional: true,
+        isArray: {
+          errorMessage: 'Gợi ý từ vựng không hợp lệ'
+        }
+      },
+      pos: {
+        isInt: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.POS_INVALID
+        },
+        trim: true
+      },
+      slug: {
+        isString: {
+          errorMessage: WRITING_SENTENCE_MESSAGES.SLUG_INVALID
+        },
+        isLength: {
+          options: {
+            min: 1,
+            max: 50
+          },
+          errorMessage: WRITING_SENTENCE_MESSAGES.SLUG_LENGTH
+        },
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            const slug = await databaseService.wpParagraphs.findOne({
+              slug: value,
+              _id: { $ne: new ObjectId(req.body.id) }
+            })
+            if (slug) {
+              throw new ErrorWithStatus(
+                WRITING_SENTENCE_MESSAGES.SLUG_EXISTS,
+                HttpStatus.BAD_REQUEST
+              )
+            }
+            if (!SLUG_REGEX.test(value)) {
+              throw new ErrorWithStatus(
+                WRITING_SENTENCE_MESSAGES.SLUG_INVALID,
+                HttpStatus.BAD_REQUEST
+              )
+            }
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
 )

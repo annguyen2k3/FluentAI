@@ -21,18 +21,30 @@ const writingSentenceRoutes = Router()
 // GET /writing-sentence/setup
 // Description: Render setup writing sentence page
 // Method: GET
-writingSentenceRoutes.get('/setup', requireAuth, wrapRequestHandler(getSetupWritingSentenceController))
+writingSentenceRoutes.get(
+  '/setup',
+  requireAuth,
+  wrapRequestHandler(getSetupWritingSentenceController)
+)
 
 // GET /writing-sentence/system-topic
 // Description: Render system topic writing sentence page
 // Method: GET
-writingSentenceRoutes.get('/system-list', requireAuth, wrapRequestHandler(getSystemListWSController))
+writingSentenceRoutes.get(
+  '/system-list',
+  requireAuth,
+  wrapRequestHandler(getSystemListWSController)
+)
 
 // GET /writing-sentence/list
 // Description: Get list of writing sentences
 // Method: GET
-// Params: level, topic
-writingSentenceRoutes.get('/list', requireAuth, wrapRequestHandler(getWSListController))
+// Params: level, topic, page, limit, search, sortKey, sortOrder
+writingSentenceRoutes.get(
+  '/list',
+  requireAuth,
+  wrapRequestHandler(getWSListController)
+)
 
 // GET /writing-sentence/practice/:slug
 // Description: Render practice writing sentence page

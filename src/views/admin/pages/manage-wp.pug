@@ -1,0 +1,936 @@
+extends ../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Quản lý nội dung
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Luyện viết đoạn văn
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card")
+        div(class="card-header")
+          div(class="d-flex align-items-center justify-content-between")
+            h4(class="card-title") Danh sách nội dung viết đoạn văn
+            button(class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#writingParagraphModal" onclick="openAddModal()")
+              i(class="fas fa-plus")
+              |  Thêm nội dung mới
+        div(class="card-body")
+          div(class="writing-paragraph__filters row g-3 mb-3 align-items-end")
+            div(class="col-lg-2 col-md-4 col-sm-6")
+              label(for="filterTopic" class="form-label mb-1") Lọc theo chủ đề
+              select(id="filterTopic" class="form-select writing-paragraph__filter-control")
+                option(value="") Tất cả chủ đề
+            div(class="col-lg-2 col-md-4 col-sm-6")
+              label(for="filterLevel" class="form-label mb-1") Lọc theo cấp độ
+              select(id="filterLevel" class="form-select writing-paragraph__filter-control")
+                option(value="") Tất cả cấp độ
+            div(class="col-lg-2 col-md-4 col-sm-6")
+              label(for="filterType" class="form-label mb-1") Lọc theo loại
+              select(id="filterType" class="form-select writing-paragraph__filter-control")
+                option(value="") Tất cả loại
+            div(class="col-lg-2 col-md-4 col-sm-6")
+              label(for="filterLimit" class="form-label mb-1") Số mục mỗi trang
+              select(id="filterLimit" class="form-select writing-paragraph__filter-control")
+                option(value="6") 6 mục
+                option(value="12") 12 mục
+                option(value="24") 24 mục
+            div(class="col-lg-4 col-md-8 col-sm-12")
+              label(for="filterSearch" class="form-label mb-1") Tìm kiếm theo tiêu đề
+              input(type="text" id="filterSearch" class="form-control writing-paragraph__filter-control" placeholder="Nhập từ khóa tiêu đề")
+          div(class="writing-paragraph__filters row g-3 mb-4 writing-paragraph__filters--advanced")
+            div(class="col-lg-3 col-md-4 col-sm-6")
+              label(for="filterSortKey" class="form-label mb-1") Sắp xếp theo
+              select(id="filterSortKey" class="form-select writing-paragraph__filter-control")
+                option(value="pos") Vị trí
+                option(value="create_at") Ngày tạo
+                option(value="update_at") Ngày cập nhật
+            div(class="col-lg-3 col-md-4 col-sm-6")
+              label(for="filterSortOrder" class="form-label mb-1") Thứ tự
+              select(id="filterSortOrder" class="form-select writing-paragraph__filter-control")
+                option(value="asc") Tăng dần
+                option(value="desc") Giảm dần
+            div(class="col-lg-3 col-md-4 col-sm-6 d-flex align-items-end justify-content-center writing-paragraph__result-badge")
+              span(id="filterResultCount" class="badge bg-light text-dark px-3 py-2 w-100 text-center") 0 nội dung
+            div(class="col-lg-3 col-md-4 col-sm-12 d-flex align-items-end justify-content-end writing-paragraph__filter-actions")
+              button(type="button" class="btn btn-outline-secondary me-2" id="filterResetBtn")
+                i(class="fas fa-undo me-1")
+                |  Đặt lại
+              button(type="button" class="btn btn-primary" id="filterApplyBtn")
+                i(class="fas fa-filter me-1")
+                |  Áp dụng
+          div(id="writingParagraphsLoading" class="writing-paragraph__loading text-center py-5 d-none")
+            div(class="spinner-border text-primary" role="status")
+              span(class="visually-hidden") Đang tải
+            p(class="text-muted mt-3") Đang tải dữ liệu, vui lòng chờ...
+          div(id="writingParagraphsEmpty" class="writing-paragraph__empty text-center py-5 d-none")
+            i(class="far fa-folder-open fa-3x text-muted mb-3")
+            p(class="text-muted mb-0") Không tìm thấy nội dung nào
+          div(class="row" id="writingParagraphsList")
+          div(class="writing-paragraph__pagination d-flex justify-content-between align-items-center mt-4")
+            span(id="writingPaginationInfo" class="text-muted") Đang tải dữ liệu...
+            div(class="d-flex gap-2")
+              button(type="button" class="btn btn-outline-secondary writing-paragraph__pagination-btn" id="writingPaginationPrev")
+                i(class="fas fa-chevron-left me-1")
+                |  Trước
+              button(type="button" class="btn btn-outline-secondary writing-paragraph__pagination-btn" id="writingPaginationNext")
+                | Sau
+                i(class="fas fa-chevron-right ms-1")
+
+  div(class="modal fade" id="writingParagraphModal" tabindex="-1" role="dialog" aria-labelledby="writingParagraphModalLabel" aria-hidden="true")
+    div(class="modal-dialog modal-xl" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="writingParagraphModalLabel") Thêm nội dung viết đoạn văn mới
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          form(id="writingParagraphForm")
+            input(type="hidden" id="writingParagraphId" name="id")
+            div(class="row")
+              div(class="col-md-4")
+                div(class="form-group")
+                  label(for="writingParagraphTitle" class="form-label") Tiêu đề 
+                    span(class="text-danger") *
+                  input(type="text" class="form-control" id="writingParagraphTitle" name="title" required placeholder="Ví dụ: Giới thiệu bản thân")
+              div(class="col-md-2")
+                div(class="form-group")
+                  label(for="writingParagraphTopic" class="form-label") Chủ đề 
+                    span(class="text-danger") *
+                  select(class="form-control" id="writingParagraphTopic" name="topic" required)
+                    option(value="") Chọn chủ đề
+              div(class="col-md-2")
+                div(class="form-group")
+                  label(for="writingParagraphLevel" class="form-label") Cấp độ 
+                    span(class="text-danger") *
+                  select(class="form-control" id="writingParagraphLevel" name="level" required)
+                    option(value="") Chọn cấp độ
+              div(class="col-md-2")
+                div(class="form-group")
+                  label(for="writingParagraphType" class="form-label") Loại 
+                    span(class="text-danger") *
+                  select(class="form-control" id="writingParagraphType" name="type" required)
+                    option(value="") Chọn loại
+              div(class="col-md-2")
+                div(class="form-group")
+                  label(for="writingParagraphPos" class="form-label") Vị trí 
+                  input(type="number" class="form-control" id="writingParagraphPos" name="pos" value="1" min="1")
+            div(class="row")
+              div(class="col-md-6")
+                div(class="form-group")
+                  label(for="writingParagraphSlug" class="form-label") Slug
+                  input(type="text" class="form-control" id="writingParagraphSlug" name="slug" placeholder="Ví dụ: gioi-thieu-ban-than")
+                  small(class="form-text text-muted") Slug sẽ được tự động tạo từ tiêu đề nếu để trống
+            div(class="form-group")
+              label(for="writingParagraphContent" class="form-label") Nội dung đoạn văn 
+                span(class="text-danger") *
+              textarea(class="form-control" id="writingParagraphContent" name="content" rows="6" required placeholder="Nhập nội dung đoạn văn")
+            div(class="form-group")
+              label(class="form-label") Gợi ý từ vựng
+              div(id="hintsList" class="writing-paragraph__hints")
+              button(type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addHint()")
+                i(class="fas fa-plus")
+                |  Thêm gợi ý
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-primary" onclick="saveWritingParagraph()") Lưu
+
+  div(class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true")
+    div(class="modal-dialog" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="confirmModalLabel") Xác nhận
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          p(id="confirmMessage") Bạn có chắc chắn muốn thực hiện hành động này?
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-danger" id="confirmAction") Xác nhận
+
+block scripts
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    const prefixAdmin = '#{prefixAdmin}'
+    const topicsData = !{JSON.stringify(topics || [])}
+    const levelsData = !{JSON.stringify(levels || [])}
+    const typesData = !{JSON.stringify(types || [])}
+    const partOfSpeechOptions = !{JSON.stringify(partOfSpeechOptions || [])}
+
+    const topicTitles = {}
+    topicsData.forEach(topic => {
+      topicTitles[topic._id] = topic.title
+    })
+
+    const levelTitles = {}
+    levelsData.forEach(level => {
+      levelTitles[level._id] = level.title
+    })
+
+    const typeTitles = {}
+    typesData.forEach(type => {
+      typeTitles[type._id] = type.title
+    })
+
+    let writingParagraphsData = []
+    let pagination = { page: 1, limit: 6, total: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false }
+    let hintCounter = 0
+
+    const state = {
+      page: 1,
+      limit: 6,
+      topic: '',
+      level: '',
+      type: '',
+      search: '',
+      sortKey: 'pos',
+      sortOrder: 'asc'
+    }
+
+    const elements = {
+      list: null,
+      loading: null,
+      empty: null,
+      paginationInfo: null,
+      paginationPrev: null,
+      paginationNext: null,
+      filterTopic: null,
+      filterLevel: null,
+      filterType: null,
+      filterLimit: null,
+      filterSearch: null,
+      filterSortKey: null,
+      filterSortOrder: null
+    }
+
+    function cacheElements() {
+      elements.list = document.getElementById('writingParagraphsList')
+      elements.loading = document.getElementById('writingParagraphsLoading')
+      elements.empty = document.getElementById('writingParagraphsEmpty')
+      elements.paginationInfo = document.getElementById('writingPaginationInfo')
+      elements.paginationPrev = document.getElementById('writingPaginationPrev')
+      elements.paginationNext = document.getElementById('writingPaginationNext')
+      elements.filterTopic = document.getElementById('filterTopic')
+      elements.filterLevel = document.getElementById('filterLevel')
+      elements.filterType = document.getElementById('filterType')
+      elements.filterLimit = document.getElementById('filterLimit')
+      elements.filterSearch = document.getElementById('filterSearch')
+      elements.filterSortKey = document.getElementById('filterSortKey')
+      elements.filterSortOrder = document.getElementById('filterSortOrder')
+    }
+
+    async function fetchWritingParagraphs() {
+      toggleLoading(true)
+      const params = new URLSearchParams()
+      params.set('page', state.page.toString())
+      params.set('limit', state.limit.toString())
+      if (state.topic) params.set('topic', state.topic)
+      if (state.level) params.set('level', state.level)
+      if (state.type) params.set('type', state.type)
+      if (state.search) params.set('search', state.search)
+      if (state.sortKey) params.set('sortKey', state.sortKey)
+      if (state.sortOrder) params.set('sortOrder', state.sortOrder)
+
+      try {
+        const response = await fetch(`${AdminApiBreakpoint.GET_WP_LIST}?${params.toString()}`, {
+          credentials: 'same-origin'
+        })
+        const payload = await response.json()
+        if (!response.ok) {
+          throw payload
+        }
+        writingParagraphsData = payload.data || []
+        const totalItems = payload.pagination?.total || writingParagraphsData.length || 0
+        const resultCountEl = document.getElementById('filterResultCount')
+        if (resultCountEl) {
+          resultCountEl.textContent = `${totalItems} nội dung`
+        }
+        pagination = {
+          page: payload.pagination?.page || state.page,
+          limit: payload.pagination?.limit || state.limit,
+          total: payload.pagination?.total || 0,
+          totalPages: payload.pagination?.totalPages || 0,
+          hasNextPage: payload.pagination?.hasNextPage || false,
+          hasPrevPage: payload.pagination?.hasPrevPage || false
+        }
+        renderWritingParagraphs()
+        updatePaginationUI()
+      } catch (error) {
+        const message = error?.message || 'Không thể tải danh sách nội dung'
+        showNotification('error', message)
+        writingParagraphsData = []
+        renderWritingParagraphs()
+        updatePaginationUI()
+      } finally {
+        toggleLoading(false)
+      }
+    }
+
+    function renderWritingParagraphs() {
+      const container = elements.list || document.getElementById('writingParagraphsList')
+      if (!container) return
+      if (!elements.list) elements.list = container
+      container.innerHTML = ''
+
+      if (!writingParagraphsData.length) {
+        container.classList.add('d-none')
+        toggleEmpty(true)
+        return
+      }
+
+      container.classList.remove('d-none')
+      toggleEmpty(false)
+
+      writingParagraphsData.forEach(item => {
+        const topicId = typeof item.topic === 'string' ? item.topic : item.topic?._id
+        const levelId = typeof item.level === 'string' ? item.level : item.level?._id
+        const typeId = typeof item.type === 'string' ? item.type : item.type?._id
+        const topicTitle = item.topic?.title || topicTitles[topicId] || 'N/A'
+        const levelTitle = item.level?.title || levelTitles[levelId] || 'N/A'
+        const typeTitle = item.type?.title || typeTitles[typeId] || 'N/A'
+
+        const createDate = item.create_at ? new Date(item.create_at).toLocaleString('vi-VN') : 'N/A'
+        const updateDate = item.update_at ? new Date(item.update_at).toLocaleString('vi-VN') : 'N/A'
+        const contentPreview = item.content ? (item.content.length > 200 ? item.content.substring(0, 200) + '...' : item.content) : ''
+
+        const card = `
+          <div class="col-md-6 mb-4">
+            <div class="card writing-paragraph__card position-relative">
+              <div class="card-body">
+                <div class="writing-paragraph__timestamps text-muted small mb-2">
+                  ⌚ <span title="Ngày tạo">${createDate}</span> · ⟳ <span title="Ngày cập nhật">${updateDate}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-start mb-3 gap-2 position-relative">
+                  <div class="flex-grow-1 pe-4" style="min-width: 0;">
+                    <h5 class="card-title mb-1 writing-paragraph__title" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.4; min-height: 2.8em; max-height: 2.8em;" title="${item.title}">${item.title}</h5>
+                    <div class="writing-paragraph__meta">
+                      <span class="badge badge-primary me-2">${topicTitle}</span>
+                      <span class="badge badge-info me-2">${levelTitle}</span>
+                      <span class="badge badge-warning me-2">${typeTitle}</span>
+                    </div>
+                  </div>
+                  <div class="writing-paragraph__actions flex-shrink-0" style="white-space: nowrap;">
+                    <button class="btn btn-sm btn-info" onclick="editWritingParagraph('${item._id}')" title="Chỉnh sửa">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="copyWritingParagraph('${item._id}')" title="Sao chép">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteWritingParagraph('${item._id}')" title="Xóa">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                <p class="text-muted mb-1"><strong>Slug:</strong> ${item.slug}</p>
+                <p class="text-muted mb-2"><strong>Vị trí:</strong> ${item.pos || '-'}</p>
+                <div class="writing-paragraph__preview">
+                  <strong>Nội dung:</strong>
+                  <p class="text-muted mt-1 mb-0">${contentPreview}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+        container.innerHTML += card
+      })
+    }
+
+    function updatePaginationUI() {
+      if (elements.paginationInfo) {
+        if (pagination.total > 0) {
+          const totalPages = Math.max(pagination.totalPages, 1)
+          elements.paginationInfo.textContent = `Trang ${pagination.page}/${totalPages} • ${pagination.total} nội dung`
+        } else {
+          elements.paginationInfo.textContent = 'Không có dữ liệu'
+        }
+      }
+      if (elements.paginationPrev) {
+        elements.paginationPrev.disabled = !pagination.hasPrevPage
+      }
+      if (elements.paginationNext) {
+        elements.paginationNext.disabled = !pagination.hasNextPage
+      }
+    }
+
+    function toggleLoading(show) {
+      const loadingEl = elements.loading || document.getElementById('writingParagraphsLoading')
+      const listEl = elements.list || document.getElementById('writingParagraphsList')
+      if (!loadingEl || !listEl) return
+      if (!elements.loading) elements.loading = loadingEl
+      if (!elements.list) elements.list = listEl
+
+      if (show) {
+        loadingEl.classList.remove('d-none')
+        listEl.classList.add('d-none')
+        toggleEmpty(false)
+      } else {
+        loadingEl.classList.add('d-none')
+      }
+    }
+
+    function toggleEmpty(show) {
+      const emptyEl = elements.empty || document.getElementById('writingParagraphsEmpty')
+      if (!emptyEl) return
+      if (!elements.empty) elements.empty = emptyEl
+      if (show) {
+        emptyEl.classList.remove('d-none')
+      } else {
+        emptyEl.classList.add('d-none')
+      }
+    }
+
+    function populateSelectOptions() {
+      const topicSelect = document.getElementById('writingParagraphTopic')
+      const levelSelect = document.getElementById('writingParagraphLevel')
+      const typeSelect = document.getElementById('writingParagraphType')
+
+      if (topicSelect) {
+        topicSelect.innerHTML = '<option value="">Chọn chủ đề</option>'
+      }
+      if (levelSelect) {
+        levelSelect.innerHTML = '<option value="">Chọn cấp độ</option>'
+      }
+      if (typeSelect) {
+        typeSelect.innerHTML = '<option value="">Chọn loại</option>'
+      }
+      if (elements.filterTopic) {
+        elements.filterTopic.innerHTML = '<option value="">Tất cả chủ đề</option>'
+      }
+      if (elements.filterLevel) {
+        elements.filterLevel.innerHTML = '<option value="">Tất cả cấp độ</option>'
+      }
+      if (elements.filterType) {
+        elements.filterType.innerHTML = '<option value="">Tất cả loại</option>'
+      }
+
+      topicsData.forEach(topic => {
+        if (topicSelect) {
+          const option = document.createElement('option')
+          option.value = topic._id
+          option.textContent = topic.title
+          topicSelect.appendChild(option)
+        }
+        if (elements.filterTopic) {
+          const filterOption = document.createElement('option')
+          filterOption.value = topic._id
+          filterOption.textContent = topic.title
+          elements.filterTopic.appendChild(filterOption)
+        }
+      })
+
+      levelsData.forEach(level => {
+        if (levelSelect) {
+          const option = document.createElement('option')
+          option.value = level._id
+          option.textContent = level.title
+          levelSelect.appendChild(option)
+        }
+        if (elements.filterLevel) {
+          const filterOption = document.createElement('option')
+          filterOption.value = level._id
+          filterOption.textContent = level.title
+          elements.filterLevel.appendChild(filterOption)
+        }
+      })
+
+      typesData.forEach(type => {
+        if (typeSelect) {
+          const option = document.createElement('option')
+          option.value = type._id
+          option.textContent = type.title
+          typeSelect.appendChild(option)
+        }
+        if (elements.filterType) {
+          const filterOption = document.createElement('option')
+          filterOption.value = type._id
+          filterOption.textContent = type.title
+          elements.filterType.appendChild(filterOption)
+        }
+      })
+    }
+
+    function handleFilterEvents() {
+      const applyBtn = document.getElementById('filterApplyBtn')
+      const resetBtn = document.getElementById('filterResetBtn')
+
+      if (applyBtn) {
+        applyBtn.addEventListener('click', () => {
+          state.topic = elements.filterTopic?.value || ''
+          state.level = elements.filterLevel?.value || ''
+          state.type = elements.filterType?.value || ''
+          state.search = elements.filterSearch?.value.trim() || ''
+          state.sortKey = elements.filterSortKey?.value || 'pos'
+          state.sortOrder = elements.filterSortOrder?.value || 'asc'
+          state.page = 1
+          fetchWritingParagraphs()
+        })
+      }
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          state.topic = ''
+          state.level = ''
+          state.type = ''
+          state.limit = 6
+          state.search = ''
+          state.sortKey = 'pos'
+          state.sortOrder = 'asc'
+          state.page = 1
+          if (elements.filterTopic) elements.filterTopic.value = ''
+          if (elements.filterLevel) elements.filterLevel.value = ''
+          if (elements.filterType) elements.filterType.value = ''
+          if (elements.filterLimit) elements.filterLimit.value = '6'
+          if (elements.filterSearch) elements.filterSearch.value = ''
+          if (elements.filterSortKey) elements.filterSortKey.value = 'pos'
+          if (elements.filterSortOrder) elements.filterSortOrder.value = 'asc'
+          fetchWritingParagraphs()
+        })
+      }
+
+      if (elements.filterLimit) {
+        elements.filterLimit.value = state.limit.toString()
+        elements.filterLimit.addEventListener('change', event => {
+          const value = Number(event.target.value) || 6
+          state.limit = value
+          state.page = 1
+          fetchWritingParagraphs()
+        })
+      }
+
+      if (elements.filterSortKey) {
+        elements.filterSortKey.value = state.sortKey
+      }
+
+      if (elements.filterSortOrder) {
+        elements.filterSortOrder.value = state.sortOrder
+      }
+
+      if (elements.paginationPrev) {
+        elements.paginationPrev.addEventListener('click', () => {
+          if (!pagination.hasPrevPage) return
+          state.page = Math.max(1, state.page - 1)
+          fetchWritingParagraphs()
+        })
+      }
+
+      if (elements.paginationNext) {
+        elements.paginationNext.addEventListener('click', () => {
+          if (!pagination.hasNextPage) return
+          state.page += 1
+          fetchWritingParagraphs()
+        })
+      }
+    }
+
+    function createPartOfSpeechOptions(selectedValue = '') {
+      if (!Array.isArray(partOfSpeechOptions)) return ''
+      return partOfSpeechOptions
+        .map(value => {
+          const selected = value === selectedValue ? 'selected' : ''
+          return `<option value="${value}" ${selected}>${value}</option>`
+        })
+        .join('')
+    }
+
+    function addHint() {
+      hintCounter++
+      const hintsContainer = document.getElementById('hintsList')
+      const hintHtml = `
+        <div class="writing-paragraph__hint-item mb-2 p-2 border rounded" data-hint-id="${hintCounter}">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>Gợi ý ${hintCounter}</strong>
+            <button type="button" class="btn btn-sm btn-danger btn-sm" onclick="removeHint(${hintCounter})">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="row">
+            <div class="col-md-3">
+              <label class="form-label">Từ vựng (EN) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-sm writing-paragraph__vocab-en" required placeholder="hello">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Dịch (VI) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-sm writing-paragraph__translate" required placeholder="xin chào">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Loại từ <span class="text-danger">*</span></label>
+              <select class="form-select form-select-sm writing-paragraph__type" required>
+                ${createPartOfSpeechOptions()}
+              </select>
+            </div>
+          </div>
+          <div class="row mt-2">
+            <div class="col-md-6">
+              <label class="form-label">Ví dụ (EN) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-sm writing-paragraph__example-en" required placeholder="Hello, nice to meet you.">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Ví dụ (VI) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-sm writing-paragraph__example-vi" required placeholder="Xin chào, rất vui được gặp bạn.">
+            </div>
+          </div>
+        </div>
+      `
+      hintsContainer.insertAdjacentHTML('beforeend', hintHtml)
+    }
+
+    function removeHint(hintId) {
+      const hintEl = document.querySelector(`[data-hint-id="${hintId}"]`)
+      if (hintEl) {
+        hintEl.remove()
+      }
+    }
+
+    function openAddModal() {
+      document.getElementById('writingParagraphForm').reset()
+      document.getElementById('writingParagraphId').value = ''
+      document.getElementById('writingParagraphModalLabel').textContent = 'Thêm nội dung viết đoạn văn mới'
+      document.getElementById('hintsList').innerHTML = ''
+      hintCounter = 0
+    }
+
+    function populateFormWithItem(item, { isCopy = false } = {}) {
+      if (!item) return
+      const topicId = typeof item.topic === 'string' ? item.topic : item.topic?._id
+      const levelId = typeof item.level === 'string' ? item.level : item.level?._id
+      const typeId = typeof item.type === 'string' ? item.type : item.type?._id
+
+      document.getElementById('writingParagraphId').value = isCopy ? '' : item._id
+      document.getElementById('writingParagraphTitle').value = isCopy
+        ? `${item.title} (Copy)`
+        : item.title
+      document.getElementById('writingParagraphTopic').value = topicId || ''
+      document.getElementById('writingParagraphLevel').value = levelId || ''
+      document.getElementById('writingParagraphType').value = typeId || ''
+      document.getElementById('writingParagraphSlug').value = isCopy ? '' : item.slug || ''
+      document.getElementById('writingParagraphPos').value = item.pos || 1
+      document.getElementById('writingParagraphContent').value = item.content || ''
+      document.getElementById('writingParagraphModalLabel').textContent = isCopy
+        ? 'Sao chép nội dung viết đoạn văn'
+        : 'Chỉnh sửa nội dung viết đoạn văn'
+
+      document.getElementById('hintsList').innerHTML = ''
+      hintCounter = 0
+
+      if (item.hint && item.hint.length > 0) {
+        item.hint.forEach(hint => {
+          hintCounter++
+          const hintsContainer = document.getElementById('hintsList')
+          const hintHtml = `
+            <div class="writing-paragraph__hint-item mb-2 p-2 border rounded" data-hint-id="${hintCounter}">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>Gợi ý ${hintCounter}</strong>
+                <button type="button" class="btn btn-sm btn-danger btn-sm" onclick="removeHint(${hintCounter})">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div class="row">
+                <div class="col-md-3">
+                  <label class="form-label">Từ vựng (EN) <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm writing-paragraph__vocab-en" required value="${hint.vocabulary_en || ''}" placeholder="hello">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Dịch (VI) <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm writing-paragraph__translate" required value="${hint.translate || ''}" placeholder="xin chào">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Loại từ <span class="text-danger">*</span></label>
+                  <select class="form-select form-select-sm writing-paragraph__type" required>
+                    ${createPartOfSpeechOptions(hint.type || '')}
+                  </select>
+                </div>
+              </div>
+              <div class="row mt-2">
+                <div class="col-md-6">
+                  <label class="form-label">Ví dụ (EN) <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm writing-paragraph__example-en" required value="${hint.sentence_example?.en || ''}" placeholder="Hello, nice to meet you.">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Ví dụ (VI) <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm writing-paragraph__example-vi" required value="${hint.sentence_example?.vi || ''}" placeholder="Xin chào, rất vui được gặp bạn.">
+                </div>
+              </div>
+            </div>
+          `
+          hintsContainer.insertAdjacentHTML('beforeend', hintHtml)
+        })
+      }
+
+      new bootstrap.Modal(document.getElementById('writingParagraphModal')).show()
+    }
+
+    function editWritingParagraph(id) {
+      const item = writingParagraphsData.find(w => w._id === id)
+      if (!item) return
+      populateFormWithItem(item)
+    }
+
+    function copyWritingParagraph(id) {
+      const item = writingParagraphsData.find(w => w._id === id)
+      if (!item) return
+      populateFormWithItem(item, { isCopy: true })
+    }
+
+    function deleteWritingParagraph(id) {
+      showConfirmModal(
+        'Xóa nội dung viết đoạn văn',
+        'Bạn có chắc chắn muốn xóa nội dung này? Hành động này không thể hoàn tác!',
+        () => {
+          fetch(AdminApiBreakpoint.DELETE_WP_LIST, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ id })
+          })
+            .then(async response => {
+              if (!response.ok) {
+                const error = await response.json()
+                error.status = response.status
+                return Promise.reject(error)
+              }
+              return response.json()
+            })
+            .then(data => {
+              showNotification('success', data.message || 'Đã xóa nội dung thành công!')
+              fetchWritingParagraphs()
+            })
+            .catch(error => {
+              let errorMessage = 'Có lỗi xảy ra khi xóa nội dung'
+              if (error.status === 422 && error.errors) {
+                errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                  .map(err => `- ${err.msg || err}`)
+                  .join('\n')
+              } else if (error.errors) {
+                const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+                errorMessage = errorMessages || error.message || errorMessage
+              } else if (error.message) {
+                errorMessage = error.message
+              }
+              showNotification('error', errorMessage)
+            })
+        }
+      )
+    }
+
+    function saveWritingParagraph() {
+      const form = document.getElementById('writingParagraphForm')
+      if (!form.checkValidity()) {
+        form.reportValidity()
+        return
+      }
+
+      const id = document.getElementById('writingParagraphId').value
+      const title = document.getElementById('writingParagraphTitle').value
+      const topic = document.getElementById('writingParagraphTopic').value
+      const level = document.getElementById('writingParagraphLevel').value
+      const type = document.getElementById('writingParagraphType').value
+      let slug = document.getElementById('writingParagraphSlug').value.trim()
+      const pos = parseInt(document.getElementById('writingParagraphPos').value) || 1
+      const content = document.getElementById('writingParagraphContent').value.trim()
+
+      if (!content) {
+        showNotification('error', 'Vui lòng nhập nội dung đoạn văn!')
+        return
+      }
+
+      const hints = []
+      const hintItems = document.querySelectorAll('.writing-paragraph__hint-item')
+
+      hintItems.forEach(hintEl => {
+        const vocabEn = hintEl.querySelector('.writing-paragraph__vocab-en').value.trim()
+        const translate = hintEl.querySelector('.writing-paragraph__translate').value.trim()
+        const type = hintEl.querySelector('.writing-paragraph__type').value.trim()
+        const exampleEn = hintEl.querySelector('.writing-paragraph__example-en').value.trim()
+        const exampleVi = hintEl.querySelector('.writing-paragraph__example-vi').value.trim()
+
+        if (vocabEn && translate && type && exampleEn && exampleVi) {
+          hints.push({
+            vocabulary_en: vocabEn,
+            translate: translate,
+            type: type,
+            sentence_example: {
+              en: exampleEn,
+              vi: exampleVi
+            }
+          })
+        }
+      })
+
+      const wpData = {
+        title,
+        topic,
+        level,
+        type,
+        content,
+        hint: hints,
+        slug,
+        pos
+      }
+
+      if (id) {
+        wpData.id = id
+        fetch(AdminApiBreakpoint.UPDATE_WP_LIST, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(wpData)
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const error = await response.json()
+              error.status = response.status
+              return Promise.reject(error)
+            }
+            return response.json()
+          })
+          .then(data => {
+            showNotification('success', data.message || 'Đã cập nhật nội dung thành công!')
+            bootstrap.Modal.getInstance(document.getElementById('writingParagraphModal')).hide()
+            fetchWritingParagraphs()
+          })
+          .catch(error => {
+            let errorMessage = 'Có lỗi xảy ra khi cập nhật nội dung'
+            if (error.status === 422 && error.errors) {
+              errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                .map(err => `- ${err.msg || err}`)
+                .join('\n')
+            } else if (error.errors) {
+              const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+              errorMessage = errorMessages || error.message || errorMessage
+            } else if (error.message) {
+              errorMessage = error.message
+            }
+            showNotification('error', errorMessage)
+          })
+      } else {
+        fetch(AdminApiBreakpoint.CREATE_WP_LIST, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(wpData)
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const error = await response.json()
+              error.status = response.status
+              return Promise.reject(error)
+            }
+            return response.json()
+          })
+          .then(data => {
+            showNotification('success', data.message || 'Đã thêm nội dung mới thành công!')
+            bootstrap.Modal.getInstance(document.getElementById('writingParagraphModal')).hide()
+            fetchWritingParagraphs()
+          })
+          .catch(error => {
+            let errorMessage = 'Có lỗi xảy ra khi thêm nội dung'
+            if (error.status === 422 && error.errors) {
+              errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                .map(err => `- ${err.msg || err}`)
+                .join('\n')
+            } else if (error.errors) {
+              const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+              errorMessage = errorMessages || error.message || errorMessage
+            } else if (error.message) {
+              errorMessage = error.message
+            }
+            showNotification('error', errorMessage)
+          })
+      }
+    }
+
+    function showConfirmModal(title, message, callback) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: title,
+          text: message,
+          icon: 'warning',
+          buttons: {
+            cancel: 'Hủy',
+            confirm: 'Xác nhận'
+          },
+          dangerMode: true
+        }).then((willDelete) => {
+          if (willDelete) {
+            callback()
+          }
+        })
+      } else {
+        document.getElementById('confirmModalLabel').textContent = title
+        document.getElementById('confirmMessage').textContent = message
+
+        const confirmBtn = document.getElementById('confirmAction')
+        confirmBtn.onclick = () => {
+          bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide()
+          callback()
+        }
+
+        new bootstrap.Modal(document.getElementById('confirmModal')).show()
+      }
+    }
+
+    function showNotification(type, message) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      cacheElements()
+      populateSelectOptions()
+      handleFilterEvents()
+      fetchWritingParagraphs()
+
+      const currentPath = window.location.pathname
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active')
+      })
+
+      if (currentPath.includes('/wp')) {
+        const wpLink = document.querySelector(`a[href="${prefixAdmin}/wp"]`)
+        if (wpLink && wpLink.parentElement) {
+          wpLink.parentElement.classList.add('active')
+          const parentCollapse = wpLink.closest('.collapse')
+          if (parentCollapse) {
+            parentCollapse.classList.add('show')
+            const parentLink = parentCollapse.previousElementSibling
+            if (parentLink) {
+              parentLink.classList.remove('collapsed')
+              parentLink.setAttribute('aria-expanded', 'true')
+            }
+          }
+        }
+      }
+    })
+
+    window.openAddModal = openAddModal
+    window.saveWritingParagraph = saveWritingParagraph
+    window.editWritingParagraph = editWritingParagraph
+    window.copyWritingParagraph = copyWritingParagraph
+    window.deleteWritingParagraph = deleteWritingParagraph
+    window.addHint = addHint
+    window.removeHint = removeHint
+

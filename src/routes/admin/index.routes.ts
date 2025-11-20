@@ -6,6 +6,7 @@ import { databaseService } from '~/services/database.service'
 import manageUserRoutes from './manage-user.routes'
 import manageCategoryRoutes from './manage-category.routes'
 import manageWsRoutes from './manage-ws.routes'
+import manageWpRoutes from './manage-wp.routes'
 
 export default function (app: Express) {
   const prefixAdmin = process.env.PREFIX_ADMIN
@@ -19,7 +20,11 @@ export default function (app: Express) {
     async function (req: Request, res: Response) {
       const admin = req.admin as Admin
       const countUsers = await databaseService.users.countDocuments()
-      res.render('admin/pages/dashboard.pug', { pageTitle: 'Admin - Dashboard', admin, countUsers })
+      res.render('admin/pages/dashboard.pug', {
+        pageTitle: 'Admin - Dashboard',
+        admin,
+        countUsers
+      })
     }
   )
 
@@ -28,4 +33,6 @@ export default function (app: Express) {
   app.use(prefixAdmin + '/categories', manageCategoryRoutes)
 
   app.use(prefixAdmin + '/ws', manageWsRoutes)
+
+  app.use(prefixAdmin + '/wp', manageWpRoutes)
 }
