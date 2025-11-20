@@ -119,9 +119,47 @@ export const renderWPPraticeValidator = validate(
         trim: true,
         custom: {
           options: async (value, { req }) => {
-            const wp = await databaseService.wpParagraphs.findOne({
-              slug: value
-            })
+            const wp = await databaseService.wpParagraphs
+              .aggregate([
+                {
+                  $match: { slug: value }
+                },
+                {
+                  $lookup: {
+                    from: 'levels',
+                    localField: 'level',
+                    foreignField: '_id',
+                    as: 'level'
+                  }
+                },
+                {
+                  $unwind: '$level'
+                },
+                {
+                  $lookup: {
+                    from: 'topics',
+                    localField: 'topic',
+                    foreignField: '_id',
+                    as: 'topic'
+                  }
+                },
+                {
+                  $unwind: '$topic'
+                },
+                {
+                  $lookup: {
+                    from: 'types',
+                    localField: 'type',
+                    foreignField: '_id',
+                    as: 'type'
+                  }
+                },
+                {
+                  $unwind: '$type'
+                }
+              ])
+              .next()
+
             if (!wp) {
               const wpPreview = await databaseService.wpPreviews.findOne({
                 slug: value

@@ -578,8 +578,9 @@ if (wpPractice) {
   const buttonNext = document.querySelector('[button-next]')
   const buttonQuit = document.querySelector('[button-quit]')
   if (buttonQuit) {
-    buttonQuit.addEventListener('click', function () {
-      window.location.href = `/writing-paragraph/setup`
+    buttonQuit.addEventListener('click', function (e) {
+      e.preventDefault()
+      window.location.href = `/writing-paragraph/system-list?level=${wpData.level.slug}&type=${wpData.type.slug}`
     })
   }
   if (buttonSubmit) {

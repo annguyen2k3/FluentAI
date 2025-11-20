@@ -21,7 +21,37 @@ export const renderWSPraticeValidator = validate(
         trim: true,
         custom: {
           options: async (value, { req }) => {
-            const ws = await databaseService.wsLists.findOne({ slug: value })
+            const ws = await databaseService.wsLists
+              .aggregate([
+                {
+                  $match: {
+                    slug: value
+                  }
+                },
+                {
+                  $lookup: {
+                    from: 'topics',
+                    localField: 'topic',
+                    foreignField: '_id',
+                    as: 'topic'
+                  }
+                },
+                {
+                  $unwind: '$topic'
+                },
+                {
+                  $lookup: {
+                    from: 'levels',
+                    localField: 'level',
+                    foreignField: '_id',
+                    as: 'level'
+                  }
+                },
+                {
+                  $unwind: '$level'
+                }
+              ])
+              .next()
             if (!ws) {
               const wsPreview = await databaseService.wsListPreviews.findOne({
                 slug: value

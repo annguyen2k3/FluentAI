@@ -507,8 +507,9 @@ if (wsPractice) {
 
   const buttonQuit = document.querySelector('[button-quit]')
   if (buttonQuit) {
-    buttonQuit.addEventListener('click', function () {
-      window.location.href = `/writing-sentence/system-list`
+    buttonQuit.addEventListener('click', function (e) {
+      e.preventDefault()
+      window.location.href = `/writing-sentence/system-list?level=${wsData.level.slug}`
     })
   }
 
