@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
 import { HttpStatus } from '~/constants/httpStatus'
+import { WRITING_PARAGRAPH_MESSAGES } from '~/constants/message'
 import Levels from '~/models/schemas/levels.schema'
 import Topics from '~/models/schemas/topics.schema'
 import Types from '~/models/schemas/types.schema'
@@ -13,7 +14,10 @@ import writingService from '~/services/writing.service'
 // GET /writing-paragraph/setup
 export const getSetupWPController = async (req: Request, res: Response) => {
   const user = req.user as User
-  const levels = await databaseService.levels.find({}).sort({ pos: 1 }).toArray()
+  const levels = await databaseService.levels
+    .find({})
+    .sort({ pos: 1 })
+    .toArray()
   const types = await databaseService.types.find({}).sort({ pos: 1 }).toArray()
   res.render('client/pages/writing-paragraph/setup.pug', {
     pageTitle: 'Chọn mức độ và chủ đề',
@@ -116,7 +120,10 @@ export const getWPListController = async (req: Request, res: Response) => {
 }
 
 // GET /writing-paragraph/practice/:slug
-export const renderPracticeWPController = async (req: Request, res: Response) => {
+export const renderPracticeWPController = async (
+  req: Request,
+  res: Response
+) => {
   const user = req.user as User
   const wp = req.wp as WPParagraph
 
@@ -165,7 +172,10 @@ export const getCompleteWPController = async (req: Request, res: Response) => {
   const user = req.user as User
   const wp = req.wp as WPParagraph
   try {
-    const completeResult = await writingService.wpComplete(user._id!.toString(), wp._id!.toString())
+    const completeResult = await writingService.wpComplete(
+      user._id!.toString(),
+      wp._id!.toString()
+    )
     console.log('Complete result:', completeResult)
     console.log('--------------------------------')
     return res.render('client/pages/writing-paragraph/complete.pug', {
@@ -184,11 +194,17 @@ export const getCompleteWPController = async (req: Request, res: Response) => {
 }
 
 // POST /writing-paragraph/custom-topic/preview
-export const postCustomTopicPreviewWPController = async (req: Request, res: Response) => {
+export const postCustomTopicPreviewWPController = async (
+  req: Request,
+  res: Response
+) => {
   const user = req.user as User
   const { topic } = req.body
   const level = req.level as Levels
-  const previewResult = await writingService.wpPreviewCustomTopic(topic, level.description)
+  const previewResult = await writingService.wpPreviewCustomTopic(
+    topic,
+    level.description
+  )
 
   const wpParagraph = new WPParagraph({
     title: previewResult.title,
@@ -198,7 +214,9 @@ export const postCustomTopicPreviewWPController = async (req: Request, res: Resp
     topic: new ObjectId(),
     type: new ObjectId(),
     slug:
-      (('paractice-custom-topic-' + user._id?.toString()) as string) + '-' + new Date().getTime()
+      (('paractice-custom-topic-' + user._id?.toString()) as string) +
+      '-' +
+      new Date().getTime()
   })
 
   if (previewResult.passed) {
@@ -215,10 +233,15 @@ export const postCustomTopicPreviewWPController = async (req: Request, res: Resp
 }
 
 // GET /writing-paragraph/practice/custom-topic/:idPreview
-export const getPracticeCustomTopicWPController = async (req: Request, res: Response) => {
+export const getPracticeCustomTopicWPController = async (
+  req: Request,
+  res: Response
+) => {
   const user = req.user as User
   const idPreview = req.params.idPreview as string
-  const wpPreview = await databaseService.wpPreviews.findOne({ _id: new ObjectId(idPreview) })
+  const wpPreview = await databaseService.wpPreviews.findOne({
+    _id: new ObjectId(idPreview)
+  })
   if (!wpPreview) {
     return res.redirect('/writing-paragraph/setup')
   }
@@ -241,7 +264,10 @@ export const getPracticeCustomTopicWPController = async (req: Request, res: Resp
 }
 
 // POST /writing-paragraph/preview-content
-export const postPreviewContentWPController = async (req: Request, res: Response) => {
+export const postPreviewContentWPController = async (
+  req: Request,
+  res: Response
+) => {
   const user = req.user as User
   const { content } = req.body
   const previewResult = await writingService.wpPreviewContent(content)
@@ -254,7 +280,9 @@ export const postPreviewContentWPController = async (req: Request, res: Response
     topic: new ObjectId(),
     type: new ObjectId(),
     slug:
-      (('paractice-custom-content-' + user._id?.toString()) as string) + '-' + new Date().getTime()
+      (('paractice-custom-content-' + user._id?.toString()) as string) +
+      '-' +
+      new Date().getTime()
   })
 
   if (previewResult.passed) {
@@ -267,5 +295,30 @@ export const postPreviewContentWPController = async (req: Request, res: Response
     user: user,
     previewResult: previewResult,
     wpPreview: wpParagraph
+  })
+}
+
+// GET /writing-paragraph/random
+export const getRandomWPController = async (req: Request, res: Response) => {
+  const level = req.query.level
+    ? new ObjectId(req.query.level as string)
+    : undefined
+  const topic = req.query.topic
+    ? new ObjectId(req.query.topic as string)
+    : undefined
+  const type = req.query.type
+    ? new ObjectId(req.query.type as string)
+    : undefined
+  const randomWP = (await writingService.wpRandom(1, level, topic, type))[0]
+  if (!randomWP) {
+    return res.status(HttpStatus.NOT_FOUND).json({
+      message: WRITING_PARAGRAPH_MESSAGES.WP_LIST_NOT_FOUND,
+      status: HttpStatus.NOT_FOUND
+    })
+  }
+  return res.status(HttpStatus.OK).json({
+    message: WRITING_PARAGRAPH_MESSAGES.RANDOM_WP_SUCCESS,
+    status: HttpStatus.OK,
+    wp: randomWP
   })
 }

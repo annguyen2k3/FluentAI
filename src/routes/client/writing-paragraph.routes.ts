@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
   getCompleteWPController,
   getPracticeCustomTopicWPController,
+  getRandomWPController,
   getSetupWPController,
   getWPListController,
   postCustomTopicPreviewWPController,
@@ -24,7 +25,11 @@ const writingParagraphRoutes = Router()
 // GET /writing-paragraph/setup
 // Description: Render setup writing paragraph page
 // Method: GET
-writingParagraphRoutes.get('/setup', requireAuth, wrapRequestHandler(getSetupWPController))
+writingParagraphRoutes.get(
+  '/setup',
+  requireAuth,
+  wrapRequestHandler(getSetupWPController)
+)
 
 // GET /writing-paragraph/system-list
 // Description: Render system list writing paragraph page
@@ -41,7 +46,12 @@ writingParagraphRoutes.get(
 // Description: Get list of writing paragraphs
 // Method: GET
 // Query: {level: string, type: string, topic: string}
-writingParagraphRoutes.get('/list', requireAuth, getListWPValidator, wrapRequestHandler(getWPListController))
+writingParagraphRoutes.get(
+  '/list',
+  requireAuth,
+  getListWPValidator,
+  wrapRequestHandler(getWPListController)
+)
 
 // GET /writing-paragraph/practice/:slug
 // Description: Render practice writing paragraph page
@@ -102,5 +112,20 @@ writingParagraphRoutes.get(
 // Description: Post preview content
 // Method: POST
 // Body: {content: string}
-writingParagraphRoutes.post('/preview-content', requireAuth, wrapRequestHandler(postPreviewContentWPController))
+writingParagraphRoutes.post(
+  '/preview-content',
+  requireAuth,
+  wrapRequestHandler(postPreviewContentWPController)
+)
+
+// GET /writing-paragraph/random
+// Description: Get random writing paragraph
+// Method: GET
+// Query: {level: string, type: string, topic: string}
+writingParagraphRoutes.get(
+  '/random',
+  requireAuth,
+  wrapRequestHandler(getRandomWPController)
+)
+
 export default writingParagraphRoutes

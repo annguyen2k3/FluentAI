@@ -25,8 +25,17 @@ export const ApiBreakpoint = {
   POST_PRACTICE_WS: `${apiUrl}/writing-sentence/practice`, // Post practice writing sentence
   GET_COMPLETE_WS: `${apiUrl}/writing-sentence/practice/complete/{slug}`, // Get complete writing sentence
   POST_CUSTOM_TOPIC_PREVIEW_WS: `${apiUrl}/writing-sentence/custom-topic/preview`, // Post custom topic preview
+
   GET_PRACTICE_CUSTOM_TOPIC_WS: `${apiUrl}/writing-sentence/practice/custom-topic/{idPreview}`, // Get practice custom topic
-  GET_WP_LIST: `${apiUrl}/writing-paragraph/list`, // Get list of writing paragraphs
+
+  // GET /writing-paragraph/list
+  // Description: Get list of writing paragraphs
+  // Query: level, topic, type, page, limit, search, sortKey, sortOrder
+  GET_WP_LIST: `${apiUrl}/writing-paragraph/list`,
+
+  // POST /writing-paragraph/practice
+  // Description: Post practice writing paragraph
+  // Body: {level: string, topic: string, type: string}
   POST_PRACTICE_WP: `${apiUrl}/writing-paragraph/practice`, // Post practice writing paragraph
 
   // POST /writing-paragraph/custom-topic/preview
@@ -37,7 +46,12 @@ export const ApiBreakpoint = {
   // POST /writing-paragraph/preview-content
   // Description: Post preview content
   // Body: {content: string}
-  POST_PREVIEW_CONTENT_WP: `${apiUrl}/writing-paragraph/preview-content` // Post preview content
+  POST_PREVIEW_CONTENT_WP: `${apiUrl}/writing-paragraph/preview-content`, // Post preview content
+
+  // GET /writing-paragraph/random
+  // Description: Get random writing paragraph
+  // Query: level, topic, type
+  GET_RANDOM_WP: `${apiUrl}/writing-paragraph/random`
 }
 
 const adminApiUrl = 'http://localhost:3000/admin'

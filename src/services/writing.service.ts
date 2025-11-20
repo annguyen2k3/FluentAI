@@ -387,6 +387,28 @@ class WritingService {
     const randomWS = await databaseService.wsLists.aggregate(pipeline).toArray()
     return randomWS as WSList[]
   }
+
+  async wpRandom(
+    size: number,
+    level?: ObjectId,
+    topic?: ObjectId,
+    type?: ObjectId
+  ) {
+    const matchStage: any = {}
+    if (level) matchStage.level = level
+    if (topic) matchStage.topic = topic
+    if (type) matchStage.type = type
+    const pipeline = []
+    if (Object.keys(matchStage).length) {
+      pipeline.push({ $match: matchStage })
+    }
+    pipeline.push({ $sample: { size } })
+
+    const randomWP = await databaseService.wpParagraphs
+      .aggregate(pipeline)
+      .toArray()
+    return randomWP as WPParagraph[]
+  }
 }
 
 const writingService = new WritingService()

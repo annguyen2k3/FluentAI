@@ -1,7 +1,7 @@
 extends ../../layouts/default.pug
 
 block main-content
-    div(class="container py-4 wp-choose" wp-list-choose level=level.slug.toString() type=type.slug.toString())
+    div(class="container py-4 wp-choose" wp-list-choose level=level.slug.toString() type=type.slug.toString() id-level=level._id.toString() id-type=type._id.toString())
         nav(class="wp-choose__breadcrumb mb-4")
             ol(class="breadcrumb mb-0")
                 li(class="breadcrumb-item")
@@ -30,7 +30,7 @@ block main-content
                     option Đang tiến hành
                     option Hoàn thành
             div(class="col-12 col-md-3 d-flex align-items-end")
-                a(href="/write-sentence/practice.html" class="btn btn-warning w-100 wp-choose__random-btn")
+                a(href="#" class="btn btn-warning w-100 wp-choose__random-btn" btn-random)
                     i(class="fa-solid fa-shuffle me-2")
                     | Luyện tập ngẫu nhiên
 

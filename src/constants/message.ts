@@ -72,6 +72,20 @@ export const WRITING_SENTENCE_MESSAGES = {
   RANDOM_WS_SUCCESS: 'Danh sách câu học đã lấy thành công'
 } as const
 
+export const WRITING_PARAGRAPH_MESSAGES = {
+  ID_INVALID: 'ID không hợp lệ',
+  WP_LIST_NOT_FOUND: 'Danh sách nội dung viết đoạn văn không tồn tại',
+  TITLE_INVALID: 'Tiêu đề không hợp lệ',
+  INIT_CHAT_FAILED: 'Khởi tạo chat thất bại',
+  CONTENT_INVALID: 'Nội dung đoạn văn không hợp lệ',
+  HINT_INVALID: 'Gợi ý từ vựng không hợp lệ',
+  TOPIC_INVALID: 'Chủ đề không hợp lệ',
+  LEVEL_INVALID: 'Cấp độ không hợp lệ',
+  LIST_INVALID: 'Danh sách đoạn văn không hợp lệ',
+  RANDOM_WP_NOT_FOUND: 'Không tìm thấy đoạn văn ngẫu nhiên nào',
+  RANDOM_WP_SUCCESS: 'Đoạn văn ngẫu nhiên đã lấy thành công'
+} as const
+
 export const CATEGORIES_MESSAGES = {
   LEVEL_NOT_FOUND: 'Cấp độ không tồn tại',
   TYPE_NOT_FOUND: 'Loại không tồn tại',

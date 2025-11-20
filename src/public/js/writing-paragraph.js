@@ -473,6 +473,43 @@ if (wpListChoose) {
       loadWPList(levelSlug, typeSlug, topicSlug, currentPage, limit)
     })
   }
+
+  const btnRandom = document.querySelector('[btn-random]')
+  if (btnRandom) {
+    btnRandom.addEventListener('click', function (e) {
+      e.preventDefault()
+      const idLevelRandom = wpListChoose.getAttribute('id-level')
+      const idTypeRandom = wpListChoose.getAttribute('id-type')
+      const idTopicRandom =
+        wpListChoose.querySelector('select[filter-topic]')?.value || ''
+      const requestUrl = new URL(ApiBreakpoint.GET_RANDOM_WP)
+      if (idLevelRandom) {
+        requestUrl.searchParams.set('level', idLevelRandom)
+      }
+      if (idTypeRandom) {
+        requestUrl.searchParams.set('type', idTypeRandom)
+      }
+      if (idTopicRandom) {
+        requestUrl.searchParams.set('topic', idTopicRandom)
+      }
+      fetch(requestUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        }
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === 200) {
+            window.location.href = `/writing-paragraph/practice/${data.wp.slug}`
+          } else {
+            alertError(data.message)
+          }
+        })
+        .catch((error) => console.error('Error:', error))
+    })
+  }
 }
 
 // Hàm tách đoạn văn thành mảng các câu
