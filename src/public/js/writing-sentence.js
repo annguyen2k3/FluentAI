@@ -329,6 +329,8 @@ if (wsListChoose) {
       requestUrl.searchParams.set('limit', limit)
     }
 
+    console.log('requestUrl', requestUrl)
+
     const wsListCards = document.querySelector('div[ws-list-cards]')
     if (wsListCards) {
       wsListCards.innerHTML =

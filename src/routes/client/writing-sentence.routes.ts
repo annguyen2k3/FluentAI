@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
   getCompleteWSController,
   getPracticeCustomTopicWSController,
+  getPracticeRandomWSController,
   getPracticeWSController,
   getSetupWritingSentenceController,
   getSystemListWSController,
@@ -54,6 +55,12 @@ writingSentenceRoutes.get(
   requireAuth,
   renderWSPraticeValidator,
   wrapRequestHandler(getPracticeWSController)
+)
+
+writingSentenceRoutes.get(
+  '/random',
+  requireAuth,
+  wrapRequestHandler(getPracticeRandomWSController)
 )
 
 // POST /writing-sentence/practice/:slug

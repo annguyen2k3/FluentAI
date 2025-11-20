@@ -373,6 +373,13 @@ class WritingService {
     const text = await sendMessageOnce(prompt)
     return JSON.parse(text as string) as PreviewTopicWPResult
   }
+
+  async wsRandom(size: number) {
+    const randomWS = await databaseService.wsLists
+      .aggregate([{ $sample: { size: size } }])
+      .toArray()
+    return randomWS as WSList[]
+  }
 }
 
 const writingService = new WritingService()
