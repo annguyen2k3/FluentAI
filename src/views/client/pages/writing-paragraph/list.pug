@@ -14,8 +14,8 @@ block main-content
                 div(class="wp-choose__heading d-flex align-items-center gap-3")
                     i(class="fa-solid fa-feather wp-choose__heading-icon")
                     div(class="wp-choose__heading-text")
-                        h4(class="wp-choose__heading-title m-0") Câu chọn lọc
-                        div(class="wp-choose__heading-sub") Các câu phù hợp cho bạn
+                        h4(class="wp-choose__heading-title m-0") Đoạn văn chọn lọc
+                        div(class="wp-choose__heading-sub") Các đoạn văn phù hợp cho bạn
             div(class="col-12 col-md-3")
                 label(class="form-label fw-bold wp-choose__label") Chủ đề
                 select(class="form-select wp-choose__select" aria-label="Chọn chủ đề" filter-topic)
@@ -35,20 +35,11 @@ block main-content
                     | Luyện tập ngẫu nhiên
 
         div(class="row g-3" wp-list-cards)
-            p(class="text-center") Đang tải danh sách câu...
-            //- Render list ws cards here
+            p(class="text-center") Đang tải danh sách đoạn văn...
 
         div(class="d-flex align-items-center justify-content-between mt-4 wp-choose__pagination")
             div(class="wp-choose__pagination-info")
-                span(class="wp-choose__pagination-text") Hiển thị các mục 1-10 trên tổng số 432
+                span(class="wp-choose__pagination-text") Đang tải...
             div(class="d-flex align-items-center gap-2")
-                button(class="btn btn-light wp-choose__page", disabled)
-                    i(class="fas fa-angle-left")
-                button(class="btn btn-primary wp-choose__page is-active") 1
-                button(class="btn btn-outline-primary wp-choose__page") 2
-                button(class="btn btn-outline-primary wp-choose__page") 3
-                button(class="btn btn-outline-primary wp-choose__page") 4
-                button(class="btn btn-light wp-choose__page")
-                    i(class="fas fa-angle-right")
 
     script(src="/js/writing-paragraph.js" type="module")

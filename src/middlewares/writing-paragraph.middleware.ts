@@ -92,7 +92,6 @@ export const getListWPValidator = validate(
         trim: true,
         custom: {
           options: async (value, { req }) => {
-            console.log('value', value)
             const topic = await databaseService.topics.findOne({ slug: value })
             if (!topic) {
               throw new ErrorWithStatus(
