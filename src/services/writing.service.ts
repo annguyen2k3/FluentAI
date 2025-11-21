@@ -18,19 +18,14 @@ import {
   ResPromptWritingInit,
   ResPromptWritingTranslation,
   ResPromptWSPreviewTopic
-} from '~/models/responses/prompt/resWS.schema'
+} from '~/models/responses/prompt/res-ws.schema'
+import {
+  ResPromptWritingParagraphCompletion,
+  ResPromptWritingParagraphInit,
+  ResPromptWritingParagraphPreviewTopic,
+  ResPromptWritingParagraphTranslation
+} from '~/models/responses/prompt/res-wp.schema'
 config()
-
-type EvaluateResult = { Passed: boolean; Feedback_html: string }
-type InitResult = { Init_success: boolean }
-
-type PreviewTopicWPResult = {
-  passed: boolean
-  description: string
-  title: string
-  content: string
-  hint: VocabularyHintType[]
-}
 
 function sk(userId: string, practiceId: string) {
   return `${userId}_${practiceId}`
@@ -308,7 +303,7 @@ class WritingService {
     userId: string,
     practiceId: string,
     wp_paragraph: string
-  ): Promise<InitResult> {
+  ): Promise<ResPromptWritingParagraphInit> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_PARAGRAPH,
       PromptWritingType.INITIALIZATION
@@ -317,7 +312,7 @@ class WritingService {
       wp_paragraph
     })
     const text = await resetAndInitSession(userId, practiceId, prompt)
-    return JSON.parse(text as string)
+    return JSON.parse(text as string) as ResPromptWritingParagraphInit
   }
 
   async wpEvaluate(
@@ -325,7 +320,7 @@ class WritingService {
     practiceId: string,
     sentence_vi: string,
     user_translation: string
-  ): Promise<EvaluateResult> {
+  ): Promise<ResPromptWritingParagraphTranslation> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_PARAGRAPH,
       PromptWritingType.TRANSLATION
@@ -335,25 +330,25 @@ class WritingService {
       user_translation
     })
     const text = await sendInSession(userId, practiceId, prompt)
-    return JSON.parse(text as string) as EvaluateResult
+    return JSON.parse(text as string) as ResPromptWritingParagraphTranslation
   }
 
   async wpComplete(
     userId: string,
     practiceId: string
-  ): Promise<EvaluateResult> {
+  ): Promise<ResPromptWritingParagraphCompletion> {
     const prompt = await loadPrompt(
       PromptFeature.WRITE_PARAGRAPH,
       PromptWritingType.COMPLETION
     )
     const text = await completeAndDeleteSession(userId, practiceId, prompt)
-    return { Passed: true, Feedback_html: text as string }
+    return JSON.parse(text as string) as ResPromptWritingParagraphCompletion
   }
 
   async wpPreviewCustomTopic(
     description_topic: string,
     description_level: string
-  ): Promise<PreviewTopicWPResult> {
+  ): Promise<ResPromptWritingParagraphPreviewTopic> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_PARAGRAPH,
       PromptWritingType.PREVIEW_TOPIC
@@ -363,10 +358,12 @@ class WritingService {
       description_level
     })
     const text = await sendMessageOnce(prompt)
-    return JSON.parse(text as string) as PreviewTopicWPResult
+    return JSON.parse(text as string) as ResPromptWritingParagraphPreviewTopic
   }
 
-  async wpPreviewContent(content: string): Promise<PreviewTopicWPResult> {
+  async wpPreviewContent(
+    content: string
+  ): Promise<ResPromptWritingParagraphPreviewTopic> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_PARAGRAPH,
       PromptWritingType.PREVIEW_CONTENT
@@ -375,7 +372,7 @@ class WritingService {
       content
     })
     const text = await sendMessageOnce(prompt)
-    return JSON.parse(text as string) as PreviewTopicWPResult
+    return JSON.parse(text as string) as ResPromptWritingParagraphPreviewTopic
   }
 
   async wsRandom(size: number, level?: ObjectId, topic?: ObjectId) {

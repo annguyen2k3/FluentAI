@@ -613,19 +613,22 @@ if (wpPractice) {
               '[feedback-description]'
             )
             if (feedbackDescription) {
-              feedbackDescription.innerHTML = data.evaluateResult.Feedback_html
+              feedbackDescription.innerHTML = renderFeedback(
+                data.evaluateResult
+              )
             }
-            if (data.evaluateResult.Passed) {
-              buttonNext.classList.remove('d-none')
-              buttonSubmit.classList.add('d-none')
+            if (data.evaluateResult.passed) {
+              if (currentIndex === sentences.length) {
+                window.location.href = `/writing-paragraph/practice/complete/${wpData.slug}`
+              } else {
+                buttonNext.classList.remove('d-none')
+                buttonSubmit.classList.add('d-none')
+              }
             } else {
               buttonNext.classList.add('d-none')
               buttonSubmit.classList.remove('d-none')
             }
             document.querySelector('[user_translation]').value = ''
-            if (currentIndex === sentences.length) {
-              window.location.href = `/writing-paragraph/practice/complete/${wpData.slug}`
-            }
           } else {
             alertError(data.message)
           }
@@ -641,6 +644,152 @@ if (wpPractice) {
       buttonNext.classList.add('d-none')
       buttonSubmit.classList.remove('d-none')
       document.querySelector('[user_translation]').value = ''
+      const feedbackDescription = document.querySelector(
+        '[feedback-description]'
+      )
+      if (feedbackDescription) {
+        feedbackDescription.innerHTML = `
+          Click 
+          <span class="letter-highlight">Submit</span>
+          to get feedback from 
+          <span class="letter-highlight">AI</span>
+          . The system will review your translation and point out its strengths and areas for improvement.
+        `
+      }
     })
+  }
+
+  function formatHighlight(text = '') {
+    return (text || '').replace(/\{([^}]+)\}/g, (_, group) => {
+      return `<span class="letter-hi">${group}</span>`
+    })
+  }
+
+  function renderSentenceTokens(tokens = []) {
+    if (!tokens.length) return ''
+    return tokens
+      .map((token) => {
+        if (token.state === 'original') {
+          return `<span class="text-black">${token.text}</span>`
+        }
+        if (token.state === 'removed') {
+          return `<span class="letter-incorrect">(${token.text})</span>`
+        }
+        return `<span class="letter-correct">${token.text}</span>`
+      })
+      .join(' ')
+  }
+
+  function renderFeedback(evaluateResult) {
+    const tagClass = evaluateResult.passed
+      ? 'ws-feedback__tag--passed'
+      : 'ws-feedback__tag--failed'
+    const tagIcon = evaluateResult.passed
+      ? 'fa-circle-check'
+      : 'fa-circle-xmark'
+    const tagText = evaluateResult.passed ? 'Đạt' : 'Chưa đạt'
+
+    const sections = []
+
+    sections.push(`
+      <div class="ws-feedback__tag ${tagClass}">
+        <i class="fa-solid ${tagIcon}"></i>
+        <span>${tagText}</span>
+      </div>
+    `)
+
+    const sentenceHtml = renderSentenceTokens(evaluateResult.tokens)
+    if (sentenceHtml) {
+      sections.push(`
+        <p class="ws-feedback__sentence">
+          <span class="letter-pink">Câu gợi ý:</span>
+          ${sentenceHtml}
+        </p>
+      `)
+    }
+
+    if (
+      Array.isArray(evaluateResult.suggested_improvements) &&
+      evaluateResult.suggested_improvements.length
+    ) {
+      const improvements = evaluateResult.suggested_improvements
+        .map((item) => `<li>${formatHighlight(item)}</li>`)
+        .join('')
+      sections.push(`
+        <div class="ws-feedback__section">
+          <p class="ws-feedback__title letter-pink mb-1">Đề xuất cải thiện</p>
+          <ul class="ws-feedback__list">${improvements}</ul>
+        </div>
+      `)
+    }
+
+    if (evaluateResult.general_feedback) {
+      sections.push(`
+        <p class="ws-feedback__note">
+          <span class="letter-correct">Nhận xét:</span>
+          ${formatHighlight(evaluateResult.general_feedback)}
+        </p>
+      `)
+    }
+
+    return sections.join('')
+  }
+}
+
+function formatHighlight(text = '') {
+  return (text || '').replace(/\{([^}]+)\}/g, (_, group) => {
+    return `<span class="letter-hi">${group}</span>`
+  })
+}
+
+function renderCompletionSection(title, items = []) {
+  if (!items.length) return ''
+  const listItems = items
+    .map((item) => `<li>${formatHighlight(item)}</li>`)
+    .join('')
+  return `
+    <div class="ws-summary__section">
+      <h3 class="ws-summary__subtitle"><span class="letter-pink">${title}</span></h3>
+      <ul class="ws-summary__list">
+        ${listItems}
+      </ul>
+    </div>
+  `
+}
+
+function renderCompletion(result) {
+  const tagClass = result.completion_success
+    ? 'ws-feedback__tag--passed'
+    : 'ws-feedback__tag--failed'
+  const tagIcon = result.completion_success
+    ? 'fa-circle-check'
+    : 'fa-circle-xmark'
+  const tagText = result.completion_success ? 'Hoàn thành' : 'Cần điều chỉnh'
+
+  return `
+    <div class="ws-summary">
+      <div class="ws-feedback__tag ${tagClass}">
+        <i class="fa-solid ${tagIcon}"></i>
+        <span>${tagText}</span>
+      </div>
+      <h2 class="ws-summary__title">Đánh giá tổng quan</h2>
+      ${renderCompletionSection('Điểm mạnh', result.strong_points)}
+      ${renderCompletionSection('Lỗi thường gặp', result.common_mistakes)}
+      ${renderCompletionSection('Lời khuyên', result.advice_for_improvement)}
+      <p class="ws-summary__footer">
+        ${formatHighlight(result.general_feedback || '')}
+      </p>
+    </div>
+  `
+}
+
+const wpComplete = document.querySelector('[data-complete-result]')
+if (wpComplete) {
+  const completeResult = JSON.parse(
+    wpComplete.getAttribute('data-complete-result')
+  )
+  const renderTarget = document.querySelector('[render-complete-html]')
+  if (renderTarget) {
+    renderTarget.innerHTML = renderCompletion(completeResult)
   }
 }

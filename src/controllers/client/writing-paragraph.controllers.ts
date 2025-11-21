@@ -132,7 +132,7 @@ export const renderPracticeWPController = async (
     wp._id?.toString() as string,
     wp.content
   )
-  if (!initResult.Init_success) {
+  if (!initResult.init_success) {
     return res.redirect('/writing-paragraph/setup')
   }
 
@@ -181,7 +181,7 @@ export const getCompleteWPController = async (req: Request, res: Response) => {
     return res.render('client/pages/writing-paragraph/complete.pug', {
       pageTitle: 'Đánh giá tổng quan',
       user,
-      completeHtml: completeResult.Feedback_html
+      completeResult: completeResult
     })
   } catch (err) {
     console.log('Error:', err)
@@ -251,7 +251,7 @@ export const getPracticeCustomTopicWPController = async (
     wpPreview._id?.toString() as string,
     wpPreview.content
   )
-  if (!initResult.Init_success) {
+  if (!initResult.init_success) {
     return res.redirect('/writing-paragraph/setup')
   }
   console.log('Init result:', initResult)
