@@ -6,7 +6,9 @@ block main-content
             .col-lg-8.mx-auto
                 .card.shadow-sm
                     .card-body
-                        != completeHtml
+                        div(render-complete-html data-complete-result=completeResult)
                         .d-flex.gap-2
                             a.btn.btn-outline-secondary(href="/") Quay về trang chủ
                             a.btn.btn-primary(href="/writing-sentence/setup") Tiếp tục luyện viết
+
+    script(src="/js/writing-sentence.js" type="module")

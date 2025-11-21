@@ -503,6 +503,61 @@ if (wsPractice) {
     }
   }
 
+  function renderFeedback(evaluateResult) {
+    const tagClass = evaluateResult.passed
+      ? 'ws-feedback__tag--passed'
+      : 'ws-feedback__tag--failed'
+    const tagIcon = evaluateResult.passed
+      ? 'fa-circle-check'
+      : 'fa-circle-xmark'
+    const tagText = evaluateResult.passed ? 'Đạt' : 'Chưa đạt'
+
+    const sections = []
+
+    sections.push(`
+      <div class="ws-feedback__tag ${tagClass}">
+        <i class="fa-solid ${tagIcon}"></i>
+        <span>${tagText}</span>
+      </div>
+    `)
+
+    const sentenceHtml = renderSentenceTokens(evaluateResult.tokens)
+    if (sentenceHtml) {
+      sections.push(`
+        <p class="ws-feedback__sentence">
+          <span class="letter-pink">Câu gợi ý:</span>
+          ${sentenceHtml}
+        </p>
+      `)
+    }
+
+    if (
+      Array.isArray(evaluateResult.suggested_improvements) &&
+      evaluateResult.suggested_improvements.length
+    ) {
+      const improvements = evaluateResult.suggested_improvements
+        .map((item) => `<li>${formatHighlight(item)}</li>`)
+        .join('')
+      sections.push(`
+        <div class="ws-feedback__section">
+          <p class="ws-feedback__title letter-pink mb-1">Đề xuất cải thiện</p>
+          <ul class="ws-feedback__list">${improvements}</ul>
+        </div>
+      `)
+    }
+
+    if (evaluateResult.general_feedback) {
+      sections.push(`
+        <p class="ws-feedback__note">
+          <span class="letter-correct">Nhận xét:</span>
+          ${formatHighlight(evaluateResult.general_feedback)}
+        </p>
+      `)
+    }
+
+    return sections.join('')
+  }
+
   renderSentence(currentIndex)
 
   const buttonQuit = document.querySelector('[button-quit]')
@@ -549,10 +604,8 @@ if (wsPractice) {
         .then((data) => {
           if (data.status === 200) {
             console.log(data.evaluateResult)
-            feedbackDescription.innerHTML = data.evaluateResult.Feedback_html
-            if (data.evaluateResult.Passed) {
-              console.log(currentIndex)
-              console.log(listSentences.length)
+            feedbackDescription.innerHTML = renderFeedback(data.evaluateResult)
+            if (data.evaluateResult.passed) {
               if (currentIndex === listSentences.length) {
                 window.location.href = `/writing-sentence/practice/complete/${wsData.slug}`
               } else {
@@ -570,5 +623,79 @@ if (wsPractice) {
         })
         .catch((error) => console.error('Error:', error))
     })
+  }
+}
+
+function formatHighlight(text = '') {
+  return (text || '').replace(/\{([^}]+)\}/g, (_, group) => {
+    return `<span class="letter-hi">${group}</span>`
+  })
+}
+
+function renderSentenceTokens(tokens = []) {
+  if (!tokens.length) return ''
+  return tokens
+    .map((token) => {
+      if (token.state === 'original') {
+        return `<span class="text-black">${token.text}</span>`
+      }
+      if (token.state === 'removed') {
+        return `<span class="letter-incorrect">(${token.text})</span>`
+      }
+      return `<span class="letter-correct">${token.text}</span>`
+    })
+    .join(' ')
+}
+
+function renderCompletionSection(title, items = []) {
+  if (!items.length) return ''
+  const listItems = items
+    .map((item) => `<li>${formatHighlight(item)}</li>`)
+    .join('')
+  return `
+    <div class="ws-summary__section">
+      <h3 class="ws-summary__subtitle"><span class="letter-pink">${title}</span></h3>
+      <ul class="ws-summary__list">
+        ${listItems}
+      </ul>
+    </div>
+  `
+}
+
+function renderCompletion(result) {
+  const tagClass = result.completion_success
+    ? 'ws-feedback__tag--passed'
+    : 'ws-feedback__tag--failed'
+  const tagIcon = result.completion_success
+    ? 'fa-circle-check'
+    : 'fa-circle-xmark'
+  const tagText = result.completion_success ? 'Hoàn thành' : 'Cần điều chỉnh'
+
+  return `
+    <div class="ws-summary">
+      <div class="ws-feedback__tag ${tagClass}">
+        <i class="fa-solid ${tagIcon}"></i>
+        <span>${tagText}</span>
+      </div>
+      <h2 class="ws-summary__title">Đánh giá tổng quan</h2>
+      ${renderCompletionSection('Điểm mạnh', result.strong_points)}
+      ${renderCompletionSection('Lỗi thường gặp', result.common_mistakes)}
+      ${renderCompletionSection('Lời khuyên', result.advice_for_improvement)}
+      <p class="ws-summary__footer">
+        ${formatHighlight(result.general_feedback || '')}
+      </p>
+    </div>
+  `
+}
+
+// Write-sentence complete interactions
+const wsComplete = document.querySelector('[data-complete-result]')
+if (wsComplete) {
+  const completeResult = JSON.parse(
+    wsComplete.getAttribute('data-complete-result')
+  )
+  const renderTarget = document.querySelector('[render-complete-html]')
+  if (renderTarget) {
+    renderTarget.innerHTML = renderCompletion(completeResult)
   }
 }

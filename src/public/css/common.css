@@ -6,8 +6,17 @@ body {
 /* Utilities */
 .bg-gradient-light {
   background:
-    radial-gradient(1200px 600px at 50% -100px, rgba(57, 69, 242, 0.12), transparent 60%),
-    radial-gradient(1000px 500px at 120% 20%, rgba(57, 69, 242, 0.08), transparent 60%), #f5f7ff;
+    radial-gradient(
+      1200px 600px at 50% -100px,
+      rgba(57, 69, 242, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 500px at 120% 20%,
+      rgba(57, 69, 242, 0.08),
+      transparent 60%
+    ),
+    #f5f7ff;
   min-height: 100vh;
 }
 
@@ -137,6 +146,91 @@ body {
 
 .alert-notification__close:hover {
   opacity: 1;
+}
+
+.ws-feedback__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.ws-feedback__tag--passed {
+  background-color: rgba(25, 135, 84, 0.15);
+  color: #198754;
+}
+
+.ws-feedback__tag--failed {
+  background-color: rgba(220, 53, 69, 0.15);
+  color: #dc3545;
+}
+
+.ws-feedback__sentence {
+  margin-bottom: 0.75rem;
+}
+
+.ws-feedback__section {
+  margin-bottom: 0.75rem;
+}
+
+.ws-feedback__list {
+  padding-left: 1.25rem;
+  margin-bottom: 0;
+}
+
+.ws-feedback__list li {
+  margin-bottom: 0.35rem;
+}
+
+.ws-feedback__note {
+  margin-bottom: 0;
+}
+
+.letter-hi {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.ws-summary {
+  padding: 1.5rem;
+  border-radius: var(--border-radius-lg);
+  background-color: #fff;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.ws-summary__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+.ws-summary__section {
+  margin-bottom: 1.25rem;
+}
+
+.ws-summary__subtitle {
+  font-size: 1.1rem;
+  margin-bottom: 0.35rem;
+}
+
+.ws-summary__list {
+  padding-left: 1.25rem;
+  margin-bottom: 0;
+}
+
+.ws-summary__list li {
+  margin-bottom: 0.35rem;
+  line-height: 1.5;
+}
+
+.ws-summary__footer {
+  margin-bottom: 0;
+  font-size: 1.05rem;
+  line-height: 1.5;
 }
 
 @keyframes slideInRight {

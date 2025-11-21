@@ -13,15 +13,16 @@ import { HttpStatus } from '~/constants/httpStatus'
 import WSList, { SentenceWriteType } from '~/models/schemas/ws-list.schema'
 import WPParagraph from '~/models/schemas/wp-paragraph.schema'
 import { VocabularyHintType } from '~/models/Other'
+import {
+  ResPromptWritingCompletion,
+  ResPromptWritingInit,
+  ResPromptWritingTranslation,
+  ResPromptWSPreviewTopic
+} from '~/models/responses/prompt/resWS.schema'
 config()
 
 type EvaluateResult = { Passed: boolean; Feedback_html: string }
 type InitResult = { Init_success: boolean }
-type PreviewTopicWSResult = {
-  passed: boolean
-  description: string
-  list: SentenceWriteType[]
-}
 
 type PreviewTopicWPResult = {
   passed: boolean
@@ -127,13 +128,16 @@ class WritingService {
   }
 
   // 1) Khởi tạo chat cho user + practiceId, prompt lấy từ DB
-  async wsInitChat(userId: string, practiceId: string): Promise<InitResult> {
+  async wsInitChat(
+    userId: string,
+    practiceId: string
+  ): Promise<ResPromptWritingInit> {
     const prompt = await loadPrompt(
       PromptFeature.WRITE_SENTENCE,
       PromptWritingType.INITIALIZATION
     )
     const text = await resetAndInitSession(userId, practiceId, prompt)
-    return JSON.parse(text as string)
+    return JSON.parse(text as string) as ResPromptWritingInit
   }
 
   // 2) Đánh giá từng câu
@@ -142,7 +146,7 @@ class WritingService {
     practiceId: string,
     sentence_vi: string,
     user_translation: string
-  ): Promise<EvaluateResult> {
+  ): Promise<ResPromptWritingTranslation> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_SENTENCE,
       PromptWritingType.TRANSLATION
@@ -152,27 +156,27 @@ class WritingService {
       user_translation
     })
     const text = await sendInSession(userId, practiceId, prompt)
-    return JSON.parse(text as string) as EvaluateResult
+    return JSON.parse(text as string) as ResPromptWritingTranslation
   }
 
   // 3) Đánh giá tổng quan + kết thúc chat
   async wsComplete(
     userId: string,
     practiceId: string
-  ): Promise<EvaluateResult> {
+  ): Promise<ResPromptWritingCompletion> {
     const prompt = await loadPrompt(
       PromptFeature.WRITE_SENTENCE,
       PromptWritingType.COMPLETION
     )
     const text = await completeAndDeleteSession(userId, practiceId, prompt)
-    return { Passed: true, Feedback_html: text as string }
+    return JSON.parse(text as string) as ResPromptWritingCompletion
   }
 
   // Xem trước chủ đề tạo bằng AI
   async wsPreviewCustomTopic(
     description_topic: string,
     description_level: string
-  ): Promise<PreviewTopicWSResult> {
+  ): Promise<ResPromptWSPreviewTopic> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_SENTENCE,
       PromptWritingType.PREVIEW_TOPIC
@@ -182,7 +186,7 @@ class WritingService {
       description_level
     })
     const text = await sendMessageOnce(prompt)
-    return JSON.parse(text as string) as PreviewTopicWSResult
+    return JSON.parse(text as string) as ResPromptWSPreviewTopic
   }
 
   async createWSList(wsList: WSList) {

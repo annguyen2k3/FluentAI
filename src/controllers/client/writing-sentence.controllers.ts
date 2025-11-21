@@ -116,7 +116,7 @@ export const getPracticeWSController = async (req: Request, res: Response) => {
     user._id?.toString() as string,
     ws._id?.toString() as string
   )
-  if (!initResult.Init_success) {
+  if (!initResult.init_success) {
     return res.redirect('/writing-sentence/setup')
   }
 
@@ -157,21 +157,15 @@ export const getCompleteWSController = async (req: Request, res: Response) => {
       user._id!.toString(),
       ws._id!.toString()
     )
-    console.log('Complete result:', completeResult)
-    console.log('--------------------------------')
     return res.render('client/pages/writing-sentence/complete.pug', {
       pageTitle: 'Đánh giá tổng quan',
       user,
-      completeHtml: completeResult.Feedback_html
+      completeResult: completeResult
     })
   } catch (err) {
     console.log('Error:', err)
-    return res.render('client/pages/writing-sentence/complete.pug', {
-      pageTitle: 'Đánh giá tổng quan',
-      user,
-      completeHtml:
-        '<p class="text-danger">Không thể lấy đánh giá tổng quan. Vui lòng thử lại.</p>'
-    })
+    res.redirect('/writing-sentence/setup')
+    return
   }
 }
 
@@ -235,7 +229,7 @@ export const getPracticeCustomTopicWSController = async (
     user._id?.toString() as string,
     (wsListPreview._id?.toString() as string) || ''
   )
-  if (!initResult.Init_success) {
+  if (!initResult.init_success) {
     return res.redirect('/writing-sentence/setup')
   }
 
@@ -255,8 +249,6 @@ export const getRandomWSController = async (req: Request, res: Response) => {
     ? new ObjectId(req.query.topic as string)
     : undefined
 
-  console.log('level', level)
-  console.log('topic', topic)
   const randomWS = (await writingService.wsRandom(1, level, topic))[0]
 
   if (!randomWS) {
