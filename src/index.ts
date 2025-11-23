@@ -9,9 +9,6 @@ import { defaultErrorHandler } from './middlewares/errors.middleware'
 import cookieParser from 'cookie-parser'
 import { initFolder } from './utils/file'
 
-import './utils/gemini'
-import { sendMail } from './utils/nodemailer'
-
 dotenv.config()
 
 const app = express()
@@ -21,7 +18,7 @@ initFolder()
 databaseService.connect()
 
 // Serving static files
-app.use(express.static('src/public'))
+app.use(express.static(`${__dirname}/public`))
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -30,7 +27,7 @@ app.use(cookieParser())
 
 // View engine setup
 app.set('view engine', 'pug')
-app.set('views', path.join(__dirname, '../src/views'))
+app.set('views', path.join(__dirname, '/views'))
 
 app.locals.prefixAdmin = process.env.PREFIX_ADMIN
 
