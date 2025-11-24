@@ -1,5 +1,8 @@
 extends ../../layouts/default.pug
 
+block head
+    link(rel="stylesheet" href="/css/style.css")
+
 block main-content
     div(class="practice-header mb-1" wp-data-practice=wp)
         h1(class="flex-fill mb-0 fs-3 fw-bold") #{wp.title}

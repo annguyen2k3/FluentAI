@@ -53,3 +53,9 @@ export enum UserStatus {
   ACTIVE = 'active',
   BLOCKED = 'blocked'
 }
+
+export enum StatusLesson {
+  NOT_STARTED = 'not_started',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed'
+}

@@ -3,6 +3,7 @@ import usersRoutes from './users.routes'
 import { requireAuth } from '~/middlewares/users.middleware'
 import writingSentenceRoutes from './writing-sentence.routes'
 import writingParagraphRoutes from './writing-paragraph.routes'
+import speakingSentenceRoutes from './speaking-sentence.routes'
 
 export default function (app: Express) {
   app.get('/', requireAuth, (req: Request, res: Response) => {
@@ -25,4 +26,6 @@ export default function (app: Express) {
   app.use('/writing-sentence', writingSentenceRoutes)
 
   app.use('/writing-paragraph', writingParagraphRoutes)
+
+  app.use('/speaking-sentence', speakingSentenceRoutes)
 }

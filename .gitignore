@@ -3,6 +3,7 @@ dist/
 ADMIN_UI/
 GUI-FluentAI/
 draw_sequence/
+bao_cao/
 src/public/js/api_breakpoint.js
 .env
 seeds/

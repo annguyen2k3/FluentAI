@@ -1,5 +1,8 @@
 extends ../../layouts/default.pug
 
+block head
+    link(rel="stylesheet" href="/css/style.css")
+
 block main-content
     div(class="container py-4 wp-choose" ws-list-choose level=level._id.toString())
         nav(class="wp-choose__breadcrumb mb-4")

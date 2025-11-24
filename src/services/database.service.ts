@@ -10,6 +10,8 @@ import WSList from '~/models/schemas/ws-list.schema'
 import Prompts from '~/models/schemas/prompts.schema'
 import WPParagraph from '~/models/schemas/wp-paragraph.schema'
 import Admin from '~/models/schemas/admin.schema'
+import SSList from '~/models/schemas/ss-list.schema'
+import HisSSUser from '~/models/schemas/his_ss_user.schema'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.cp2tnzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -26,12 +28,26 @@ class DatabaseService {
     try {
       await this.client.connect()
       await this.db.command({ ping: 1 })
-      console.log('Pinged your deployment. You successfully connected to MongoDB!')
+      console.log(
+        'Pinged your deployment. You successfully connected to MongoDB!'
+      )
 
-      await this.otpVerifyEmail.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
-      await this.refreshTokens.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
-      await this.wsListPreviews.createIndex({ update_at: 1 }, { expireAfterSeconds: 60 * 60 * 3 })
-      await this.wpPreviews.createIndex({ update_at: 1 }, { expireAfterSeconds: 60 * 60 * 3 })
+      await this.otpVerifyEmail.createIndex(
+        { expires_at: 1 },
+        { expireAfterSeconds: 0 }
+      )
+      await this.refreshTokens.createIndex(
+        { expires_at: 1 },
+        { expireAfterSeconds: 0 }
+      )
+      await this.wsListPreviews.createIndex(
+        { update_at: 1 },
+        { expireAfterSeconds: 60 * 60 * 3 }
+      )
+      await this.wpPreviews.createIndex(
+        { update_at: 1 },
+        { expireAfterSeconds: 60 * 60 * 3 }
+      )
     } catch (error) {
       console.error('Error connecting to MongoDB:', error)
       throw error
@@ -84,6 +100,14 @@ class DatabaseService {
 
   get admins(): Collection<Admin> {
     return this.db.collection('admin')
+  }
+
+  get ssLists(): Collection<SSList> {
+    return this.db.collection('ss_lists')
+  }
+
+  get hisSSUsers(): Collection<HisSSUser> {
+    return this.db.collection('his_ss_users')
   }
 }
 

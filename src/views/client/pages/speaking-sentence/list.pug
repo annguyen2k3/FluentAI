@@ -1,0 +1,71 @@
+extends ../../layouts/default.pug
+
+block head
+    link(rel="stylesheet" href="/css/common.css")
+    link(rel="stylesheet" href="/css/layout.css")
+    link(rel="stylesheet" href="/css/speaking-sentence.css")
+
+block main-content
+    .speaking-choose__header
+        .speaking-choose__title-section
+            h1.speaking-choose__title
+                i.fas.fa-microphone.speaking-choose__title-icon
+                |  Luyện nói câu
+            p.speaking-choose__subtitle Luyện phát âm câu với transcript và phát âm chuẩn.
+
+    .speaking-choose__filters
+        .speaking-choose__search-section
+            label.speaking-choose__filter-label(for="search-input") TÌM KIẾM
+            .speaking-choose__search-input-group
+                input#search-input.speaking-choose__search-input(type="text" placeholder="Tìm kiếm theo tên...")
+                button(type="button" class="speaking-choose__search-btn")
+                    i.fas.fa-search
+        .speaking-choose__filter-group
+            label.speaking-choose__filter-label(for="filter-level") ★ CẤP ĐỘ
+            select#filter-level.speaking-choose__filter-select
+                option(value="" selected) Tất cả level
+                each level in levels
+                    option(value=level._id.toString()) #{level.title}
+        .speaking-choose__filter-group
+            label.speaking-choose__filter-label(for="filter-topic") ≡ CHỦ ĐỀ
+            select#filter-topic.speaking-choose__filter-select
+                option(value="" selected) Tất cả chủ đề
+                each topic in topics
+                    option(value=topic._id.toString()) #{topic.title}
+        .speaking-choose__filter-group
+            label.speaking-choose__filter-label(for="filter-status") ◆ TRẠNG THÁI
+            select#filter-status.speaking-choose__filter-select
+                option(value="" selected) Tất cả
+                option(value="new") Mới
+                option(value="in-progress") Đang tiến hành
+                option(value="completed") Hoàn thành
+        .speaking-choose__filter-group.speaking-choose__filter-group--actions
+            label.speaking-choose__filter-label.speaking-choose__filter-label--hidden Clear
+            button#clear-filters-btn.btn.btn-primary.speaking-choose__clear-filters-btn(type="button")
+                i.fas.fa-times
+                |  Xóa bộ lọc
+        .speaking-choose__filter-group.speaking-choose__filter-group--full
+            .speaking-choose__custom-topic
+                label.speaking-choose__filter-label.speaking-choose__custom-topic-label Luyện tập đa dạng hơn với AI
+                .speaking-choose__custom-topic-group
+                    input#custom-topic-input.form-control.speaking-choose__custom-topic-input(type="text" placeholder="Nhập chủ đề tùy chỉnh...")
+                    button#generate-ai-btn.btn.btn-primary.speaking-choose__custom-topic-btn(type="button")
+                        i.fa-solid.fa-wand-magic-sparkles.me-1
+                        |  Tạo AI
+
+    .speaking-choose__content
+        .row.g-3.speaking-choose__cards#speaking-cards-container
+            .col-12
+                p.text-center.mb-0 Đang tải danh sách câu...
+        .speaking-choose__pagination
+            .speaking-choose__pagination-info
+                | Hiển thị 0 - 0 của 0 câu
+            .speaking-choose__pagination-controls
+                button.speaking-choose__pagination-btn(type="button" disabled)
+                    i.fas.fa-chevron-left
+                button.speaking-choose__pagination-btn(type="button" disabled) 1
+                button.speaking-choose__pagination-btn(type="button" disabled)
+                    i.fas.fa-chevron-right
+
+block scripts
+    script(type="module" src="/js/speaking-sentence.js")
