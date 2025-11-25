@@ -46,6 +46,7 @@ if (cardsContainer) {
 
     cardsContainer.innerHTML = list
       .map((item) => {
+        const slug = item.slug
         const sentencesPreview = Array.isArray(item.list)
           ? item.list.slice(0, 2)
           : []
@@ -93,7 +94,7 @@ if (cardsContainer) {
                 <span class="ms-auto speaking-card__attempt"><i class="far fa-list-alt me-1"></i>${sentenceCount} câu</span>
               </div>
               <div class="text-end">
-                <a class="btn btn-primary speaking-card__btn" href="/speaking-sentence/practice">Bắt đầu</a>
+                <a class="btn btn-primary speaking-card__btn" href="/speaking-sentence/practice/${slug}">Bắt đầu</a>
               </div>
             </div>
           </div>

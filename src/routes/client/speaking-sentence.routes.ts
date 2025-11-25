@@ -1,7 +1,9 @@
 import { Router } from 'express'
 import {
+  generateSSAudioController,
   getSSListController,
-  renderSSListController
+  renderSSListController,
+  renderSSPracticeController
 } from '~/controllers/client/speaking-sentence.controllers'
 import { requireAuth } from '~/middlewares/users.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
@@ -23,6 +25,17 @@ speakingSentenceRoutes.get('/list', wrapRequestHandler(getSSListController))
 // GET /speaking-sentence/practice
 // Description: Render speaking sentence practice page
 // Method: GET
-// speakingSentenceRoutes.get('/practice', wrapRequestHandler(renderSSPracticeController))
+speakingSentenceRoutes.get(
+  '/practice/:slug',
+  wrapRequestHandler(renderSSPracticeController)
+)
+
+// POST /speaking-sentence/practice/audio
+// Description: Generate audio for speaking sentence
+// Method: POST
+speakingSentenceRoutes.post(
+  '/practice/audio',
+  wrapRequestHandler(generateSSAudioController)
+)
 
 export default speakingSentenceRoutes
