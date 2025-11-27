@@ -35,6 +35,7 @@ export const renderSSListController = async (req: Request, res: Response) => {
 
 // GET /speaking-sentence/list
 export const getSSListController = async (req: Request, res: Response) => {
+  const user = req.user as User
   const find: {
     level?: ObjectId
     topic?: ObjectId
@@ -43,6 +44,11 @@ export const getSSListController = async (req: Request, res: Response) => {
     search?: string
     sortKey?: string
     sortOrder?: 'asc' | 'desc'
+    status?: StatusLesson
+    history?: {
+      userId: ObjectId
+      status?: StatusLesson
+    }
   } = {}
 
   if (req.query.level) {
@@ -65,6 +71,16 @@ export const getSSListController = async (req: Request, res: Response) => {
   }
   if (req.query.sortOrder) {
     find.sortOrder = req.query.sortOrder as 'asc' | 'desc'
+  }
+  if (req.query.status) {
+    find.history = {
+      userId: user._id as ObjectId,
+      status: req.query.status as StatusLesson
+    }
+  } else {
+    find.history = {
+      userId: user._id as ObjectId
+    }
   }
 
   const data = await speakingServices.getSSList(find)

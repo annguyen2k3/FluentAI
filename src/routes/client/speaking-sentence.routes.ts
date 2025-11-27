@@ -21,7 +21,7 @@ speakingSentenceRoutes.get('/', wrapRequestHandler(renderSSListController))
 // GET /speaking-sentence/list
 // Description: Get list of speaking sentences
 // Method: GET
-// Query: level, topic, page, limit, search, sortKey, sortOrder
+// Query: level, topic, page, limit, search, sortKey, sortOrder, status
 speakingSentenceRoutes.get('/list', wrapRequestHandler(getSSListController))
 
 // GET /speaking-sentence/practice

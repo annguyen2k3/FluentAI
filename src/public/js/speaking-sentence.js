@@ -37,6 +37,20 @@ if (cardsContainer) {
       .replace(/'/g, '&#39;')
   }
 
+  function resolveHistoryBadge(history) {
+    const defaultBadge = { label: 'Mới', statusAttr: 'new' }
+    if (!history || typeof history !== 'object' || !history.status) {
+      return defaultBadge
+    }
+    if (history.status === 'in_progress') {
+      return { label: 'Đang luyện', statusAttr: 'in-progress' }
+    }
+    if (history.status === 'completed') {
+      return { label: 'Đã hoàn thành', statusAttr: 'completed' }
+    }
+    return defaultBadge
+  }
+
   function renderCards(list) {
     if (!Array.isArray(list) || list.length === 0) {
       cardsContainer.innerHTML =
@@ -63,6 +77,7 @@ if (cardsContainer) {
           ? item.level.fa_class_icon
           : 'far fa-graduation-cap'
         const sentenceCount = item.list?.length || 0
+        const badge = resolveHistoryBadge(item.history)
         return `
           <div class="col-12 col-lg-4">
             <div class="speaking-card">
@@ -70,7 +85,7 @@ if (cardsContainer) {
                 <h5 class="speaking-card__title m-0">${escapeHTML(
                   item.title || ''
                 )}</h5>
-                <span class="speaking-card__badge" data-status="new">Mới</span>
+                <span class="speaking-card__badge" data-status="${badge.statusAttr}">${badge.label}</span>
               </div>
               <div class="speaking-card__excerpt">
                 ${
@@ -182,6 +197,7 @@ if (cardsContainer) {
     if (state.level) requestUrl.searchParams.set('level', state.level)
     if (state.topic) requestUrl.searchParams.set('topic', state.topic)
     if (state.search) requestUrl.searchParams.set('search', state.search)
+    if (state.status) requestUrl.searchParams.set('status', state.status)
 
     fetch(requestUrl, {
       headers: {
@@ -192,6 +208,7 @@ if (cardsContainer) {
       .then((response) => response.json())
       .then((data) => {
         if (data.status === 200) {
+          console.log('data', data)
           renderCards(data.data || [])
           if (data.pagination) {
             renderPagination(data.pagination)
