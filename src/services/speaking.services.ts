@@ -54,12 +54,17 @@ class SpeakingServices {
     search?: string
     sortKey?: string
     sortOrder?: 'asc' | 'desc'
+    history?: {
+      userId: ObjectId
+      status?: StatusLesson
+    }
   }) {
     const {
       page = 1,
       limit = 10,
       sortKey = 'pos',
       sortOrder = 'asc',
+      history,
       ...matchQuery
     } = find
     const skip = (page - 1) * limit
@@ -69,39 +74,96 @@ class SpeakingServices {
     if (matchQuery.search)
       matchStage.title = { $regex: matchQuery.search, $options: 'i' }
 
-    const [data, total] = await Promise.all([
-      databaseService.ssLists
-        .aggregate([
-          { $match: matchStage },
-          {
-            $sort: {
-              [sortKey]: sortOrder === 'asc' ? 1 : -1
+    const basePipeline: Record<string, unknown>[] = [
+      { $match: matchStage },
+      {
+        $sort: {
+          [sortKey]: sortOrder === 'asc' ? 1 : -1
+        }
+      },
+      {
+        $lookup: {
+          from: 'levels',
+          localField: 'level',
+          foreignField: '_id',
+          as: 'level'
+        }
+      },
+      { $unwind: '$level' },
+      {
+        $lookup: {
+          from: 'topics',
+          localField: 'topic',
+          foreignField: '_id',
+          as: 'topic'
+        }
+      },
+      { $unwind: '$topic' }
+    ]
+
+    if (history?.userId) {
+      basePipeline.push({
+        $lookup: {
+          from: 'his_ss_users',
+          let: { ssListId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$ssListId', '$$ssListId'] },
+                    { $eq: ['$userId', history.userId] }
+                  ]
+                }
+              }
+            },
+            { $limit: 1 }
+          ],
+          as: 'history'
+        }
+      })
+
+      basePipeline.push({
+        $addFields: {
+          history: { $arrayElemAt: ['$history', 0] }
+        }
+      })
+
+      basePipeline.push({
+        $addFields: {
+          history: {
+            $cond: [{ $ifNull: ['$history', false] }, '$history', {}]
+          }
+        }
+      })
+
+      if (history.status) {
+        if (history.status === StatusLesson.NOT_STARTED) {
+          basePipeline.push({
+            $match: {
+              $or: [{ history: {} }, { 'history.status': { $exists: false } }]
             }
-          },
-          {
-            $lookup: {
-              from: 'levels',
-              localField: 'level',
-              foreignField: '_id',
-              as: 'level'
+          })
+        } else {
+          basePipeline.push({
+            $match: {
+              'history.status': history.status
             }
-          },
-          { $unwind: '$level' },
-          {
-            $lookup: {
-              from: 'topics',
-              localField: 'topic',
-              foreignField: '_id',
-              as: 'topic'
-            }
-          },
-          { $unwind: '$topic' },
-          { $skip: skip },
-          { $limit: limit }
-        ])
-        .toArray(),
-      databaseService.ssLists.countDocuments(matchStage)
+          })
+        }
+      }
+    }
+
+    const dataPipeline = [...basePipeline, { $skip: skip }, { $limit: limit }]
+
+    const countPipeline = [...basePipeline, { $count: 'total' }]
+
+    const [data, totalResult] = await Promise.all([
+      databaseService.ssLists.aggregate(dataPipeline).toArray(),
+      databaseService.ssLists.aggregate(countPipeline).toArray()
     ])
+
+    const total = totalResult[0]?.total || 0
 
     const totalPages = Math.ceil(total / limit)
     return {

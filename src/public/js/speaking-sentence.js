@@ -43,7 +43,7 @@ if (cardsContainer) {
       return defaultBadge
     }
     if (history.status === 'in_progress') {
-      return { label: 'Đang luyện', statusAttr: 'in-progress' }
+      return { label: 'Đang luyện tập', statusAttr: 'in-progress' }
     }
     if (history.status === 'completed') {
       return { label: 'Đã hoàn thành', statusAttr: 'completed' }
