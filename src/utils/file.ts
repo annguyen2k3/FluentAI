@@ -1,5 +1,5 @@
 import { Request } from 'express'
-import { File } from 'formidable'
+import { Fields, File } from 'formidable'
 import fs from 'node:fs'
 import { UPLOAD_IMAGE_DIR, UPLOAD_TEMP_DIR } from '~/constants/dir'
 
@@ -42,6 +42,39 @@ export const handleUploadImage = async (req: Request) => {
         return reject(new Error('Không có ảnh upload'))
       }
       resolve(files.images as File[])
+    })
+  })
+}
+
+export const handleUploadAudio = async (req: Request) => {
+  const formidable = (await import('formidable')).default
+  const form = formidable({
+    uploadDir: UPLOAD_TEMP_DIR,
+    maxFileSize: 1024 * 1024 * 10,
+    maxFields: 10,
+    keepExtensions: true,
+    filter: function ({ name, mimetype }) {
+      const valid = name === 'audio' && Boolean(mimetype?.includes('audio'))
+      if (!valid) {
+        form.emit(
+          'error' as any,
+          new Error('Audio upload phải có key audio và đúng định dạng') as any
+        )
+      }
+      return valid
+    }
+  })
+  return new Promise<{ fields: Fields; file: File }>((resolve, reject) => {
+    form.parse(req, (err, fields, files) => {
+      if (err) {
+        return reject(err)
+      }
+      const audioFile = files.audio
+      if (!audioFile) {
+        return reject(new Error('Không có audio upload'))
+      }
+      const file = Array.isArray(audioFile) ? audioFile[0] : audioFile
+      resolve({ fields, file })
     })
   })
 }

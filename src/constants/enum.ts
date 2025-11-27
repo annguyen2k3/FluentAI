@@ -34,15 +34,17 @@ export enum PartOfSpeech {
 
 export enum PromptFeature {
   WRITE_SENTENCE = 'write_sentence',
-  WRITE_PARAGRAPH = 'write_paragraph'
+  WRITE_PARAGRAPH = 'write_paragraph',
+  SPEAKING = 'speaking'
 }
 
-export enum PromptWritingType {
+export enum PromptFeatureType {
   INITIALIZATION = 'initialization',
   TRANSLATION = 'translation',
   COMPLETION = 'completion',
   PREVIEW_TOPIC = 'preview_topic',
-  PREVIEW_CONTENT = 'preview_content'
+  PREVIEW_CONTENT = 'preview_content',
+  SPEAKING_PREVIEW = 'speaking_preview'
 }
 
 export enum AdminRole {

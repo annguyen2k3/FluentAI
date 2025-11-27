@@ -5,7 +5,8 @@
 .hero__banner {
   background:
     linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-    url('https://kilala.vn/data/upload/article/9155/lofi1.PNG') center/cover no-repeat;
+    url('https://kilala.vn/data/upload/article/9155/lofi1.PNG') center/cover
+      no-repeat;
   background-size: cover;
   background-position: center;
   height: 300px;
@@ -82,22 +83,38 @@
 
 .feature-card__icon--green {
   background: #00a824;
-  background: linear-gradient(180deg, rgba(0, 168, 36, 1) 0%, rgba(0, 242, 165, 1) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 168, 36, 1) 0%,
+    rgba(0, 242, 165, 1) 100%
+  );
 }
 
 .feature-card__icon--red {
   background: #a82200;
-  background: linear-gradient(180deg, rgba(168, 34, 0, 1) 0%, rgba(109, 0, 242, 1) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(168, 34, 0, 1) 0%,
+    rgba(109, 0, 242, 1) 100%
+  );
 }
 
 .feature-card__icon--purple {
   background: #6100b5;
-  background: linear-gradient(180deg, rgba(97, 0, 181, 1) 0%, rgba(24, 1, 64, 1) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(97, 0, 181, 1) 0%,
+    rgba(24, 1, 64, 1) 100%
+  );
 }
 
 .feature-card__icon--yellow {
   background: #8f8a00;
-  background: linear-gradient(180deg, rgba(143, 138, 0, 1) 0%, rgba(156, 97, 3, 1) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(143, 138, 0, 1) 0%,
+    rgba(156, 97, 3, 1) 100%
+  );
 }
 
 .feature-card__badge {
@@ -335,128 +352,6 @@
 
 .ranking-item__medal--bronze {
   color: #cd7f32;
-}
-
-.header__avatar {
-  position: relative;
-}
-
-.avatar-modal {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: #fff;
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-lg);
-  min-width: 280px;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: all var(--transition-fast);
-  z-index: 1001;
-  margin-top: var(--spacing-sm);
-}
-
-.header__avatar:hover .avatar-modal {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.avatar-modal__header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-}
-
-.avatar-modal__avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.avatar-modal__info {
-  flex: 1;
-}
-
-.avatar-modal__name {
-  font-size: var(--font-size-lg);
-  font-weight: bold;
-  color: #1f2937;
-  margin: 0 0 var(--spacing-xs) 0;
-}
-
-.avatar-modal__email {
-  font-size: var(--font-size-sm);
-  color: #6b7280;
-  margin: 0;
-}
-
-.avatar-modal__assets {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: var(--spacing-sm);
-  gap: var(--spacing-sm);
-}
-
-.avatar-modal__assets-text {
-  font-size: var(--font-size-sm);
-  color: #1f2937;
-  font-weight: 600;
-}
-
-.avatar-modal__topup-btn {
-  background: #fbbf24;
-  color: #1f2937;
-  border: none;
-  border-radius: var(--border-radius-sm);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.avatar-modal__topup-btn:hover {
-  background: #f59e0b;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);
-}
-
-.avatar-modal__divider {
-  height: 1px;
-  background: #e5e7eb;
-  margin: 0 var(--spacing-lg);
-}
-
-.avatar-modal__menu {
-  padding: var(--spacing-sm) 0;
-}
-
-.avatar-modal__item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  color: #374151;
-  text-decoration: none;
-  font-size: var(--font-size-base);
-  font-weight: 500;
-  transition: all var(--transition-fast);
-}
-
-.avatar-modal__item:hover {
-  background: #f3f4f6;
-  color: var(--primary-color);
-}
-
-.avatar-modal__icon {
-  width: 16px;
-  text-align: center;
-  font-size: var(--font-size-sm);
 }
 
 @media (max-width: 768px) {

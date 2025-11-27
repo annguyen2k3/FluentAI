@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import {
+  deleteSSHistoryController,
+  evaluateSSController,
   generateSSAudioController,
   getSSListController,
   renderSSListController,
@@ -30,12 +32,28 @@ speakingSentenceRoutes.get(
   wrapRequestHandler(renderSSPracticeController)
 )
 
+// POST /speaking-sentence/practice/evaluate
+// Description: Evaluate speaking sentence
+// Method: POST
+speakingSentenceRoutes.post(
+  '/practice/:slug/evaluate',
+  wrapRequestHandler(evaluateSSController)
+)
+
 // POST /speaking-sentence/practice/audio
 // Description: Generate audio for speaking sentence
 // Method: POST
 speakingSentenceRoutes.post(
   '/practice/audio',
   wrapRequestHandler(generateSSAudioController)
+)
+
+// DELETE /speaking-sentence/history/:slug
+// Description: Delete history speaking sentence
+// Method: DELETE
+speakingSentenceRoutes.delete(
+  '/history/:slug',
+  wrapRequestHandler(deleteSSHistoryController)
 )
 
 export default speakingSentenceRoutes

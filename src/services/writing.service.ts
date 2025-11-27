@@ -7,7 +7,7 @@ import {
   completeAndDeleteSession,
   sendMessageOnce
 } from '~/utils/gemini'
-import { PromptFeature, PromptWritingType } from '~/constants/enum'
+import { PromptFeature, PromptFeatureType } from '~/constants/enum'
 import { ErrorWithStatus } from '~/models/Errors'
 import { HttpStatus } from '~/constants/httpStatus'
 import WSList, { SentenceWriteType } from '~/models/schemas/ws-list.schema'
@@ -40,16 +40,16 @@ function fillTemplate(tpl: string, vars: Record<string, string>) {
 
 async function loadPrompt(
   feature: PromptFeature,
-  writingType: PromptWritingType
+  featureType: PromptFeatureType
 ) {
   const doc = await databaseService.prompts.findOne({
     feature: feature,
-    writing_type: writingType,
+    feature_type: featureType,
     status: true
   })
   if (!doc?.content)
     throw new ErrorWithStatus(
-      `Prompt not found: ${writingType}`,
+      `Prompt not found: ${featureType}`,
       HttpStatus.NOT_FOUND
     )
   return doc.content
@@ -129,7 +129,7 @@ class WritingService {
   ): Promise<ResPromptWritingInit> {
     const prompt = await loadPrompt(
       PromptFeature.WRITE_SENTENCE,
-      PromptWritingType.INITIALIZATION
+      PromptFeatureType.INITIALIZATION
     )
     const text = await resetAndInitSession(userId, practiceId, prompt)
     return JSON.parse(text as string) as ResPromptWritingInit
@@ -144,7 +144,7 @@ class WritingService {
   ): Promise<ResPromptWritingTranslation> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_SENTENCE,
-      PromptWritingType.TRANSLATION
+      PromptFeatureType.TRANSLATION
     )
     const prompt = fillTemplate(promptTpl, {
       sentence_vi,
@@ -161,7 +161,7 @@ class WritingService {
   ): Promise<ResPromptWritingCompletion> {
     const prompt = await loadPrompt(
       PromptFeature.WRITE_SENTENCE,
-      PromptWritingType.COMPLETION
+      PromptFeatureType.COMPLETION
     )
     const text = await completeAndDeleteSession(userId, practiceId, prompt)
     return JSON.parse(text as string) as ResPromptWritingCompletion
@@ -174,7 +174,7 @@ class WritingService {
   ): Promise<ResPromptWSPreviewTopic> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_SENTENCE,
-      PromptWritingType.PREVIEW_TOPIC
+      PromptFeatureType.PREVIEW_TOPIC
     )
     const prompt = fillTemplate(promptTpl, {
       description_topic,
@@ -306,7 +306,7 @@ class WritingService {
   ): Promise<ResPromptWritingParagraphInit> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_PARAGRAPH,
-      PromptWritingType.INITIALIZATION
+      PromptFeatureType.INITIALIZATION
     )
     const prompt = fillTemplate(promptTpl, {
       wp_paragraph
@@ -323,7 +323,7 @@ class WritingService {
   ): Promise<ResPromptWritingParagraphTranslation> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_PARAGRAPH,
-      PromptWritingType.TRANSLATION
+      PromptFeatureType.TRANSLATION
     )
     const prompt = fillTemplate(promptTpl, {
       sentence_vi,
@@ -339,7 +339,7 @@ class WritingService {
   ): Promise<ResPromptWritingParagraphCompletion> {
     const prompt = await loadPrompt(
       PromptFeature.WRITE_PARAGRAPH,
-      PromptWritingType.COMPLETION
+      PromptFeatureType.COMPLETION
     )
     const text = await completeAndDeleteSession(userId, practiceId, prompt)
     return JSON.parse(text as string) as ResPromptWritingParagraphCompletion
@@ -351,7 +351,7 @@ class WritingService {
   ): Promise<ResPromptWritingParagraphPreviewTopic> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_PARAGRAPH,
-      PromptWritingType.PREVIEW_TOPIC
+      PromptFeatureType.PREVIEW_TOPIC
     )
     const prompt = fillTemplate(promptTpl, {
       description_topic,
@@ -366,7 +366,7 @@ class WritingService {
   ): Promise<ResPromptWritingParagraphPreviewTopic> {
     const promptTpl = await loadPrompt(
       PromptFeature.WRITE_PARAGRAPH,
-      PromptWritingType.PREVIEW_CONTENT
+      PromptFeatureType.PREVIEW_CONTENT
     )
     const prompt = fillTemplate(promptTpl, {
       content

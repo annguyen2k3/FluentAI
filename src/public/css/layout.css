@@ -142,6 +142,124 @@
   box-shadow: var(--shadow-md);
 }
 
+.avatar-modal {
+  position: absolute;
+  top: calc(100% + var(--spacing-sm));
+  right: 0;
+  background: #fff;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  min-width: 280px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all var(--transition-fast);
+  z-index: 1001;
+}
+
+.header__avatar:hover .avatar-modal,
+.header__avatar:focus-within .avatar-modal {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.avatar-modal__header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+}
+
+.avatar-modal__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-modal__info {
+  flex: 1;
+}
+
+.avatar-modal__name {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.avatar-modal__email {
+  font-size: var(--font-size-sm);
+  color: #6b7280;
+  margin: 0;
+}
+
+.avatar-modal__assets {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--spacing-sm);
+  gap: var(--spacing-sm);
+}
+
+.avatar-modal__assets-text {
+  font-size: var(--font-size-sm);
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.avatar-modal__topup-btn {
+  background: #fbbf24;
+  color: #1f2937;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.avatar-modal__topup-btn:hover {
+  background: #f59e0b;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);
+}
+
+.avatar-modal__divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0 var(--spacing-lg);
+}
+
+.avatar-modal__menu {
+  padding: var(--spacing-sm) 0;
+}
+
+.avatar-modal__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  color: #374151;
+  text-decoration: none;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.avatar-modal__item:hover {
+  background: #f3f4f6;
+  color: var(--primary-color);
+}
+
+.avatar-modal__icon {
+  width: 16px;
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
 /* Body Layout */
 body {
   display: flex;

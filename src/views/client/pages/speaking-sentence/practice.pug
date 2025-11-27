@@ -1,4 +1,5 @@
 extends ../../layouts/default.pug
+include ../../mixins/loading.pug
 
 block head
     link(rel="stylesheet" href="/css/common.css")
@@ -56,7 +57,7 @@ block main-content
                             .practice-sentence__btn-recording(style="display: none;")
                                 .practice-sentence__btn-recording-dot
                                 span Dừng thu
-                        button.practice-sentence__btn.practice-sentence__btn--submit(type="button")
+                        button#practice-submit-btn.practice-sentence__btn.practice-sentence__btn--submit(type="button")
                             i.fas.fa-paper-plane
                             |  Nộp
                             span.practice-sentence__attempt
@@ -75,6 +76,8 @@ block main-content
                                     i.fas.fa-volume-up
                                 .practice-recording__volume-control(style="display: none;")
                                     input#practice-preview-volume.practice-recording__volume-slider(type="range" min="0" max="100" value="75")
+                        button#practice-preview-clear.practice-recording__clear-btn(type="button")
+                            i.fas.fa-times
 
                     .practice-sentence__navigation
                         button#practice-prev.practice-sentence__nav-btn.practice-sentence__nav-btn--prev(type="button")
@@ -84,74 +87,30 @@ block main-content
                             | Câu tiếp theo 
                             i.fas.fa-arrow-right
 
-                .practice-feedback
+                .practice-feedback#feedback-section
                     h3.practice-feedback__title
                         i.fa-solid.fa-robot.p-2(style="color: #2107e9;")
                         |  Đánh giá từ AI
-                    .practice-recording
-                        h4.practice-feedback__subtitle Your Recording And Transcript:
-                        .practice-recording__container
-                            .practice-recording__player
-                                button.practice-recording__play-btn(type="button")
-                                    i.fas.fa-play
-                                .practice-recording__time 0:00 / 0:02
-                                .practice-recording__volume-control
-                                    input.practice-recording__volume-slider(type="range" min="0" max="100" value="30")
-                                    i.fas.fa-volume-up.practice-recording__volume
-                                i.fas.fa-ellipsis-v.practice-recording__menu
+                    #ai-loading.practice-feedback__loading
+                        +loadingIndicator('AI đang đánh giá phần luyện nói của bạn...')
+                    .practice-feedback__result.d-flex.align-items-center.gap-2#ai-result-badge(style="display: none;")
+                        i#ai-result-icon.fw-bold
+                        span#ai-result-text.fw-semibold
+                    p#ai-intro.practice-feedback__intro.fw-semibold.text-dark
+                        | Nộp bài <span class="letter-highlight">Phát âm của bạn </span>để nhận phản hồi từ <span class="letter-highlight">AI</span>. Hệ thống sẽ xem xét bản dịch của bạn và chỉ ra những điểm mạnh cũng như những lĩnh vực cần cải thiện.
+                    .practice-recording.bg-white.border.rounded-3.p-3.mt-2(style="display: none;")
+                        h4.practice-feedback__subtitle.text-primary.fw-semibold Your Transcript and Phonetics:
+                        .practice-recording__container.practice-recording__container--text-only.mt-2
                             .practice-recording__transcript-box
-                                p.practice-recording__transcript you travel which phrase
-                    .practice-feedback__suggestions
+                                p#ai-transcript.practice-recording__transcript
+                            .practice-recording__phonetic-box
+                                p#ai-phonetic.practice-recording__phonetic
+                    .practice-feedback__suggestions#ai-suggestion-section(style="display: none;")
                         h4.practice-feedback__subtitle.mt-3 Suggestion:
-                        .practice-feedback__item
-                            .practice-feedback__word
-                                i.fas.fa-times.practice-feedback__icon.practice-feedback__icon--error
-                                span.practice-feedback__word-text with
-                                i.fas.fa-volume-up.practice-feedback__speaker
-                            .practice-feedback__details
-                                .practice-feedback__issue
-                                    i.fas.fa-exclamation-triangle.practice-feedback__warning
-                                    p
-                                        | Bạn phát âm từ 
-                                        strong with
-                                        |  thành 
-                                        strong which
-                                        | , làm thay đổi nghĩa từ.
-                                .practice-feedback__tip
-                                    i.fas.fa-check.practice-feedback__check
-                                    p
-                                        | Luyện tập âm ð bằng cách đặt đầu lưỡi giữa hai hàm răng rồi thổi hơi qua, ví dụ 
-                                        strong this, that, with
-                                        | .
-                        .practice-feedback__item
-                            .practice-feedback__word
-                                i.fas.fa-times.practice-feedback__icon.practice-feedback__icon--error
-                                span.practice-feedback__word-text friends
-                                i.fas.fa-volume-up.practice-feedback__speaker
-                            .practice-feedback__details
-                                .practice-feedback__issue
-                                    i.fas.fa-exclamation-triangle.practice-feedback__warning
-                                    p
-                                        | Bạn phát âm 
-                                        strong friends
-                                        |  thành 
-                                        strong phrase
-                                        | , làm mất âm đầu fr và phụ âm cuối.
-                                .practice-feedback__tip
-                                    i.fas.fa-check.practice-feedback__check
-                                    p
-                                        | Luyện tập âm fr bằng cách phát âm f rồi nối nhanh với r (free, fruit) và giữ âm dz ở cuối từ 
-                                        strong friends
-                                        | .
-
-                    .practice-feedback__comment
+                        .practice-feedback__suggestions-list#ai-suggestions
+                    .practice-feedback__comment(style="display: none;")
                         h4.practice-feedback__comment-title Nhận xét:
-                        p
-                            | Bạn phát âm rất tốt từ 
-                            strong You
-                            |  và 
-                            strong travel
-                            | , hãy tiếp tục luyện tập để hoàn thiện hơn nhé! 💪😊
+                        p#ai-general-feedback
 
         .col-lg-4
             .practice-sidebar#sentence-sidebar
@@ -166,9 +125,28 @@ block main-content
                     button.practice-sidebar__action-btn.practice-sidebar__action-btn--quit(type="button")
                         i.fas.fa-sign-out-alt
                         |  Thoát
-                    button.practice-sidebar__action-btn.practice-sidebar__action-btn--finish(type="button")
-                        i.fas.fa-check-circle
-                        |  Kết thúc và nhận đánh giá
+                    button.practice-sidebar__action-btn.practice-sidebar__action-btn--reset(type="button" id="practice-reset-btn")
+                        i.fas.fa-redo-alt
+                        |  Luyện tập lại từ đầu
+
+    .practice-finish-modal#practice-finish-modal
+        .practice-finish-modal__dialog
+            button.practice-finish-modal__close.btn-close(type="button" aria-label="Đóng" id="practice-finish-close")
+            .practice-finish-modal__icon
+                i.fas.fa-trophy
+            h3.practice-finish-modal__title Chúc mừng bạn đã hoàn thành bài luyện tập!
+            p.practice-finish-modal__subtitle Kĩ năng của bạn đã tiến bộ hơn 1 chút rồi đấy. Tiếp tục cố gắng và phát huy nhé.
+            .practice-finish-modal__actions
+                button#practice-finish-stay.btn.btn-outline-secondary(type="button") Ở lại
+                button#practice-finish-next.btn.btn-primary(type="button") Chọn bài học tiếp theo
+
+    .practice-reset-modal#practice-reset-modal
+        .practice-reset-modal__dialog
+            h4.practice-reset-modal__title Xác nhận xoá lịch sử luyện tập?
+            p.practice-reset-modal__subtitle Xác nhận xoá lịch sử luyện tập của danh sách này và luyện tập lại từ đầu.
+            .practice-reset-modal__actions
+                button#practice-reset-cancel.btn.btn-outline-secondary(type="button") Hủy
+                button#practice-reset-confirm.btn.btn-danger(type="button") Đồng ý
 
     script#ss-data(type="application/json") !{JSON.stringify(ss || {})}
     script#his-ss-data(type="application/json") !{JSON.stringify(hisSS || {})}
@@ -189,11 +167,33 @@ block scripts
             const practiceAudioSampleEl = document.getElementById('practice-audio-sample');
             const practiceTimeEl = document.getElementById('practice-preview-time');
             const listenBtn = document.getElementById('practice-listen-btn');
+            const submitBtn = document.getElementById('practice-submit-btn');
+            const aiIntroEl = document.getElementById('ai-intro');
+            const aiTranscriptEl = document.getElementById('ai-transcript');
+            const aiPhoneticEl = document.getElementById('ai-phonetic');
+            const aiSuggestionsEl = document.getElementById('ai-suggestions');
+            const aiGeneralFeedbackEl = document.getElementById('ai-general-feedback');
+            const aiLoadingEl = document.getElementById('ai-loading');
+            const aiResultBadge = document.getElementById('ai-result-badge');
+            const aiResultIcon = document.getElementById('ai-result-icon');
+            const aiResultText = document.getElementById('ai-result-text');
+            const aiRecordingSection = document.querySelector('.practice-recording');
+            const aiSuggestionsSection = document.getElementById('ai-suggestion-section');
+            const aiCommentSection = document.querySelector('.practice-feedback__comment');
+            const feedbackSection = document.getElementById('feedback-section');
             const progressCompletedEl = document.getElementById('progress-completed');
             const progressTotalEl = document.getElementById('progress-total');
             const progressFillEl = document.getElementById('progress-fill');
             const prevBtn = document.getElementById('practice-prev');
             const nextBtn = document.getElementById('practice-next');
+            const completionModalEl = document.getElementById('practice-finish-modal');
+            const completionCloseBtn = document.getElementById('practice-finish-close');
+            const completionStayBtn = document.getElementById('practice-finish-stay');
+            const completionNextBtn = document.getElementById('practice-finish-next');
+            const resetBtn = document.getElementById('practice-reset-btn');
+            const resetModalEl = document.getElementById('practice-reset-modal');
+            const resetCancelBtn = document.getElementById('practice-reset-cancel');
+            const resetConfirmBtn = document.getElementById('practice-reset-confirm');
 
             const rawSS = ssDataEl ? ssDataEl.textContent : '{}';
             const rawHisSS = hisDataEl ? hisDataEl.textContent : '{}';
@@ -228,7 +228,15 @@ block scripts
 
                     return {
                         ...sentence,
-                        status: matchedHistory.passed ? 'completed' : 'need_repair'
+                        status: matchedHistory.passed ? 'completed' : 'need_repair',
+                        evaluate: {
+                            passed: matchedHistory.passed,
+                            enSentence: matchedHistory.enSentence,
+                            user_transcript: matchedHistory.user_transcript,
+                            user_phonetics: matchedHistory.user_phonetics,
+                            user_suggestions: matchedHistory.user_suggestions || [],
+                            general_feedback: matchedHistory.general_feedback || ''
+                        }
                     };
                 });
 
@@ -237,13 +245,26 @@ block scripts
                 progressFillEl.style.width = `${(countCompleted / dataSS.list.length) * 100}%`;
             }
 
+            const practiceSlug = dataSS?.slug || '';
+
             const state = {
                 sentences: Array.isArray(dataSS?.list) ? dataSS.list : [],
                 currentIndex: 0
             };
+            const completionState = {
+                wasFullyCompleted:
+                    Array.isArray(state.sentences) &&
+                    state.sentences.length > 0 &&
+                    state.sentences.every((sentence) => sentence.status === 'completed')
+            };
 
             const audioCache = new Map();
             let audioRequestId = 0;
+            const bodyScrollState = {
+                locked: false,
+                overflow: '',
+                paddingRight: ''
+            };
 
             const statusConfig = {
                 not_started: { label: 'Chưa luyện tập' },
@@ -340,6 +361,7 @@ block scripts
                 }
             };
 
+
             const renderPracticeSentence = () => {
                 if (!state.sentences.length) {
                     practiceTextEl.textContent = 'Chưa có câu luyện tập';
@@ -382,6 +404,12 @@ block scripts
 
                 if (prevBtn) prevBtn.disabled = state.currentIndex === 0;
                 if (nextBtn) nextBtn.disabled = state.currentIndex === state.sentences.length - 1;
+
+                if (currentSentence.evaluate) {
+                    renderAISuggestions(currentSentence.evaluate);
+                } else {
+                    resetAIFeedback();
+                }
             };
 
             const renderSidebar = () => {
@@ -437,6 +465,7 @@ block scripts
                     item.addEventListener('click', function () {
                         if (state.currentIndex === index) return;
                         state.currentIndex = index;
+                        clearPreviewRecording();
                         renderPracticeSentence();
                         renderSidebar();
                     });
@@ -445,9 +474,19 @@ block scripts
                 });
             };
 
+            const updateProgress = () => {
+                if (!progressCompletedEl || !progressTotalEl || !progressFillEl) return;
+                const completedCount = state.sentences.filter((s) => s.status === 'completed').length;
+                const total = state.sentences.length || 1;
+                progressCompletedEl.textContent = completedCount;
+                progressTotalEl.textContent = total;
+                progressFillEl.style.width = `${(completedCount / total) * 100}%`;
+            };
+
             const goToPrevious = () => {
                 if (state.currentIndex === 0) return;
                 state.currentIndex -= 1;
+                clearPreviewRecording();
                 renderPracticeSentence();
                 renderSidebar();
             };
@@ -455,8 +494,265 @@ block scripts
             const goToNext = () => {
                 if (state.currentIndex >= state.sentences.length - 1) return;
                 state.currentIndex += 1;
+                clearPreviewRecording();
                 renderPracticeSentence();
                 renderSidebar();
+            };
+
+            const lockBodyScroll = () => {
+                if (!document.body || bodyScrollState.locked) return;
+                const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+                bodyScrollState.locked = true;
+                bodyScrollState.overflow = document.body.style.overflow || '';
+                bodyScrollState.paddingRight = document.body.style.paddingRight || '';
+                document.body.style.overflow = 'hidden';
+                if (scrollBarWidth > 0) {
+                    document.body.style.paddingRight = `${scrollBarWidth}px`;
+                }
+            };
+
+            const unlockBodyScroll = () => {
+                if (!document.body || !bodyScrollState.locked) return;
+                document.body.style.overflow = bodyScrollState.overflow;
+                document.body.style.paddingRight = bodyScrollState.paddingRight;
+                bodyScrollState.locked = false;
+            };
+
+            const hideCompletionModal = () => {
+                if (!completionModalEl) return;
+                completionModalEl.classList.remove('practice-finish-modal--visible');
+                unlockBodyScroll();
+            };
+
+            const showCompletionModal = () => {
+                if (!completionModalEl) return;
+                completionModalEl.classList.add('practice-finish-modal--visible');
+                lockBodyScroll();
+            };
+
+            const showResetModal = () => {
+                if (!resetModalEl) return;
+                resetModalEl.classList.add('practice-reset-modal--visible');
+                lockBodyScroll();
+            };
+
+            const hideResetModal = () => {
+                if (!resetModalEl) return;
+                resetModalEl.classList.remove('practice-reset-modal--visible');
+                unlockBodyScroll();
+            };
+
+            const checkCompletionAfterEvaluate = () => {
+                if (!state.sentences.length) return;
+                const isAllCompleted = state.sentences.every((sentence) => sentence.status === 'completed');
+                if (!isAllCompleted) {
+                    completionState.wasFullyCompleted = false;
+                    return;
+                }
+                if (completionState.wasFullyCompleted) {
+                    return;
+                }
+                completionState.wasFullyCompleted = true;
+                showCompletionModal();
+            };
+
+            const renderAISuggestions = (evaluate) => {
+                if (!aiTranscriptEl || !aiSuggestionsEl || !aiGeneralFeedbackEl) return;
+
+                if (feedbackSection) {
+                    feedbackSection.classList.remove('practice-feedback--loading');
+                }
+
+                if (aiIntroEl) {
+                    aiIntroEl.style.display = 'none';
+                }
+
+                if (aiLoadingEl) {
+                    aiLoadingEl.style.display = 'none';
+                }
+
+                if (aiRecordingSection) {
+                    aiRecordingSection.style.display = '';
+                }
+
+                if (aiResultBadge && aiResultIcon && aiResultText) {
+                    if (typeof evaluate?.passed === 'boolean') {
+                        aiResultBadge.style.display = 'flex';
+                        aiResultBadge.classList.remove(
+                            'practice-feedback__result--success',
+                            'practice-feedback__result--fail'
+                        );
+
+                        if (evaluate.passed) {
+                            aiResultBadge.classList.add('practice-feedback__result--success');
+                            aiResultIcon.className = 'fas fa-check-circle';
+                            aiResultText.textContent = 'Tuyệt, phát âm tốt!';
+                        } else {
+                            aiResultBadge.classList.add('practice-feedback__result--fail');
+                            aiResultIcon.className = 'fas fa-times-circle';
+                            aiResultText.textContent = 'Cần cải thiện';
+                        }
+                    } else {
+                        aiResultBadge.style.display = 'none';
+                    }
+                }
+
+                if (aiResultBadge) {
+                    aiResultBadge.style.display = '';
+                }
+
+                aiTranscriptEl.textContent = evaluate?.user_transcript || '';
+
+                if (aiPhoneticEl) {
+                    aiPhoneticEl.textContent = evaluate?.user_phonetics || '';
+                }
+
+                aiSuggestionsEl.innerHTML = '';
+                const suggestions = Array.isArray(evaluate?.user_suggestions)
+                    ? evaluate.user_suggestions
+                    : [];
+
+                if (aiSuggestionsSection) {
+                    aiSuggestionsSection.style.display = suggestions.length ? '' : 'none';
+                }
+
+                if (suggestions.length) {
+                    suggestions.forEach((s) => {
+                        const item = document.createElement('div');
+                        item.className = 'practice-feedback__item';
+
+                        const word = document.createElement('div');
+                        word.className = 'practice-feedback__word';
+                        const icon = document.createElement('i');
+                        icon.className = 'fas fa-times practice-feedback__icon practice-feedback__icon--error';
+                        const wordText = document.createElement('span');
+                        wordText.className = 'practice-feedback__word-text';
+                        wordText.textContent = s.word || '';
+                        const speaker = document.createElement('i');
+                        speaker.className = 'fas fa-volume-up practice-feedback__speaker';
+
+                        word.appendChild(icon);
+                        word.appendChild(wordText);
+                        word.appendChild(speaker);
+
+                        const details = document.createElement('div');
+                        details.className = 'practice-feedback__details';
+
+                        if (s.feedback_issue) {
+                            const issue = document.createElement('div');
+                            issue.className = 'practice-feedback__issue';
+                            const warnIcon = document.createElement('i');
+                            warnIcon.className = 'fas fa-exclamation-triangle practice-feedback__warning';
+                            const p = document.createElement('p');
+                            p.textContent = s.feedback_issue;
+                            issue.appendChild(warnIcon);
+                            issue.appendChild(p);
+                            details.appendChild(issue);
+                        }
+
+                        if (s.feedback_tip) {
+                            const tip = document.createElement('div');
+                            tip.className = 'practice-feedback__tip';
+                            const checkIcon = document.createElement('i');
+                            checkIcon.className = 'fas fa-check practice-feedback__check';
+                            const p = document.createElement('p');
+                            p.textContent = s.feedback_tip;
+                            tip.appendChild(checkIcon);
+                            tip.appendChild(p);
+                            details.appendChild(tip);
+                        }
+
+                        item.appendChild(word);
+                        item.appendChild(details);
+                        aiSuggestionsEl.appendChild(item);
+                    });
+                }
+
+                const generalFeedback = (evaluate?.general_feedback || '').trim();
+                aiGeneralFeedbackEl.textContent = generalFeedback;
+
+                if (aiCommentSection) {
+                    aiCommentSection.classList.remove(
+                        'practice-feedback__comment--success',
+                        'practice-feedback__comment--fail'
+                    );
+
+                    if (generalFeedback) {
+                        const isPassed = evaluate?.passed !== false;
+                        aiCommentSection.style.display = '';
+                        aiCommentSection.classList.add(
+                            isPassed
+                                ? 'practice-feedback__comment--success'
+                                : 'practice-feedback__comment--fail'
+                        );
+                    } else {
+                        aiCommentSection.style.display = 'none';
+                    }
+                }
+            };
+
+            const resetAIFeedback = () => {
+                if (feedbackSection) {
+                    feedbackSection.classList.remove('practice-feedback--loading');
+                }
+                if (aiIntroEl) {
+                    aiIntroEl.style.display = '';
+                }
+                if (aiLoadingEl) {
+                    aiLoadingEl.style.display = 'none';
+                }
+                if (aiRecordingSection) {
+                    aiRecordingSection.style.display = 'none';
+                }
+                if (aiResultBadge) {
+                    aiResultBadge.style.display = 'none';
+                }
+                if (aiSuggestionsSection) {
+                    aiSuggestionsSection.style.display = 'none';
+                }
+                if (aiCommentSection) {
+                    aiCommentSection.style.display = 'none';
+                }
+                if (aiTranscriptEl) {
+                    aiTranscriptEl.textContent = '';
+                }
+                if (aiPhoneticEl) {
+                    aiPhoneticEl.textContent = '';
+                }
+                if (aiSuggestionsEl) {
+                    aiSuggestionsEl.innerHTML = '';
+                }
+                if (aiGeneralFeedbackEl) {
+                    aiGeneralFeedbackEl.textContent = '';
+                }
+            };
+
+            const updateHisSSUser = (evaluate) => {
+                if (!evaluate || !state.sentences.length) return;
+                const currentSentence = state.sentences[state.currentIndex];
+                if (!currentSentence) return;
+
+                const evaluateData = {
+                    passed: evaluate.passed,
+                    enSentence: currentSentence.enSentence,
+                    user_transcript: evaluate.user_transcript || '',
+                    user_phonetics: evaluate.user_phonetics || '',
+                    user_suggestions: Array.isArray(evaluate.user_suggestions)
+                        ? evaluate.user_suggestions
+                        : [],
+                    general_feedback: evaluate.general_feedback || ''
+                };
+
+                const updatedSentence = {
+                    ...currentSentence,
+                    status: evaluate.passed ? 'completed' : 'need_repair',
+                    evaluate: evaluateData
+                };
+
+                state.sentences[state.currentIndex] = updatedSentence;
+                renderSidebar();
+                updateProgress();
+                checkCompletionAfterEvaluate();
             };
 
             if (prevBtn) {
@@ -484,6 +780,7 @@ block scripts
                 }
             });
 
+            //- Handle recording audio for user
             const recordBtn = document.getElementById('practice-record-btn');
             const previewAudio = document.getElementById('practice-preview-audio');
             const previewPlayBtn = document.getElementById('practice-preview-play');
@@ -492,6 +789,72 @@ block scripts
             const previewVolumeBtn = document.getElementById('practice-preview-volume-btn');
             const previewVolumeControl = document.querySelector('.practice-recording__volume-control');
             const previewVolumeSlider = document.getElementById('practice-preview-volume');
+            const previewClearBtn = document.getElementById('practice-preview-clear');
+            if (completionCloseBtn) {
+                completionCloseBtn.addEventListener('click', hideCompletionModal);
+            }
+            if (completionStayBtn) {
+                completionStayBtn.addEventListener('click', hideCompletionModal);
+            }
+            if (completionNextBtn) {
+                completionNextBtn.addEventListener('click', function () {
+                    window.location.href = '/speaking-sentence';
+                });
+            }
+            if (completionModalEl) {
+                completionModalEl.addEventListener('click', function (event) {
+                    if (event.target === completionModalEl) {
+                        hideCompletionModal();
+                    }
+                });
+            }
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    showResetModal();
+                });
+            }
+            if (resetCancelBtn) {
+                resetCancelBtn.addEventListener('click', hideResetModal);
+            }
+            if (resetModalEl) {
+                resetModalEl.addEventListener('click', function (event) {
+                    if (event.target === resetModalEl) {
+                        hideResetModal();
+                    }
+                });
+            }
+            if (resetConfirmBtn) {
+                resetConfirmBtn.addEventListener('click', async function () {
+                    if (!practiceSlug) {
+                        hideResetModal();
+                        return;
+                    }
+                    resetConfirmBtn.disabled = true;
+                    try {
+                        const endpoint = ApiBreakpoint.DELETE_SS_HISTORY.replace(
+                            '{slug}',
+                            encodeURIComponent(practiceSlug)
+                        );
+                        const response = await fetch(endpoint, {
+                            method: 'DELETE'
+                        });
+                        if (!response.ok) {
+                            throw new Error('Failed to delete history');
+                        }
+                        window.location.reload();
+                    } catch (error) {
+                        console.error('Không thể xoá lịch sử luyện tập:', error);
+                        if (typeof window.alertError === 'function') {
+                            window.alertError('Không thể xoá lịch sử. Vui lòng thử lại.');
+                        } else {
+                            alert('Không thể xoá lịch sử. Vui lòng thử lại.');
+                        }
+                    } finally {
+                        resetConfirmBtn.disabled = false;
+                        hideResetModal();
+                    }
+                });
+            }
             
             let mediaRecorder = null;
             let audioChunks = [];
@@ -499,6 +862,44 @@ block scripts
             let recordedAudioBlob = null;
             let recordingStartTime = null;
             let recordingTimer = null;
+
+            function clearPreviewRecording() {
+                recordedAudioBlob = null;
+
+                if (previewAudio) {
+                    previewAudio.pause();
+                    previewAudio.currentTime = 0;
+                    previewAudio.removeAttribute('src');
+                    previewAudio.load();
+                }
+
+                if (previewTimeEl) {
+                    previewTimeEl.textContent = '0:00 / 0:00';
+                }
+
+                if (previewProgress) {
+                    previewProgress.value = 0;
+                    previewProgress.max = 100;
+                }
+
+                if (previewPlayBtn) {
+                    const icon = previewPlayBtn.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-pause');
+                        icon.classList.add('fa-play');
+                    }
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                }
+            }
+
+            clearPreviewRecording();
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+            }
 
             if (recordBtn) {
                 recordBtn.addEventListener('click', async function () {
@@ -530,6 +931,9 @@ block scripts
                                             previewTimeEl.textContent = `0:00 / ${formatTime(duration)}`;
                                         }
                                     }, { once: true });
+                                }
+                                if (submitBtn) {
+                                    submitBtn.disabled = false;
                                 }
                             };
                             
@@ -612,6 +1016,16 @@ block scripts
                 });
 
                 previewAudio.addEventListener('timeupdate', function() {
+                    if (!previewAudio.src || !previewAudio.duration || isNaN(previewAudio.duration)) {
+                        if (previewTimeEl) {
+                            previewTimeEl.textContent = '0:00 / 0:00';
+                        }
+                        if (previewProgress && !previewProgress.isSeeking) {
+                            previewProgress.value = 0;
+                        }
+                        return;
+                    }
+
                     if (previewTimeEl) {
                         const current = Math.floor(previewAudio.currentTime);
                         const duration = Math.floor(previewAudio.duration || 0);
@@ -688,6 +1102,39 @@ block scripts
                 });
             }
 
+            if (previewClearBtn) {
+                previewClearBtn.addEventListener('click', function () {
+                    recordedAudioBlob = null;
+
+                    if (previewAudio) {
+                        previewAudio.pause();
+                        previewAudio.removeAttribute('src');
+                        previewAudio.load();
+                    }
+
+                    if (previewTimeEl) {
+                        previewTimeEl.textContent = '0:00 / 0:00';
+                    }
+
+                    if (previewProgress) {
+                        previewProgress.value = 0;
+                        previewProgress.max = 100;
+                    }
+
+                    if (previewPlayBtn) {
+                        const icon = previewPlayBtn.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('fa-pause');
+                            icon.classList.add('fa-play');
+                        }
+                    }
+
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                    }
+                });
+            }
+
             if (listenBtn && practiceAudioSampleEl) {
                 let isPlaying = false;
                 const updateListenVisual = (playing) => {
@@ -741,4 +1188,73 @@ block scripts
                     }
                 });
             }
+
+            if (submitBtn) {
+                submitBtn.addEventListener('click', async function () {
+                    if (!practiceSlug) {
+                        console.warn('Không tìm thấy slug bài luyện tập');
+                        return;
+                    }
+                    if (!recordedAudioBlob) {
+                        alert('Vui lòng thu âm trước khi nộp.');
+                        return;
+                    }
+                    const currentSentence = state.sentences[state.currentIndex];
+                    if (!currentSentence || !currentSentence.enSentence) {
+                        console.warn('Không xác định được câu hiện tại.');
+                        return;
+                    }
+                    submitBtn.disabled = true;
+                    if (aiLoadingEl) {
+                        aiLoadingEl.style.display = 'flex';
+                    }
+                    if (feedbackSection) {
+                        feedbackSection.classList.add('practice-feedback--loading');
+                    }
+                    if (feedbackSection) {
+                        const targetTop =
+                            feedbackSection.getBoundingClientRect().top +
+                            window.pageYOffset -
+                            120;
+                        window.scrollTo({
+                            top: Math.max(targetTop, 0),
+                            behavior: 'smooth'
+                        });
+                    }
+                    try {
+                        const endpoint = ApiBreakpoint.POST_EVALUATE_SS.replace(
+                            '{slug}',
+                            encodeURIComponent(practiceSlug)
+                        );
+                        const formData = new FormData();
+                        formData.append(
+                            'audio',
+                            recordedAudioBlob,
+                            `practice-${Date.now()}.webm`
+                        );
+                        formData.append('enSentence', currentSentence.enSentence);
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const payload = await response.json();
+                        console.log('Kết quả đánh giá speaking:', payload);
+                        if (payload && payload.evaluate) {
+                            renderAISuggestions(payload.evaluate);
+                            updateHisSSUser(payload.evaluate);
+                        }
+                    } catch (error) {
+                        console.error('Không thể gửi đánh giá speaking:', error);
+                    } finally {
+                        submitBtn.disabled = false;
+                        if (aiLoadingEl) {
+                            aiLoadingEl.style.display = 'none';
+                        }
+                        if (feedbackSection) {
+                            feedbackSection.classList.remove('practice-feedback--loading');
+                        }
+                    }
+                });
+            }
+            //- End of handle recording audio for user
         });

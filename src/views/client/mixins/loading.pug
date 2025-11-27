@@ -1,0 +1,8 @@
+mixin loadingIndicator(text)
+    .loading-indicator(role='status' aria-live='polite')
+        .loading-indicator__spinner
+            span.loading-indicator__dot
+            span.loading-indicator__dot
+            span.loading-indicator__dot
+        span.loading-indicator__text #{text || 'Đang xử lý, vui lòng chờ...'}
+

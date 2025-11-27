@@ -4,7 +4,6 @@ import { SentenceSpeakingType } from './ss-list.schema'
 
 export type LetterSpeakingSuggestionType = {
   word: string
-  correct: boolean
   feedback_issue: string
   feedback_tip: string
 }
@@ -12,7 +11,6 @@ export type LetterSpeakingSuggestionType = {
 export type HisSSUserSentenceType = SentenceSpeakingType & {
   passed: boolean
   enSentence: string
-  user_voiceUrl: string
   user_transcript: string
   user_phonetics: string
   user_suggestions: LetterSpeakingSuggestionType[]
