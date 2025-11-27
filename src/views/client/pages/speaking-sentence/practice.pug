@@ -93,7 +93,7 @@ block main-content
                         |  Đánh giá từ AI
                     #ai-loading.practice-feedback__loading
                         +loadingIndicator('AI đang đánh giá phần luyện nói của bạn...')
-                    .practice-feedback__result.d-flex.align-items-center.gap-2#ai-result-badge(style="display: none;")
+                    .practice-feedback__result.practice-feedback__result--hidden#ai-result-badge
                         i#ai-result-icon.fw-bold
                         span#ai-result-text.fw-semibold
                     p#ai-intro.practice-feedback__intro.fw-semibold.text-dark
@@ -122,7 +122,7 @@ block main-content
                     .practice-sidebar__list#practice-sidebar-list
                         p.mb-0 Chưa có dữ liệu câu luyện tập
                 .practice-sidebar__actions
-                    button.practice-sidebar__action-btn.practice-sidebar__action-btn--quit(type="button")
+                    button#practice-quit-btn.practice-sidebar__action-btn.practice-sidebar__action-btn--quit(type="button")
                         i.fas.fa-sign-out-alt
                         |  Thoát
                     button.practice-sidebar__action-btn.practice-sidebar__action-btn--reset(type="button" id="practice-reset-btn")
@@ -186,6 +186,7 @@ block scripts
             const progressFillEl = document.getElementById('progress-fill');
             const prevBtn = document.getElementById('practice-prev');
             const nextBtn = document.getElementById('practice-next');
+            const quitBtn = document.getElementById('practice-quit-btn');
             const completionModalEl = document.getElementById('practice-finish-modal');
             const completionCloseBtn = document.getElementById('practice-finish-close');
             const completionStayBtn = document.getElementById('practice-finish-stay');
@@ -577,7 +578,7 @@ block scripts
 
                 if (aiResultBadge && aiResultIcon && aiResultText) {
                     if (typeof evaluate?.passed === 'boolean') {
-                        aiResultBadge.style.display = 'flex';
+                        aiResultBadge.classList.remove('practice-feedback__result--hidden');
                         aiResultBadge.classList.remove(
                             'practice-feedback__result--success',
                             'practice-feedback__result--fail'
@@ -593,12 +594,12 @@ block scripts
                             aiResultText.textContent = 'Cần cải thiện';
                         }
                     } else {
-                        aiResultBadge.style.display = 'none';
+                        aiResultBadge.classList.add('practice-feedback__result--hidden');
                     }
                 }
 
                 if (aiResultBadge) {
-                    aiResultBadge.style.display = '';
+                    aiResultBadge.classList.remove('practice-feedback__result--hidden');
                 }
 
                 aiTranscriptEl.textContent = evaluate?.user_transcript || '';
@@ -705,7 +706,7 @@ block scripts
                     aiRecordingSection.style.display = 'none';
                 }
                 if (aiResultBadge) {
-                    aiResultBadge.style.display = 'none';
+                    aiResultBadge.classList.add('practice-feedback__result--hidden');
                 }
                 if (aiSuggestionsSection) {
                     aiSuggestionsSection.style.display = 'none';
@@ -761,6 +762,12 @@ block scripts
 
             if (nextBtn) {
                 nextBtn.addEventListener('click', goToNext);
+            }
+
+            if (quitBtn) {
+                quitBtn.addEventListener('click', function () {
+                    window.location.href = '/speaking-sentence';
+                });
             }
 
             renderPracticeSentence();

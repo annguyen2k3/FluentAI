@@ -955,6 +955,10 @@
   width: 50%;
 }
 
+.practice-feedback__result--hidden {
+  display: none;
+}
+
 .practice-feedback__result--success {
   background: #ecfdf5;
   color: #047857;
