@@ -260,6 +260,7 @@ block scripts
             };
 
             const audioCache = new Map();
+            const wordAudioCache = new Map();
             let audioRequestId = 0;
             const bodyScrollState = {
                 locked: false,
@@ -359,6 +360,48 @@ block scripts
                     setPracticeAudioSource(generatedAudio);
                 } finally {
                     setListenBtnLoading(false);
+                }
+            };
+
+            let wordAudioElement = null;
+            const playWordAudio = async (word) => {
+                if (!word || !word.trim()) return;
+
+                const normalizedWord = word.trim().toLowerCase();
+                
+                if (!wordAudioElement) {
+                    wordAudioElement = document.createElement('audio');
+                    wordAudioElement.style.display = 'none';
+                    document.body.appendChild(wordAudioElement);
+                }
+
+                if (wordAudioCache.has(normalizedWord)) {
+                    wordAudioElement.src = wordAudioCache.get(normalizedWord);
+                    wordAudioElement.play().catch(error => {
+                        console.error('Không thể phát audio:', error);
+                    });
+                    return;
+                }
+
+                try {
+                    const generatedAudio = await requestPracticeAudio(normalizedWord);
+                    if (!generatedAudio) {
+                        if (typeof window.alertError === 'function') {
+                            window.alertError('Không tạo được audio cho từ này.');
+                        }
+                        return;
+                    }
+
+                    wordAudioCache.set(normalizedWord, generatedAudio);
+                    wordAudioElement.src = generatedAudio;
+                    wordAudioElement.play().catch(error => {
+                        console.error('Không thể phát audio:', error);
+                    });
+                } catch (error) {
+                    console.error('Lỗi khi phát audio từ:', error);
+                    if (typeof window.alertError === 'function') {
+                        window.alertError('Không thể phát âm từ này.');
+                    }
                 }
             };
 
@@ -631,6 +674,13 @@ block scripts
                         wordText.textContent = s.word || '';
                         const speaker = document.createElement('i');
                         speaker.className = 'fas fa-volume-up practice-feedback__speaker';
+                        speaker.style.cursor = 'pointer';
+                        speaker.addEventListener('click', async function() {
+                            const wordToPlay = s.word || '';
+                            if (!wordToPlay.trim()) return;
+                            
+                            await playWordAudio(wordToPlay.trim());
+                        });
 
                         word.appendChild(icon);
                         word.appendChild(wordText);

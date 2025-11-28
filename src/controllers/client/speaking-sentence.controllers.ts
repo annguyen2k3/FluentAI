@@ -246,3 +246,26 @@ export const deleteSSHistoryController = async (
     status: HttpStatus.OK
   })
 }
+
+// POST /speaking-sentence/preview-topic
+export const previewSSTopicController = async (req: Request, res: Response) => {
+  const { description } = req.body
+  const previewResult = await speakingServices.previewSSTopic(description)
+  res.status(HttpStatus.OK).json({
+    message: 'Xem trước chủ đề thành công',
+    status: HttpStatus.OK,
+    previewResult: previewResult
+  })
+}
+
+// GET /speaking-sentence/practice-custom-topic
+export const renderSSPracticeCustomTopicController = async (
+  req: Request,
+  res: Response
+) => {
+  const user = req.user as User
+  res.render('client/pages/speaking-sentence/practice-custom-topic.pug', {
+    pageTitle: 'Luyện tập câu phát âm - Chủ đề tùy chỉnh',
+    user: user
+  })
+}

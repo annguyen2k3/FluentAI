@@ -4,8 +4,10 @@ import {
   evaluateSSController,
   generateSSAudioController,
   getSSListController,
+  previewSSTopicController,
   renderSSListController,
-  renderSSPracticeController
+  renderSSPracticeController,
+  renderSSPracticeCustomTopicController
 } from '~/controllers/client/speaking-sentence.controllers'
 import { requireAuth } from '~/middlewares/users.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
@@ -54,6 +56,22 @@ speakingSentenceRoutes.post(
 speakingSentenceRoutes.delete(
   '/history/:slug',
   wrapRequestHandler(deleteSSHistoryController)
+)
+
+// POST /speaking-sentence/preview-topic
+// Description: Preview speaking sentence topic for user custom
+// Method: POST
+speakingSentenceRoutes.post(
+  '/preview-topic',
+  wrapRequestHandler(previewSSTopicController)
+)
+
+// GET /speaking-sentence/practice-custom-topic
+// Description: Render speaking sentence practice custom topic page
+// Method: GET
+speakingSentenceRoutes.get(
+  '/practice-custom-topic',
+  wrapRequestHandler(renderSSPracticeCustomTopicController)
 )
 
 export default speakingSentenceRoutes

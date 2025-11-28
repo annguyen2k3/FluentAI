@@ -6,3 +6,12 @@ mixin loadingIndicator(text)
             span.loading-indicator__dot
         span.loading-indicator__text #{text || 'Đang xử lý, vui lòng chờ...'}
 
+mixin loadingOverlay(id, text)
+    .loading-overlay(id=id, role='status' aria-live='polite', style='display: none;')
+        .loading-overlay__backdrop
+        .loading-overlay__content
+            .loading-overlay__spinner
+                span.loading-overlay__dot
+                span.loading-overlay__dot
+                span.loading-overlay__dot
+            span.loading-overlay__text #{text || 'Đang xử lý, vui lòng chờ...'}

@@ -3,7 +3,8 @@ import { databaseService } from './database.service'
 import {
   ResPromptSpeakingCompletion,
   ResPromptSpeakingInit,
-  ResPromptSpeakingSentencePreview
+  ResPromptSpeakingSentencePreview,
+  ResPromptSpeakingTopicPreview
 } from '~/models/responses/prompt/res-ss.schema'
 import {
   PromptFeature,
@@ -13,7 +14,8 @@ import {
 import {
   completeAndDeleteSession,
   resetAndInitSession,
-  sendInSession
+  sendInSession,
+  sendMessageOnce
 } from '~/utils/gemini'
 import { ErrorWithStatus } from '~/models/Errors'
 import { HttpStatus } from '~/constants/httpStatus'
@@ -287,6 +289,18 @@ class SpeakingServices {
       userId: new ObjectId(userId),
       ssListId: new ObjectId(practiceId)
     })
+  }
+
+  async previewSSTopic(description: string) {
+    const promptTpl = await loadPrompt(
+      PromptFeature.SPEAKING,
+      PromptFeatureType.PREVIEW_TOPIC
+    )
+    const prompt = fillTemplate(promptTpl, {
+      description_topic: description
+    })
+    const text = await sendMessageOnce(prompt)
+    return JSON.parse(text as string) as ResPromptSpeakingTopicPreview
   }
 }
 

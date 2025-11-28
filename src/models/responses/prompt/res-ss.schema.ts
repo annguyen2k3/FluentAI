@@ -1,4 +1,5 @@
 import { LetterSpeakingSuggestionType } from '~/models/schemas/his_ss_user.schema'
+import { SentenceSpeakingType } from '~/models/schemas/ss-list.schema'
 
 export interface ResPromptSpeakingInit {
   init_success: boolean
@@ -19,4 +20,11 @@ export interface ResPromptSpeakingCompletion {
   common_mistakes: string[]
   advice_for_improvement: string[]
   general_feedback: string
+}
+
+export interface ResPromptSpeakingTopicPreview {
+  passed: boolean
+  description: string
+  title: string
+  list: SentenceSpeakingType[]
 }

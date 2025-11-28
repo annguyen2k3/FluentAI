@@ -1,4 +1,5 @@
 extends ../../layouts/default.pug
+include ../../mixins/loading.pug
 
 block head
     link(rel="stylesheet" href="/css/common.css")
@@ -67,5 +68,214 @@ block main-content
                 button.speaking-choose__pagination-btn(type="button" disabled)
                     i.fas.fa-chevron-right
 
+    +loadingOverlay('preview-ss-loading-overlay', 'Đang tạo danh sách câu luyện phát âm...')
+
+    .preview-ss-modal#preview-ss-modal
+        .preview-ss-modal__backdrop
+        .preview-ss-modal__dialog
+            .preview-ss-modal__header
+                h5.preview-ss-modal__title Xem trước chủ đề
+                button.preview-ss-modal__close.btn-close(type="button" aria-label="Đóng" id="preview-ss-modal-close")
+                    i.fas.fa-times
+            .preview-ss-modal__body
+                .preview-ss-modal__section
+                    .preview-ss-modal__section-header
+                        span.preview-ss-modal__section-label Đánh giá chủ đề
+                        span#preview-ss-modal-status.preview-ss-modal__badge
+                    p#preview-ss-modal-description.preview-ss-modal__description
+                .preview-ss-modal__section
+                    .preview-ss-modal__section-header
+                        span.preview-ss-modal__section-label Số lượng câu tạo
+                        span#preview-ss-modal-count.preview-ss-modal__count
+                    ul#preview-ss-modal-list.preview-ss-modal__list
+            .preview-ss-modal__actions
+                button#preview-ss-regenerate-btn.btn.btn-outline-secondary(type="button") Tạo lại
+                button#preview-ss-start-btn.btn.btn-primary(type="button") Bắt đầu luyện tập
+
 block scripts
     script(type="module" src="/js/speaking-sentence.js")
+
+    script(type="module").
+        import { ApiBreakpoint } from '/js/api_breakpoint.js'
+
+        const generateAiBtn = document.getElementById('generate-ai-btn')
+        const customTopicInput = document.getElementById('custom-topic-input')
+        const loadingOverlay = document.getElementById('preview-ss-loading-overlay')
+
+        function showLoading() {
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'flex'
+                document.body.style.overflow = 'hidden'
+            }
+        }
+
+        function hideLoading() {
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none'
+                document.body.style.overflow = ''
+            }
+        }
+
+        const previewModal = document.getElementById('preview-ss-modal')
+        const previewModalDescription = document.getElementById('preview-ss-modal-description')
+        const previewModalStatus = document.getElementById('preview-ss-modal-status')
+        const previewModalCount = document.getElementById('preview-ss-modal-count')
+        const previewModalList = document.getElementById('preview-ss-modal-list')
+        const previewModalClose = document.getElementById('preview-ss-modal-close')
+        const previewStartBtn = document.getElementById('preview-ss-start-btn')
+        const previewRegenerateBtn = document.getElementById('preview-ss-regenerate-btn')
+
+        let currentPreviewData = null
+
+        function escapeHTML(text = '') {
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+        }
+
+        function showPreviewModal() {
+            if (previewModal) {
+                previewModal.classList.add('preview-ss-modal--visible')
+                document.body.style.overflow = 'hidden'
+            }
+        }
+
+        function hidePreviewModal() {
+            if (previewModal) {
+                previewModal.classList.remove('preview-ss-modal--visible')
+                document.body.style.overflow = ''
+            }
+        }
+
+        function renderPreviewModal(data) {
+            if (!data || !data.previewResult) return
+
+            const result = data.previewResult
+            currentPreviewData = result
+
+            if (previewModalDescription) {
+                previewModalDescription.textContent = result.description || ''
+            }
+
+            if (previewModalStatus) {
+                if (result.passed) {
+                    previewModalStatus.textContent = 'Đạt'
+                    previewModalStatus.className = 'preview-ss-modal__badge preview-ss-modal__badge--success'
+                } else {
+                    previewModalStatus.textContent = 'Không đạt'
+                    previewModalStatus.className = 'preview-ss-modal__badge preview-ss-modal__badge--danger'
+                }
+            }
+
+            if (previewModalCount) {
+                const count = result.list && Array.isArray(result.list) ? result.list.length : 0
+                previewModalCount.textContent = count.toString()
+            }
+
+            if (previewModalList) {
+                if (!result.list || result.list.length === 0) {
+                    previewModalList.innerHTML = '<li class="list-group-item text-center text-muted">Không có câu nào trong danh sách.</li>'
+                    return
+                }
+
+                previewModalList.innerHTML = result.list
+                    .map((sentence) => `
+                        <li class="preview-ss-modal__list-item">
+                            <span class="preview-ss-modal__list-item-en">${escapeHTML(sentence.enSentence || '')}</span>
+                            <span class="preview-ss-modal__list-item-vi">${escapeHTML(sentence.viSentence || '')}</span>
+                        </li>
+                    `)
+                    .join('')
+            }
+        }
+
+        const previewModalBackdrop = previewModal?.querySelector('.preview-ss-modal__backdrop')
+
+        if (previewModalClose) {
+            previewModalClose.addEventListener('click', function (e) {
+                e.stopPropagation()
+                hidePreviewModal()
+            })
+        }
+
+        if (previewModalBackdrop) {
+            previewModalBackdrop.addEventListener('click', function (e) {
+                e.stopPropagation()
+                hidePreviewModal()
+            })
+        }
+
+        if (previewModal) {
+            previewModal.addEventListener('click', function (event) {
+                if (event.target === previewModal) {
+                    hidePreviewModal()
+                }
+            })
+        }
+
+        const previewModalDialog = previewModal?.querySelector('.preview-ss-modal__dialog')
+        if (previewModalDialog) {
+            previewModalDialog.addEventListener('click', function (e) {
+                e.stopPropagation()
+            })
+        }
+
+        if (previewStartBtn) {
+            previewStartBtn.addEventListener('click', function () {
+                if (currentPreviewData && currentPreviewData.list && currentPreviewData.list.length > 0) {
+                    console.log('Bắt đầu luyện tập với data:', currentPreviewData)
+                    sessionStorage.setItem('preview-ss-data', JSON.stringify(currentPreviewData))
+                    hidePreviewModal()
+                }
+            })
+        }
+
+        if (previewRegenerateBtn) {
+            previewRegenerateBtn.addEventListener('click', function () {
+                hidePreviewModal()
+                if (generateAiBtn && customTopicInput) {
+                    generateAiBtn.click()
+                }
+            })
+        }
+
+        if (generateAiBtn && customTopicInput) {
+            generateAiBtn.addEventListener('click', async function (e) {
+                e.preventDefault()
+                const description = customTopicInput.value?.trim()
+                
+                if (!description) {
+                    console.warn('Vui lòng nhập chủ đề')
+                    return
+                }
+
+                generateAiBtn.disabled = true
+                showLoading()
+                try {
+                    const response = await fetch(ApiBreakpoint.POST_PREVIEW_SS_TOPIC, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json'
+                        },
+                        body: JSON.stringify({ description })
+                    })
+
+                    const data = await response.json()
+                    console.log('Preview SS Topic Result:', data)
+                    
+                    if (data.status === 200 && data.previewResult) {
+                        renderPreviewModal(data)
+                        showPreviewModal()
+                    }
+                } catch (error) {
+                    console.error('Error calling preview API:', error)
+                } finally {
+                    hideLoading()
+                    generateAiBtn.disabled = false
+                }
+            })
+        }
