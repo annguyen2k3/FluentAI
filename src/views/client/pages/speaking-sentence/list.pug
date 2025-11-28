@@ -228,7 +228,9 @@ block scripts
                 if (currentPreviewData && currentPreviewData.list && currentPreviewData.list.length > 0) {
                     console.log('Bắt đầu luyện tập với data:', currentPreviewData)
                     sessionStorage.setItem('preview-ss-data', JSON.stringify(currentPreviewData))
+                    sessionStorage.setItem('preview-ss-history', JSON.stringify([]))
                     hidePreviewModal()
+                    window.location.href = '/speaking-sentence/practice-custom-topic'
                 }
             })
         }

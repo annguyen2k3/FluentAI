@@ -109,14 +109,6 @@ export const renderSSPracticeController = async (
     ssListId: ss._id
   })
 
-  const init = await speakingServices.speakingInitChat(
-    user._id?.toString() as string,
-    ss._id?.toString() as string
-  )
-  if (!init.init_success) {
-    return res.redirect('/speaking-sentence')
-  }
-
   res.render('client/pages/speaking-sentence/practice.pug', {
     pageTitle: 'Luyện tập câu phát âm',
     user,
@@ -196,8 +188,6 @@ export const evaluateSSController = async (req: Request, res: Response) => {
     }
 
     const evaluate = (await speakingServices.speakingEvaluate(
-      user._id?.toString() as string,
-      ss._id?.toString() as string,
       enSentence,
       sttResult.transcript
     )) as HisSSUserSentenceType
@@ -268,4 +258,53 @@ export const renderSSPracticeCustomTopicController = async (
     pageTitle: 'Luyện tập câu phát âm - Chủ đề tùy chỉnh',
     user: user
   })
+}
+
+// POST /speaking-sentence/practice/custom-topic/evaluate
+export const evaluateSSCustomTopicController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { fields, file } = await handleUploadAudio(req)
+    const enSentenceField = fields.enSentence
+    const enSentence = Array.isArray(enSentenceField)
+      ? enSentenceField[0]
+      : enSentenceField
+    if (!enSentence || typeof enSentence !== 'string') {
+      await fs.unlink(file.filepath).catch(() => undefined)
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: 'Sentence is required',
+        status: HttpStatus.BAD_REQUEST
+      })
+    }
+
+    const audioBuffer = await fs.readFile(file.filepath)
+    await fs.unlink(file.filepath).catch(() => undefined)
+
+    const sttResult = await speechToText(audioBuffer)
+    if (!sttResult.success || !sttResult.transcript.trim()) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Không thể nhận dạng giọng nói',
+        status: HttpStatus.INTERNAL_SERVER_ERROR
+      })
+    }
+
+    const evaluate = (await speakingServices.speakingEvaluate(
+      enSentence,
+      sttResult.transcript
+    )) as HisSSUserSentenceType
+
+    res.status(HttpStatus.OK).json({
+      message: 'Đánh giá câu phát âm thành công',
+      status: HttpStatus.OK,
+      evaluate: evaluate
+    })
+  } catch (error) {
+    console.error('Error evaluating speaking custom topic:', error)
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      message: 'Không thể đánh giá câu phát âm',
+      status: HttpStatus.INTERNAL_SERVER_ERROR
+    })
+  }
 }

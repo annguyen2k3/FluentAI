@@ -194,8 +194,6 @@ class SpeakingServices {
   }
 
   async speakingEvaluate(
-    userId: string,
-    practiceId: string,
     enSentence: string,
     audio_data: string
   ): Promise<ResPromptSpeakingSentencePreview> {
@@ -207,7 +205,7 @@ class SpeakingServices {
       enSentence,
       audio_data
     })
-    const text = await sendInSession(userId, practiceId, prompt)
+    const text = await sendMessageOnce(prompt)
     return JSON.parse(text as string) as ResPromptSpeakingSentencePreview
   }
 

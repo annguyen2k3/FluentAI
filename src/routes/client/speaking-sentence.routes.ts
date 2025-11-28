@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
   deleteSSHistoryController,
   evaluateSSController,
+  evaluateSSCustomTopicController,
   generateSSAudioController,
   getSSListController,
   previewSSTopicController,
@@ -26,6 +27,23 @@ speakingSentenceRoutes.get('/', wrapRequestHandler(renderSSListController))
 // Query: level, topic, page, limit, search, sortKey, sortOrder, status
 speakingSentenceRoutes.get('/list', wrapRequestHandler(getSSListController))
 
+// POST /speaking-sentence/practice/audio
+// Description: Generate audio for speaking sentence
+// Method: POST
+speakingSentenceRoutes.post(
+  '/practice/audio',
+  wrapRequestHandler(generateSSAudioController)
+)
+
+// POST /speaking-sentence/practice/custom-topic/evaluate
+// Description: Evaluate speaking sentence for custom topic
+// Method: POST
+// NOTE: Must be before /practice/:slug routes to avoid route conflict
+speakingSentenceRoutes.post(
+  '/practice/custom-topic/evaluate',
+  wrapRequestHandler(evaluateSSCustomTopicController)
+)
+
 // GET /speaking-sentence/practice
 // Description: Render speaking sentence practice page
 // Method: GET
@@ -40,14 +58,6 @@ speakingSentenceRoutes.get(
 speakingSentenceRoutes.post(
   '/practice/:slug/evaluate',
   wrapRequestHandler(evaluateSSController)
-)
-
-// POST /speaking-sentence/practice/audio
-// Description: Generate audio for speaking sentence
-// Method: POST
-speakingSentenceRoutes.post(
-  '/practice/audio',
-  wrapRequestHandler(generateSSAudioController)
 )
 
 // DELETE /speaking-sentence/history/:slug
