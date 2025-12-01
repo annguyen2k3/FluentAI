@@ -1,4 +1,4 @@
-import { LetterSpeakingSuggestionType } from '~/models/schemas/his_ss_user.schema'
+import { LetterSpeakingSuggestionType } from '~/models/schemas/his-ss-user.schema'
 import { SentenceSpeakingType } from '~/models/schemas/ss-list.schema'
 
 export interface ResPromptSpeakingInit {

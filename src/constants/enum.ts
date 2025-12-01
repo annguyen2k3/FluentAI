@@ -61,3 +61,8 @@ export enum StatusLesson {
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed'
 }
+
+export enum HistoryUserType {
+  PRACTICE_SENTENCE = 'practice_sentence',
+  PRACTICE_SHADOWING = 'practice_shadowing'
+}

@@ -7,7 +7,6 @@ if (cardsContainer) {
   const topicSelect = document.getElementById('filter-topic')
   const statusSelect = document.getElementById('filter-status')
   const searchInput = document.getElementById('search-input')
-  const searchBtn = document.querySelector('.speaking-choose__search-btn')
   const clearBtn = document.getElementById('clear-filters-btn')
   const paginationInfo = document.querySelector(
     '.speaking-choose__pagination-info'
@@ -237,16 +236,20 @@ if (cardsContainer) {
   topicSelect?.addEventListener('change', applyFilters)
   statusSelect?.addEventListener('change', applyFilters)
 
-  if (searchBtn) {
-    searchBtn.addEventListener('click', applyFilters)
-  }
+  if (searchInput) {
+    let searchTimeout = null
+    searchInput.addEventListener('input', (event) => {
+      const target = event.target
+      const value = (target?.value || '').trim()
+      state.search = value
+      currentPage = 1
 
-  searchInput?.addEventListener('keypress', (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault()
-      applyFilters()
-    }
-  })
+      if (searchTimeout) clearTimeout(searchTimeout)
+      searchTimeout = setTimeout(() => {
+        fetchData()
+      }, 400)
+    })
+  }
 
   clearBtn?.addEventListener('click', () => {
     if (levelSelect) levelSelect.value = ''

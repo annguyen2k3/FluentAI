@@ -321,6 +321,35 @@
   padding: var(--spacing-sm) var(--spacing-xl);
 }
 
+/* Shadowing list specific tweaks */
+.sv-card__thumb-wrapper {
+  width: 100%;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--spacing-md);
+  background: #000;
+  max-height: 180px;
+}
+
+.sv-card__thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sv-card {
+  padding-top: 0;
+}
+
+.sv-card .speaking-card__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .speaking-choose__pagination {
   display: flex;
   justify-content: space-between;

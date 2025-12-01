@@ -9,7 +9,8 @@ import {
 import {
   PromptFeature,
   PromptFeatureType,
-  StatusLesson
+  StatusLesson,
+  HistoryUserType
 } from '~/constants/enum'
 import {
   completeAndDeleteSession,
@@ -21,7 +22,7 @@ import { ErrorWithStatus } from '~/models/Errors'
 import { HttpStatus } from '~/constants/httpStatus'
 import HisSSUser, {
   HisSSUserSentenceType
-} from '~/models/schemas/his_ss_user.schema'
+} from '~/models/schemas/his-ss-user.schema'
 
 function fillTemplate(tpl: string, vars: Record<string, string>) {
   return Object.keys(vars).reduce(
@@ -299,6 +300,149 @@ class SpeakingServices {
     })
     const text = await sendMessageOnce(prompt)
     return JSON.parse(text as string) as ResPromptSpeakingTopicPreview
+  }
+
+  async getSVList(find: {
+    level?: ObjectId
+    topic?: ObjectId
+    isActive?: boolean
+    page?: number
+    limit?: number
+    search?: string
+    sortKey?: string
+    sortOrder?: 'asc' | 'desc'
+    history?: {
+      userId: ObjectId
+      status?: StatusLesson
+    }
+  }) {
+    const {
+      page = 1,
+      limit = 10,
+      sortKey = 'pos',
+      sortOrder = 'asc',
+      history,
+      isActive,
+      ...matchQuery
+    } = find
+
+    const skip = (page - 1) * limit
+    const matchStage: Record<string, unknown> = {}
+
+    if (matchQuery.level) matchStage.level = matchQuery.level
+    if (matchQuery.topic) matchStage.topic = matchQuery.topic
+    if (matchQuery.search) {
+      matchStage.title = { $regex: matchQuery.search, $options: 'i' }
+    }
+    if (isActive !== undefined) matchStage.isActive = isActive
+
+    const basePipeline: Record<string, unknown>[] = [
+      { $match: matchStage },
+      {
+        $sort: {
+          [sortKey]: sortOrder === 'asc' ? 1 : -1
+        }
+      },
+      {
+        $lookup: {
+          from: 'levels',
+          localField: 'level',
+          foreignField: '_id',
+          as: 'level'
+        }
+      },
+      { $unwind: '$level' },
+      {
+        $lookup: {
+          from: 'topics',
+          localField: 'topic',
+          foreignField: '_id',
+          as: 'topic'
+        }
+      },
+      { $unwind: '$topic' }
+    ]
+
+    if (history?.userId) {
+      // Lấy history từ collection his_users (đã tối ưu), lọc theo user + type + svShadowingId
+      basePipeline.push({
+        $lookup: {
+          from: 'his_users',
+          let: { svId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$userId', history.userId] },
+                    { $eq: ['$type', HistoryUserType.PRACTICE_SHADOWING] },
+                    { $eq: ['$content.svShadowingId', '$$svId'] }
+                  ]
+                }
+              }
+            },
+            { $limit: 1 }
+          ],
+          as: 'history'
+        }
+      })
+
+      basePipeline.push({
+        $addFields: {
+          history: { $arrayElemAt: ['$history', 0] }
+        }
+      })
+
+      basePipeline.push({
+        $addFields: {
+          history: {
+            $cond: [{ $ifNull: ['$history', false] }, '$history', {}]
+          }
+        }
+      })
+
+      if (history.status) {
+        if (history.status === StatusLesson.NOT_STARTED) {
+          basePipeline.push({
+            $match: {
+              $or: [
+                { history: {} },
+                { 'history.content.status': { $exists: false } }
+              ]
+            }
+          })
+        } else {
+          basePipeline.push({
+            $match: {
+              'history.content.status': history.status
+            }
+          })
+        }
+      }
+    }
+
+    const dataPipeline = [...basePipeline, { $skip: skip }, { $limit: limit }]
+    const countPipeline = [...basePipeline, { $count: 'total' }]
+
+    const [data, totalResult] = await Promise.all([
+      databaseService.svShadowings.aggregate(dataPipeline).toArray(),
+      databaseService.svShadowings.aggregate(countPipeline).toArray()
+    ])
+
+    const total = totalResult[0]?.total || 0
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
+    }
   }
 }
 

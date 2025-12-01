@@ -11,7 +11,10 @@ import Prompts from '~/models/schemas/prompts.schema'
 import WPParagraph from '~/models/schemas/wp-paragraph.schema'
 import Admin from '~/models/schemas/admin.schema'
 import SSList from '~/models/schemas/ss-list.schema'
-import HisSSUser from '~/models/schemas/his_ss_user.schema'
+import HisSSUser from '~/models/schemas/his-ss-user.schema'
+import SVShadowing from '~/models/schemas/sv-shadowing.schema'
+import HisSVUser from '~/models/schemas/his-sv-user.schema'
+import HisUser from '~/models/schemas/his-user.schema'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.cp2tnzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -108,6 +111,14 @@ class DatabaseService {
 
   get hisSSUsers(): Collection<HisSSUser> {
     return this.db.collection('his_ss_users')
+  }
+
+  get svShadowings(): Collection<SVShadowing> {
+    return this.db.collection('sv_shadowings')
+  }
+
+  get hisUsers(): Collection<HisUser> {
+    return this.db.collection('his_users')
   }
 }
 
