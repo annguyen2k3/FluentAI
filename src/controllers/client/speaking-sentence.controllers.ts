@@ -206,7 +206,7 @@ export const evaluateSSController = async (req: Request, res: Response) => {
       evaluate: evaluate
     })
   } catch (error) {
-    console.error('Error evaluating speaking:', error)
+    console.error('Error evaluating speaking sentence:', error)
     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       message: 'Không thể đánh giá câu phát âm',
       status: HttpStatus.INTERNAL_SERVER_ERROR

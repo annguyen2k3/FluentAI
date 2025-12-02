@@ -23,6 +23,10 @@ import { HttpStatus } from '~/constants/httpStatus'
 import HisSSUser, {
   HisSSUserSentenceType
 } from '~/models/schemas/his-ss-user.schema'
+import HisSVUser, {
+  HisSVUserSentenceType
+} from '~/models/schemas/his-sv-user.schema'
+import HisUser from '~/models/schemas/his-user.schema'
 
 function fillTemplate(tpl: string, vars: Record<string, string>) {
   return Object.keys(vars).reduce(
@@ -443,6 +447,101 @@ class SpeakingServices {
         hasPrevPage: page > 1
       }
     }
+  }
+
+  async updateHisSVUser(
+    userId: string,
+    practiceId: string,
+    sentence: HisSVUserSentenceType
+  ) {
+    const userObjectId = new ObjectId(userId)
+    const practiceObjectId = new ObjectId(practiceId)
+
+    const hisUser = await databaseService.hisUsers.findOne({
+      userId: userObjectId,
+      type: HistoryUserType.PRACTICE_SHADOWING,
+      'content.svShadowingId': practiceObjectId
+    })
+
+    if (!hisUser) {
+      const newHisSVUser = new HisSVUser({
+        svShadowingId: practiceObjectId,
+        status: StatusLesson.IN_PROGRESS,
+        sentences: [sentence]
+      })
+
+      const newHisUser = new HisUser({
+        userId: userObjectId,
+        type: HistoryUserType.PRACTICE_SHADOWING,
+        content: newHisSVUser
+      })
+
+      await databaseService.hisUsers.insertOne(newHisUser)
+      return
+    }
+
+    const currentContent = hisUser.content as HisSVUser
+    const sentences = [...(currentContent.sentences || [])]
+
+    const existingIndex = sentences.findIndex(
+      (item) => item.enSentence === sentence.enSentence
+    )
+
+    if (existingIndex >= 0) {
+      sentences[existingIndex] = sentence
+    } else {
+      sentences.push(sentence)
+    }
+
+    const svShadowing = await databaseService.svShadowings.findOne({
+      _id: currentContent.svShadowingId
+    })
+
+    if (!svShadowing?.transcript?.length) {
+      await databaseService.hisUsers.updateOne(
+        { _id: hisUser._id },
+        {
+          $set: {
+            'content.sentences': sentences,
+            'content.status': StatusLesson.IN_PROGRESS,
+            update_at: new Date()
+          }
+        }
+      )
+      return
+    }
+
+    const allPassed = svShadowing.transcript.every((originalSentence) => {
+      const historySentence = sentences.find(
+        (item) =>
+          item.enSentence === originalSentence.enText ||
+          (item as any).enText === originalSentence.enText
+      )
+      return Boolean(historySentence && historySentence.passed)
+    })
+
+    const setFields: Record<string, unknown> = {
+      'content.sentences': sentences,
+      'content.status': allPassed
+        ? StatusLesson.COMPLETED
+        : StatusLesson.IN_PROGRESS,
+      update_at: new Date()
+    }
+
+    await databaseService.hisUsers.updateOne(
+      { _id: hisUser._id },
+      {
+        $set: setFields
+      }
+    )
+  }
+
+  async deleteSVHistory(userId: string, practiceId: string) {
+    await databaseService.hisUsers.deleteOne({
+      userId: new ObjectId(userId),
+      type: HistoryUserType.PRACTICE_SHADOWING,
+      'content.svShadowingId': new ObjectId(practiceId)
+    })
   }
 }
 

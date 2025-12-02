@@ -1,10 +1,14 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
+import fs from 'node:fs/promises'
 import { HistoryUserType, StatusLesson } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
+import { HisSVUserSentenceType } from '~/models/schemas/his-sv-user.schema'
 import User from '~/models/schemas/users.schema'
 import { databaseService } from '~/services/database.service'
 import speakingServices from '~/services/speaking.services'
+import { handleUploadAudio } from '~/utils/file'
+import { speechToText } from '~/utils/handle-speech'
 
 // GET /speaking-shadowing
 export const renderSpeakingShadowingController = async (
@@ -99,18 +103,98 @@ export const renderSVPracticeController = async (
     return res.redirect('/speaking-shadowing')
   }
 
-  const hisSV = await databaseService.hisUsers.findOne({
+  const hisSVDoc = await databaseService.hisUsers.findOne({
     userId: user._id,
     type: HistoryUserType.PRACTICE_SHADOWING,
-    content: {
-      svShadowingId: sv._id
-    }
+    'content.svShadowingId': sv._id
   })
 
   res.render('client/pages/speaking-shadowing/practice.pug', {
     pageTitle: 'Luyện tập Shadowing',
     user,
     sv,
-    hisSV
+    hisSV: hisSVDoc ? hisSVDoc.content : null
+  })
+}
+
+// POST /speaking-sentence/practice/evaluate
+export const evaluateSVController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const slug = req.params.slug as string
+  const sv = await databaseService.svShadowings.findOne({ slug: slug })
+  if (!sv) {
+    return res.redirect('/speaking-shadowing')
+  }
+  try {
+    const { fields, file } = await handleUploadAudio(req)
+    const enSentenceField = fields.enSentence
+    const enSentence = Array.isArray(enSentenceField)
+      ? enSentenceField[0]
+      : enSentenceField
+    if (!enSentence || typeof enSentence !== 'string') {
+      await fs.unlink(file.filepath).catch(() => undefined)
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: 'Sentence is required',
+        status: HttpStatus.BAD_REQUEST
+      })
+    }
+
+    const audioBuffer = await fs.readFile(file.filepath)
+    await fs.unlink(file.filepath).catch(() => undefined)
+
+    const sttResult = await speechToText(audioBuffer)
+    if (!sttResult.success || !sttResult.transcript.trim()) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Không thể nhận dạng giọng nói',
+        status: HttpStatus.INTERNAL_SERVER_ERROR
+      })
+    }
+
+    const evaluate = (await speakingServices.speakingEvaluate(
+      enSentence,
+      sttResult.transcript
+    )) as HisSVUserSentenceType
+
+    if (evaluate) {
+      await speakingServices.updateHisSVUser(
+        user._id?.toString() as string,
+        sv._id?.toString() as string,
+        evaluate
+      )
+    }
+
+    res.status(HttpStatus.OK).json({
+      message: 'Đánh giá câu phát âm thành công',
+      status: HttpStatus.OK,
+      evaluate: evaluate
+    })
+  } catch (error) {
+    console.error('Error evaluating speaking shadowing:', error)
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      message: 'Không thể đánh giá câu phát âm',
+      status: HttpStatus.INTERNAL_SERVER_ERROR
+    })
+  }
+}
+
+// DELETE /speaking-shadowing/history/:slug
+export const deleteSVHistoryController = async (
+  req: Request,
+  res: Response
+) => {
+  const user = req.user as User
+  const slug = req.params.slug as string
+  const sv = await databaseService.svShadowings.findOne({ slug: slug })
+  if (!sv) {
+    return res.redirect('/speaking-shadowing')
+  }
+  await speakingServices.deleteSVHistory(
+    user._id?.toString() as string,
+    sv._id?.toString() as string
+  )
+
+  res.status(HttpStatus.OK).json({
+    message: 'Lịch sử luyện tập Shadowing đã xóa thành công',
+    status: HttpStatus.OK
   })
 }

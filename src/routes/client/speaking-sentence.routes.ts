@@ -55,6 +55,9 @@ speakingSentenceRoutes.get(
 // POST /speaking-sentence/practice/evaluate
 // Description: Evaluate speaking sentence
 // Method: POST
+// Params: slug: string
+// Headers: Content-Type: multipart/form-data
+// Body: audio: file, enSentence: string
 speakingSentenceRoutes.post(
   '/practice/:slug/evaluate',
   wrapRequestHandler(evaluateSSController)

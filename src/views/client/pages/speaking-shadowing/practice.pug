@@ -1,4 +1,6 @@
 extends ../../layouts/default.pug
+include ../../mixins/loading.pug
+include ../../mixins/modalConfirm.pug
 
 block head
     link(rel="stylesheet" href="/css/common.css")
@@ -111,19 +113,35 @@ block main-content
                             | Câu tiếp theo 
                             i.fas.fa-arrow-right
 
-                .practice-feedback
+                .practice-feedback#sv-feedback-section
                     h3.practice-feedback__title
                         i.fa-solid.fa-robot.p-2(style="color: #2107e9;")
                         |  Đánh giá từ AI
-                    p.practice-feedback__intro.fw-semibold.text-dark
+                    #sv-ai-loading.practice-feedback__loading(style="display: none;")
+                        +loadingIndicator('AI đang đánh giá phần luyện nói của bạn...')
+                    .practice-feedback__result.practice-feedback__result--hidden#sv-ai-result-badge
+                        i#sv-ai-result-icon.fw-bold
+                        span#sv-ai-result-text.fw-semibold
+                    p.practice-feedback__intro.fw-semibold.text-dark#sv-ai-intro
                         | Nộp bài <span class="letter-highlight">Phát âm của bạn </span>để nhận phản hồi từ <span class="letter-highlight">AI</span>. Hệ thống sẽ xem xét bản dịch của bạn và chỉ ra những điểm mạnh cũng như những lĩnh vực cần cải thiện.
+                    .practice-recording.bg-white.border.rounded-3.p-3.mt-2(id="sv-ai-recording" style="display: none;")
+                        h4.practice-feedback__subtitle.text-primary.fw-semibold Your Transcript and Phonetics:
+                        .practice-recording__container.practice-recording__container--text-only.mt-2
+                            .practice-recording__transcript-box
+                                p#sv-ai-transcript.practice-recording__transcript
+                            .practice-recording__phonetic-box
+                                p#sv-ai-phonetic.practice-recording__phonetic
+                    .practice-feedback__suggestions#sv-ai-suggestion-section(style="display: none;")
+                        h4.practice-feedback__subtitle.mt-3 Suggestion:
+                        .practice-feedback__suggestions-list#sv-ai-suggestions
+                    .practice-feedback__comment#sv-ai-comment-section(style="display: none;")
+                        h4.practice-feedback__comment-title Nhận xét:
+                        p#sv-ai-general-feedback
 
         .col-lg-4
             .practice-sidebar#sv-sentence-sidebar
                 .practice-sidebar__header
                     h3.practice-sidebar__title Danh sách câu
-                    button.practice-sidebar__toggle#sv-sidebar-toggle(type="button")
-                        i.fas.fa-chevron-down
                 .practice-sidebar__content
                     .practice-sidebar__list#sv-sidebar-list
                         p.mb-0 Chưa có dữ liệu câu luyện tập
@@ -135,17 +153,26 @@ block main-content
                         i.fas.fa-sign-out-alt
                         |  Thoát
 
+    +modalConfirmDanger(
+        'sv-reset-modal',
+        'Xác nhận xoá lịch sử luyện tập?',
+        'Xác nhận xoá lịch sử luyện tập của bài shadowing này và luyện tập lại từ đầu.',
+        'Đồng ý',
+        'Hủy'
+    )
+
     script#sv-data(type="application/json") !{JSON.stringify(sv || {})}
     script#his-sv-data(type="application/json") !{JSON.stringify(hisSV || {})}
 
 block scripts
     script(type="module").
+        import { ApiBreakpoint } from '/js/api_breakpoint.js'
+
         document.addEventListener('DOMContentLoaded', function () {
             const svDataEl = document.getElementById('sv-data');
             const hisDataEl = document.getElementById('his-sv-data');
 
             const sidebar = document.getElementById('sv-sentence-sidebar');
-            const sidebarToggleBtn = document.getElementById('sv-sidebar-toggle');
             const sidebarListEl = document.getElementById('sv-sidebar-list');
 
             const sentenceTextEl = document.getElementById('sv-sentence-text');
@@ -159,6 +186,7 @@ block scripts
             const prevBtn = document.getElementById('sv-prev-btn');
             const nextBtn = document.getElementById('sv-next-btn');
             const quitBtn = document.getElementById('sv-quit-btn');
+            const resetBtn = document.getElementById('sv-reset-btn');
             const listenBtn = document.getElementById('sv-listen-btn');
 
             const recordBtn = document.getElementById('sv-record-btn');
@@ -177,6 +205,23 @@ block scripts
             const progressCompletedEl = document.getElementById('sv-progress-completed');
             const progressTotalEl = document.getElementById('sv-progress-total');
             const progressFillEl = document.getElementById('sv-progress-fill');
+
+            const feedbackSection = document.getElementById('sv-feedback-section');
+            const aiIntroEl = document.getElementById('sv-ai-intro');
+            const aiLoadingEl = document.getElementById('sv-ai-loading');
+            const aiResultBadge = document.getElementById('sv-ai-result-badge');
+            const aiResultIcon = document.getElementById('sv-ai-result-icon');
+            const aiResultText = document.getElementById('sv-ai-result-text');
+            const aiRecordingSection = document.getElementById('sv-ai-recording');
+            const aiTranscriptEl = document.getElementById('sv-ai-transcript');
+            const aiPhoneticEl = document.getElementById('sv-ai-phonetic');
+            const aiSuggestionsSection = document.getElementById('sv-ai-suggestion-section');
+            const aiSuggestionsEl = document.getElementById('sv-ai-suggestions');
+            const aiCommentSection = document.getElementById('sv-ai-comment-section');
+            const aiGeneralFeedbackEl = document.getElementById('sv-ai-general-feedback');
+            const resetModalEl = document.getElementById('sv-reset-modal');
+            const resetCancelBtn = document.getElementById('sv-reset-modal-cancel');
+            const resetConfirmBtn = document.getElementById('sv-reset-modal-confirm');
 
             const rawSV = svDataEl ? svDataEl.textContent : '{}';
             const rawHisSV = hisDataEl ? hisDataEl.textContent : '{}';
@@ -197,6 +242,87 @@ block scripts
             }
 
             const historySentences = Array.isArray(dataHisSV?.sentences) ? dataHisSV.sentences : [];
+            const practiceSlug = dataSV?.slug || '';
+
+            const wordAudioCache = new Map();
+            let wordAudioElement = null;
+
+            const bodyScrollState = {
+                locked: false,
+                overflow: '',
+                paddingRight: ''
+            };
+
+            const requestPracticeAudio = async (text) => {
+                if (!text) return null;
+                try {
+                    const response = await fetch(ApiBreakpoint.POST_PRACTICE_SS_AUDIO, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ text })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to generate audio');
+                    }
+
+                    const payload = await response.json();
+                    if (payload?.audio) {
+                        const mimeType = payload.contentType || 'audio/mpeg';
+                        return `data:${mimeType};base64,${payload.audio}`;
+                    }
+                    return null;
+                } catch (error) {
+                    console.error('Không tạo được audio:', error);
+                    if (typeof window.alertError === 'function') {
+                        window.alertError('Không tạo được audio mẫu, vui lòng thử lại.');
+                    }
+                    return null;
+                }
+            };
+
+            const playWordAudio = async (word) => {
+                if (!word || !word.trim()) return;
+
+                const normalizedWord = word.trim().toLowerCase();
+
+                if (!wordAudioElement) {
+                    wordAudioElement = document.createElement('audio');
+                    wordAudioElement.style.display = 'none';
+                    document.body.appendChild(wordAudioElement);
+                }
+
+                if (wordAudioCache.has(normalizedWord)) {
+                    wordAudioElement.src = wordAudioCache.get(normalizedWord);
+                    wordAudioElement.play().catch(error => {
+                        console.error('Không thể phát audio:', error);
+                    });
+                    return;
+                }
+
+                try {
+                    const generatedAudio = await requestPracticeAudio(normalizedWord);
+                    if (!generatedAudio) {
+                        if (typeof window.alertError === 'function') {
+                            window.alertError('Không tạo được audio cho từ này.');
+                        }
+                        return;
+                    }
+
+                    wordAudioCache.set(normalizedWord, generatedAudio);
+                    wordAudioElement.src = generatedAudio;
+                    wordAudioElement.play().catch(error => {
+                        console.error('Không thể phát audio:', error);
+                    });
+                } catch (error) {
+                    console.error('Lỗi khi phát audio từ:', error);
+                    if (typeof window.alertError === 'function') {
+                        window.alertError('Không thể phát âm từ này.');
+                    }
+                }
+            };
 
             const statusConfig = {
                 not_started: { label: 'Chưa luyện tập', itemClass: '', statusClass: '' },
@@ -395,13 +521,223 @@ block scripts
                 progressFillEl.style.width = total ? `${(completed / total) * 100}%` : '0%';
             };
 
+            const renderAISuggestions = (evaluate) => {
+                if (!aiTranscriptEl || !aiSuggestionsEl || !aiGeneralFeedbackEl) return;
+
+                if (feedbackSection) {
+                    feedbackSection.classList.remove('practice-feedback--loading');
+                }
+
+                if (aiIntroEl) {
+                    aiIntroEl.style.display = 'none';
+                }
+
+                if (aiLoadingEl) {
+                    aiLoadingEl.style.display = 'none';
+                }
+
+                if (aiRecordingSection) {
+                    aiRecordingSection.style.display = '';
+                }
+
+                if (aiResultBadge && aiResultIcon && aiResultText) {
+                    if (typeof evaluate?.passed === 'boolean') {
+                        aiResultBadge.classList.remove('practice-feedback__result--hidden');
+                        aiResultBadge.classList.remove(
+                            'practice-feedback__result--success',
+                            'practice-feedback__result--fail'
+                        );
+
+                        if (evaluate.passed) {
+                            aiResultBadge.classList.add('practice-feedback__result--success');
+                            aiResultIcon.className = 'fas fa-check-circle';
+                            aiResultText.textContent = 'Tuyệt, phát âm tốt!';
+                        } else {
+                            aiResultBadge.classList.add('practice-feedback__result--fail');
+                            aiResultIcon.className = 'fas fa-times-circle';
+                            aiResultText.textContent = 'Cần cải thiện';
+                        }
+                    } else {
+                        aiResultBadge.classList.add('practice-feedback__result--hidden');
+                    }
+                }
+
+                aiTranscriptEl.textContent = evaluate?.user_transcript || '';
+
+                if (aiPhoneticEl) {
+                    aiPhoneticEl.textContent = evaluate?.user_phonetics || '';
+                }
+
+                aiSuggestionsEl.innerHTML = '';
+                const suggestions = Array.isArray(evaluate?.user_suggestions)
+                    ? evaluate.user_suggestions
+                    : [];
+
+                if (aiSuggestionsSection) {
+                    aiSuggestionsSection.style.display = suggestions.length ? '' : 'none';
+                }
+
+                if (suggestions.length) {
+                    suggestions.forEach((s) => {
+                        const item = document.createElement('div');
+                        item.className = 'practice-feedback__item';
+
+                        const word = document.createElement('div');
+                        word.className = 'practice-feedback__word';
+
+                        const icon = document.createElement('i');
+                        icon.className = 'fas fa-times practice-feedback__icon practice-feedback__icon--error';
+
+                        const wordText = document.createElement('span');
+                        wordText.className = 'practice-feedback__word-text';
+                        wordText.textContent = s.word || '';
+
+                        const speaker = document.createElement('i');
+                        speaker.className = 'fas fa-volume-up practice-feedback__speaker';
+                        speaker.style.cursor = 'pointer';
+                        speaker.addEventListener('click', async function() {
+                            const wordToPlay = s.word || '';
+                            if (!wordToPlay.trim()) return;
+                            await playWordAudio(wordToPlay.trim());
+                        });
+
+                        word.appendChild(icon);
+                        word.appendChild(wordText);
+                        word.appendChild(speaker);
+
+                        const details = document.createElement('div');
+                        details.className = 'practice-feedback__details';
+
+                        if (s.feedback_issue) {
+                            const issue = document.createElement('div');
+                            issue.className = 'practice-feedback__issue';
+                            const warnIcon = document.createElement('i');
+                            warnIcon.className = 'fas fa-exclamation-triangle practice-feedback__warning';
+                            const p = document.createElement('p');
+                            p.textContent = s.feedback_issue;
+                            issue.appendChild(warnIcon);
+                            issue.appendChild(p);
+                            details.appendChild(issue);
+                        }
+
+                        if (s.feedback_tip) {
+                            const tip = document.createElement('div');
+                            tip.className = 'practice-feedback__tip';
+                            const checkIcon = document.createElement('i');
+                            checkIcon.className = 'fas fa-check practice-feedback__check';
+                            const p = document.createElement('p');
+                            p.textContent = s.feedback_tip;
+                            tip.appendChild(checkIcon);
+                            tip.appendChild(p);
+                            details.appendChild(tip);
+                        }
+
+                        item.appendChild(word);
+                        item.appendChild(details);
+                        aiSuggestionsEl.appendChild(item);
+                    });
+                }
+
+                const generalFeedback = (evaluate?.general_feedback || '').trim();
+                aiGeneralFeedbackEl.textContent = generalFeedback;
+
+                if (aiCommentSection) {
+                    aiCommentSection.classList.remove(
+                        'practice-feedback__comment--success',
+                        'practice-feedback__comment--fail'
+                    );
+
+                    if (generalFeedback) {
+                        const isPassed = evaluate?.passed !== false;
+                        aiCommentSection.style.display = '';
+                        aiCommentSection.classList.add(
+                            isPassed
+                                ? 'practice-feedback__comment--success'
+                                : 'practice-feedback__comment--fail'
+                        );
+                    } else {
+                        aiCommentSection.style.display = 'none';
+                    }
+                }
+            };
+
+            const resetAIFeedback = () => {
+                if (feedbackSection) {
+                    feedbackSection.classList.remove('practice-feedback--loading');
+                }
+                if (aiIntroEl) {
+                    aiIntroEl.style.display = '';
+                }
+                if (aiLoadingEl) {
+                    aiLoadingEl.style.display = 'none';
+                }
+                if (aiRecordingSection) {
+                    aiRecordingSection.style.display = 'none';
+                }
+                if (aiResultBadge) {
+                    aiResultBadge.classList.add('practice-feedback__result--hidden');
+                }
+                if (aiSuggestionsSection) {
+                    aiSuggestionsSection.style.display = 'none';
+                }
+                if (aiCommentSection) {
+                    aiCommentSection.style.display = 'none';
+                }
+                if (aiTranscriptEl) {
+                    aiTranscriptEl.textContent = '';
+                }
+                if (aiPhoneticEl) {
+                    aiPhoneticEl.textContent = '';
+                }
+                if (aiSuggestionsEl) {
+                    aiSuggestionsEl.innerHTML = '';
+                }
+                if (aiGeneralFeedbackEl) {
+                    aiGeneralFeedbackEl.textContent = '';
+                }
+            };
+
+            const lockBodyScroll = () => {
+                if (!document.body || bodyScrollState.locked) return;
+                const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+                bodyScrollState.locked = true;
+                bodyScrollState.overflow = document.body.style.overflow || '';
+                bodyScrollState.paddingRight = document.body.style.paddingRight || '';
+                document.body.style.overflow = 'hidden';
+                if (scrollBarWidth > 0) {
+                    document.body.style.paddingRight = `${scrollBarWidth}px`;
+                }
+            };
+
+            const unlockBodyScroll = () => {
+                if (!document.body || !bodyScrollState.locked) return;
+                document.body.style.overflow = bodyScrollState.overflow;
+                document.body.style.paddingRight = bodyScrollState.paddingRight;
+                bodyScrollState.locked = false;
+            };
+
+            const showResetModal = () => {
+                if (!resetModalEl) return;
+                resetModalEl.classList.add('practice-reset-modal--visible');
+                lockBodyScroll();
+            };
+
+            const hideResetModal = () => {
+                if (!resetModalEl) return;
+                resetModalEl.classList.remove('practice-reset-modal--visible');
+                unlockBodyScroll();
+            };
+
             const renderSentence = () => {
+                clearPreviewRecording();
+
                 if (!state.sentences.length) {
                     if (sentenceTextEl) sentenceTextEl.textContent = 'Chưa có câu luyện tập';
                     if (sentencePhoneticEl) sentencePhoneticEl.textContent = '';
                     if (sentenceTranslationEl) sentenceTranslationEl.textContent = 'Vui lòng quay lại sau.';
                     if (prevBtn) prevBtn.disabled = true;
                     if (nextBtn) nextBtn.disabled = true;
+                    resetAIFeedback();
                     return;
                 }
 
@@ -413,6 +749,12 @@ block scripts
 
                 if (prevBtn) prevBtn.disabled = state.currentIndex === 0;
                 if (nextBtn) nextBtn.disabled = state.currentIndex === state.sentences.length - 1;
+
+                if (currentSentence.evaluate) {
+                    renderAISuggestions(currentSentence.evaluate);
+                } else {
+                    resetAIFeedback();
+                }
             };
 
             const renderSidebar = () => {
@@ -850,38 +1192,171 @@ block scripts
 
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.addEventListener('click', function () {
+                submitBtn.addEventListener('click', async function () {
+                    if (!practiceSlug) {
+                        console.warn('Không tìm thấy slug bài luyện tập');
+                        return;
+                    }
                     if (!recordedAudioBlob) {
                         alert('Vui lòng thu âm trước khi nộp.');
                         return;
                     }
                     const currentSentence = state.sentences[state.currentIndex];
-                    console.log('SV submit audio placeholder', {
-                        sentence: currentSentence,
-                        blob: recordedAudioBlob
-                    });
-                    // TODO: Gửi recordedAudioBlob và thông tin câu lên API evaluate shadowing
+                    if (!currentSentence || !currentSentence.enText) {
+                        console.warn('Không xác định được câu hiện tại.');
+                        return;
+                    }
+
+                    submitBtn.disabled = true;
+
+                    if (aiLoadingEl) {
+                        aiLoadingEl.style.display = 'flex';
+                    }
+                    if (feedbackSection) {
+                        feedbackSection.classList.add('practice-feedback--loading');
+                        const targetTop =
+                            feedbackSection.getBoundingClientRect().top +
+                            window.pageYOffset -
+                            120;
+                        window.scrollTo({
+                            top: Math.max(targetTop, 0),
+                            behavior: 'smooth'
+                        });
+                    }
+
+                    try {
+                        const endpoint = ApiBreakpoint.POST_EVALUATE_SV.replace(
+                            '{slug}',
+                            encodeURIComponent(practiceSlug)
+                        );
+                        const formData = new FormData();
+                        formData.append(
+                            'audio',
+                            recordedAudioBlob,
+                            `shadowing-${Date.now()}.webm`
+                        );
+                        formData.append('enSentence', currentSentence.enText);
+
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Đánh giá thất bại');
+                        }
+
+                        const payload = await response.json();
+                        if (!payload || !payload.evaluate) {
+                            throw new Error('Dữ liệu đánh giá không hợp lệ');
+                        }
+
+                        const evaluate = payload.evaluate;
+
+                        state.sentences = state.sentences.map((sentence, index) => {
+                            if (sentence.enText !== currentSentence.enText) {
+                                return sentence;
+                            }
+                            const baseSentence = index === state.currentIndex ? currentSentence : sentence;
+                            return {
+                                ...baseSentence,
+                                status: evaluate.passed ? 'completed' : 'need_repair',
+                                evaluate: {
+                                    passed: evaluate.passed,
+                                    enSentence: evaluate.enSentence || baseSentence.enText,
+                                    user_transcript: evaluate.user_transcript || '',
+                                    user_phonetics: evaluate.user_phonetics || '',
+                                    user_suggestions: Array.isArray(evaluate.user_suggestions)
+                                        ? evaluate.user_suggestions
+                                        : [],
+                                    general_feedback: evaluate.general_feedback || ''
+                                }
+                            };
+                        });
+
+                        renderAISuggestions(evaluate);
+                        renderSidebar();
+                        renderProgress();
+                    } catch (error) {
+                        console.error('Không thể gửi đánh giá shadowing:', error);
+                        if (typeof window.alertError === 'function') {
+                            window.alertError('Không thể đánh giá câu phát âm, vui lòng thử lại.');
+                        } else {
+                            alert('Không thể đánh giá câu phát âm, vui lòng thử lại.');
+                        }
+                    } finally {
+                        submitBtn.disabled = false;
+                        if (aiLoadingEl) {
+                            aiLoadingEl.style.display = 'none';
+                        }
+                        if (feedbackSection) {
+                            feedbackSection.classList.remove('practice-feedback--loading');
+                        }
+                    }
+                });
+            }
+
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    if (!practiceSlug) {
+                        console.warn('Không tìm thấy slug bài luyện tập');
+                        return;
+                    }
+                    showResetModal();
+                });
+            }
+
+            if (resetCancelBtn) {
+                resetCancelBtn.addEventListener('click', function () {
+                    hideResetModal();
+                });
+            }
+
+            if (resetModalEl) {
+                resetModalEl.addEventListener('click', function (event) {
+                    if (event.target === resetModalEl) {
+                        hideResetModal();
+                    }
+                });
+            }
+
+            if (resetConfirmBtn) {
+                resetConfirmBtn.addEventListener('click', async function () {
+                    if (!practiceSlug) {
+                        hideResetModal();
+                        return;
+                    }
+
+                    resetConfirmBtn.disabled = true;
+                    try {
+                        const endpoint = ApiBreakpoint.DELETE_SV_HISTORY.replace(
+                            '{slug}',
+                            encodeURIComponent(practiceSlug)
+                        );
+                        const response = await fetch(endpoint, {
+                            method: 'DELETE'
+                        });
+                        if (!response.ok) {
+                            throw new Error('Không thể xoá lịch sử');
+                        }
+                        window.location.reload();
+                    } catch (error) {
+                        console.error('Không thể xoá lịch sử luyện tập shadowing:', error);
+                        if (typeof window.alertError === 'function') {
+                            window.alertError('Không thể xoá lịch sử luyện tập, vui lòng thử lại.');
+                        } else {
+                            alert('Không thể xoá lịch sử luyện tập, vui lòng thử lại.');
+                        }
+                    } finally {
+                        resetConfirmBtn.disabled = false;
+                        hideResetModal();
+                    }
                 });
             }
 
             if (quitBtn) {
                 quitBtn.addEventListener('click', function () {
                     window.location.href = '/speaking-shadowing';
-                });
-            }
-
-            if (sidebar && sidebarToggleBtn) {
-                sidebarToggleBtn.addEventListener('click', function () {
-                    sidebar.classList.toggle('practice-sidebar--collapsed');
-                    const icon = sidebarToggleBtn.querySelector('i');
-                    if (!icon) return;
-                    if (sidebar.classList.contains('practice-sidebar--collapsed')) {
-                        icon.classList.remove('fa-chevron-down');
-                        icon.classList.add('fa-chevron-up');
-                    } else {
-                        icon.classList.remove('fa-chevron-up');
-                        icon.classList.add('fa-chevron-down');
-                    }
                 });
             }
 

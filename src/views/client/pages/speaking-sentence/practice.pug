@@ -1,5 +1,6 @@
 extends ../../layouts/default.pug
 include ../../mixins/loading.pug
+include ../../mixins/modalConfirm.pug
 
 block head
     link(rel="stylesheet" href="/css/common.css")
@@ -117,18 +118,16 @@ block main-content
             .practice-sidebar#sentence-sidebar
                 .practice-sidebar__header
                     h3.practice-sidebar__title Danh sách câu
-                    button.practice-sidebar__toggle#sidebar-toggle(type="button")
-                        i.fas.fa-chevron-down
                 .practice-sidebar__content
                     .practice-sidebar__list#practice-sidebar-list
                         p.mb-0 Chưa có dữ liệu câu luyện tập
                 .practice-sidebar__actions
-                    button#practice-quit-btn.practice-sidebar__action-btn.practice-sidebar__action-btn--quit(type="button")
-                        i.fas.fa-sign-out-alt
-                        |  Thoát
                     button.practice-sidebar__action-btn.practice-sidebar__action-btn--reset(type="button" id="practice-reset-btn")
                         i.fas.fa-redo-alt
                         |  Luyện tập lại từ đầu
+                    button#practice-quit-btn.practice-sidebar__action-btn.practice-sidebar__action-btn--quit(type="button")
+                        i.fas.fa-sign-out-alt
+                        |  Thoát
 
     .practice-finish-modal#practice-finish-modal
         .practice-finish-modal__dialog
@@ -141,13 +140,13 @@ block main-content
                 button#practice-finish-stay.btn.btn-outline-secondary(type="button") Ở lại
                 button#practice-finish-next.btn.btn-primary(type="button") Chọn bài học tiếp theo
 
-    .practice-reset-modal#practice-reset-modal
-        .practice-reset-modal__dialog
-            h4.practice-reset-modal__title Xác nhận xoá lịch sử luyện tập?
-            p.practice-reset-modal__subtitle Xác nhận xoá lịch sử luyện tập của danh sách này và luyện tập lại từ đầu.
-            .practice-reset-modal__actions
-                button#practice-reset-cancel.btn.btn-outline-secondary(type="button") Hủy
-                button#practice-reset-confirm.btn.btn-danger(type="button") Đồng ý
+    +modalConfirmDanger(
+        'practice-reset-modal',
+        'Xác nhận xoá lịch sử luyện tập?',
+        'Xác nhận xoá lịch sử luyện tập của danh sách này và luyện tập lại từ đầu.',
+        'Đồng ý',
+        'Hủy'
+    )
 
     script#ss-data(type="application/json") !{JSON.stringify(ss || {})}
     script#his-ss-data(type="application/json") !{JSON.stringify(hisSS || {})}
@@ -158,7 +157,6 @@ block scripts
 
         document.addEventListener('DOMContentLoaded', function () {
             const sidebar = document.getElementById('sentence-sidebar');
-            const toggleBtn = document.getElementById('sidebar-toggle');
             const ssDataEl = document.getElementById('ss-data');
             const hisDataEl = document.getElementById('his-ss-data');
             const sidebarListEl = document.getElementById('practice-sidebar-list');
@@ -194,8 +192,8 @@ block scripts
             const completionNextBtn = document.getElementById('practice-finish-next');
             const resetBtn = document.getElementById('practice-reset-btn');
             const resetModalEl = document.getElementById('practice-reset-modal');
-            const resetCancelBtn = document.getElementById('practice-reset-cancel');
-            const resetConfirmBtn = document.getElementById('practice-reset-confirm');
+            const resetCancelBtn = document.getElementById('practice-reset-modal-cancel');
+            const resetConfirmBtn = document.getElementById('practice-reset-modal-confirm');
 
             const rawSS = ssDataEl ? ssDataEl.textContent : '{}';
             const rawHisSS = hisDataEl ? hisDataEl.textContent : '{}';
@@ -823,20 +821,6 @@ block scripts
 
             renderPracticeSentence();
             renderSidebar();
-
-            if (!sidebar || !toggleBtn) return;
-            toggleBtn.addEventListener('click', function () {
-                sidebar.classList.toggle('practice-sidebar--collapsed');
-                const icon = toggleBtn.querySelector('i');
-                if (!icon) return;
-                if (sidebar.classList.contains('practice-sidebar--collapsed')) {
-                    icon.classList.remove('fa-chevron-down');
-                    icon.classList.add('fa-chevron-up');
-                } else {
-                    icon.classList.remove('fa-chevron-up');
-                    icon.classList.add('fa-chevron-down');
-                }
-            });
 
             //- Handle recording audio for user
             const recordBtn = document.getElementById('practice-record-btn');
