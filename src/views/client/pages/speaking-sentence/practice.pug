@@ -64,25 +64,26 @@ block main-content
                                 | 1 
                                 i.fa-brands.fa-bitcoin(style="color: #ffd43b")
 
-                    .practice-sentence__preview-audio.mb-3
-                        audio#practice-preview-audio(style="display: none;")
-                        .practice-recording__container
-                            .practice-recording__player
-                                button#practice-preview-play.practice-recording__play-btn(type="button")
-                                    i.fas.fa-play
-                                .practice-recording__time#practice-preview-time 0:00 / 0:00
-                                input#practice-preview-progress.practice-recording__progress(type="range" min="0" max="100" value="0" step="0.1")
-                                button#practice-preview-volume-btn.practice-recording__volume-btn(type="button")
-                                    i.fas.fa-volume-up
-                                .practice-recording__volume-control(style="display: none;")
-                                    input#practice-preview-volume.practice-recording__volume-slider(type="range" min="0" max="100" value="75")
-                        button#practice-preview-clear.practice-recording__clear-btn(type="button")
-                            i.fas.fa-times
-
                     .practice-sentence__navigation
                         button#practice-prev.practice-sentence__nav-btn.practice-sentence__nav-btn--prev(type="button")
                             i.fas.fa-arrow-left
                             |  Câu trước
+                        .practice-sentence__preview-audio.mb-3
+                            audio#practice-preview-audio(style="display: none;")
+                            .practice-recording__container
+                                .practice-recording__player
+                                    button#practice-preview-play.practice-recording__play-btn(type="button")
+                                        i.fas.fa-play
+                                    .practice-recording__time#practice-preview-time 0:00 / 0:00
+                                    input#practice-preview-progress.practice-recording__progress(type="range" min="0" max="100" value="0" step="0.1")
+                                    button#practice-preview-volume-btn.practice-recording__volume-btn(type="button")
+                                        i.fas.fa-volume-up
+                                    .practice-recording__volume-control(style="display: none;")
+                                        input#practice-preview-volume.practice-recording__volume-slider(type="range" min="0" max="100" value="75")
+                            .practice-sentence__preview-hint
+                                em Nghe lại phát âm của bạn trước khi gửi đánh giá
+                            button#practice-preview-clear.practice-recording__clear-btn(type="button")
+                                i.fas.fa-times
                         button#practice-next.practice-sentence__nav-btn.practice-sentence__nav-btn--next(type="button")
                             | Câu tiếp theo 
                             i.fas.fa-arrow-right

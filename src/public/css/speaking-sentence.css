@@ -878,7 +878,7 @@
 
 .practice-sentence__navigation {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   gap: var(--spacing-xxl);
   margin-top: var(--spacing-lg);
 }
@@ -899,6 +899,28 @@
   flex: 0 0 auto;
   justify-content: center;
   min-width: 100px;
+}
+
+.practice-sentence__preview-audio {
+  position: relative;
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.practice-sentence__preview-audio .practice-recording__container {
+  max-width: 100%;
+}
+
+.practice-sentence__preview-hint {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+  font-size: var(--font-size-xs);
+  color: #6b7280;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .practice-sentence__nav-btn:hover {
@@ -1571,6 +1593,100 @@
 .practice-sidebar__item-status--error {
   color: #ef4444;
   font-weight: 600;
+}
+
+.practice-sidebar__item-time {
+  font-size: var(--font-size-xs);
+}
+
+.sv-video {
+  margin-bottom: var(--spacing-lg);
+}
+
+.sv-video__frame {
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  background: #000;
+}
+
+.sv-video__player {
+  width: 100%;
+  height: 300px;
+  display: block;
+}
+
+.sv-video__controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+}
+
+.sv-video__controls-left,
+.sv-video__controls-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.sv-video-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.sv-video-toggle__switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.sv-video-toggle__switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.sv-video-toggle__slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #9ca3af;
+  border-radius: 999px;
+  transition: background-color var(--transition-fast);
+}
+
+.sv-video-toggle__slider::before {
+  position: absolute;
+  content: '';
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  top: 3px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  transition: transform var(--transition-fast);
+}
+
+.sv-video-toggle__switch input:checked + .sv-video-toggle__slider {
+  background-color: var(--primary-color);
+}
+
+.sv-video-toggle__switch input:checked + .sv-video-toggle__slider::before {
+  transform: translateX(18px);
+}
+
+.sv-video-toggle__label {
+  font-size: var(--font-size-sm);
+  color: #4b5563;
+}
+
+@media (max-width: 768px) {
+  .sv-video__player {
+    height: 180px;
+  }
 }
 
 .practice-sidebar__actions {

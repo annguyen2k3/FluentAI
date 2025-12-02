@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
-import { StatusLesson } from '~/constants/enum'
+import { HistoryUserType, StatusLesson } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import User from '~/models/schemas/users.schema'
 import { databaseService } from '~/services/database.service'
@@ -84,5 +84,33 @@ export const getSVListController = async (req: Request, res: Response) => {
     message: 'Danh sách video shadowing đã lấy thành công',
     status: HttpStatus.OK,
     ...data
+  })
+}
+
+// GET /speaking-shadowing/practice/:slug
+export const renderSVPracticeController = async (
+  req: Request,
+  res: Response
+) => {
+  const user = req.user as User
+  const slug = req.params.slug as string
+  const sv = await databaseService.svShadowings.findOne({ slug: slug })
+  if (!sv) {
+    return res.redirect('/speaking-shadowing')
+  }
+
+  const hisSV = await databaseService.hisUsers.findOne({
+    userId: user._id,
+    type: HistoryUserType.PRACTICE_SHADOWING,
+    content: {
+      svShadowingId: sv._id
+    }
+  })
+
+  res.render('client/pages/speaking-shadowing/practice.pug', {
+    pageTitle: 'Luyện tập Shadowing',
+    user,
+    sv,
+    hisSV
   })
 }

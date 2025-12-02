@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import {
   getSVListController,
-  renderSpeakingShadowingController
+  renderSpeakingShadowingController,
+  renderSVPracticeController
 } from '~/controllers/client/speaking-shadowing.controllers'
 import { requireAuth } from '~/middlewares/users.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
@@ -25,6 +26,15 @@ speakingShadowingRoutes.get(
   '/list',
   requireAuth,
   wrapRequestHandler(getSVListController)
+)
+
+// GET /speaking-shadowing/practice/:slug
+// Description: Render speaking shadowing practice page
+// Method: GET
+speakingShadowingRoutes.get(
+  '/practice/:slug',
+  requireAuth,
+  wrapRequestHandler(renderSVPracticeController)
 )
 
 export default speakingShadowingRoutes
