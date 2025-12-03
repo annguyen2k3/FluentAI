@@ -13,7 +13,7 @@ export const renderListeningVideoController = async (
 ) => {
   const user = req.user as User
   const levels = await databaseService.levels.find({}).toArray()
-  const lvTopicIds = await databaseService.listeningVideos.distinct('topic')
+  const lvTopicIds = await databaseService.listeningVideos.distinct('topics')
   const topics = await databaseService.topics
     .find({ _id: { $in: lvTopicIds } })
     .toArray()

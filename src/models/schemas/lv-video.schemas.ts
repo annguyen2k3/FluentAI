@@ -26,7 +26,7 @@ interface ListeningVideoType {
   title: string
   description?: string
   time?: number
-  topic: ObjectId
+  topics: ObjectId[]
   level: ObjectId
   videoUrl: string
   thumbnailUrl?: string
@@ -44,7 +44,7 @@ export default class ListeningVideo {
   title: string
   description?: string
   time?: number
-  topic: ObjectId
+  topics: ObjectId[]
   level: ObjectId
   videoUrl: string
   thumbnailUrl?: string
@@ -62,7 +62,7 @@ export default class ListeningVideo {
     this.title = listeningVideo.title || ''
     this.description = listeningVideo.description || ''
     this.time = listeningVideo.time || 0
-    this.topic = listeningVideo.topic
+    this.topics = listeningVideo.topics
     this.level = listeningVideo.level
     this.videoUrl = listeningVideo.videoUrl
     this.thumbnailUrl =

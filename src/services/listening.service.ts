@@ -31,7 +31,7 @@ class ListeningService {
     const matchStage: Record<string, unknown> = {}
 
     if (matchQuery.level) matchStage.level = matchQuery.level
-    if (matchQuery.topic) matchStage.topic = matchQuery.topic
+    if (matchQuery.topic) matchStage.topics = matchQuery.topic
     if (matchQuery.search)
       matchStage.title = { $regex: matchQuery.search, $options: 'i' }
     if (typeof isActive === 'boolean') matchStage.isActive = isActive
@@ -55,12 +55,11 @@ class ListeningService {
       {
         $lookup: {
           from: 'topics',
-          localField: 'topic',
+          localField: 'topics',
           foreignField: '_id',
           as: 'topic'
         }
-      },
-      { $unwind: '$topic' }
+      }
     ]
 
     if (history?.userId) {
