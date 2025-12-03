@@ -13,8 +13,8 @@ import Admin from '~/models/schemas/admin.schema'
 import SSList from '~/models/schemas/ss-list.schema'
 import HisSSUser from '~/models/schemas/his-ss-user.schema'
 import SVShadowing from '~/models/schemas/sv-shadowing.schema'
-import HisSVUser from '~/models/schemas/his-sv-user.schema'
 import HisUser from '~/models/schemas/his-user.schema'
+import ListeningVideo from '~/models/schemas/lv-video.schemas'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.cp2tnzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -119,6 +119,10 @@ class DatabaseService {
 
   get hisUsers(): Collection<HisUser> {
     return this.db.collection('his_users')
+  }
+
+  get listeningVideos(): Collection<ListeningVideo> {
+    return this.db.collection('lv_videos')
   }
 }
 

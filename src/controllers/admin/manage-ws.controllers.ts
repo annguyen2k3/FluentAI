@@ -3,7 +3,7 @@ import { Admin, ObjectId } from 'mongodb'
 import { HttpStatus } from '~/constants/httpStatus'
 import { PartOfSpeech } from '~/constants/enum'
 import WSList from '~/models/schemas/ws-list.schema'
-import categoriesServices from '~/services/categories.services'
+import categoriesServices from '~/services/categories.service'
 import writingService from '~/services/writing.service'
 import { databaseService } from '~/services/database.service'
 

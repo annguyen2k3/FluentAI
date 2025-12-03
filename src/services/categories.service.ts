@@ -6,7 +6,10 @@ import { ObjectId } from 'mongodb'
 
 class CategoriesServices {
   async getLevels() {
-    const levels = await databaseService.levels.find().sort({ pos: 1 }).toArray()
+    const levels = await databaseService.levels
+      .find()
+      .sort({ pos: 1 })
+      .toArray()
     return levels
   }
 
@@ -19,7 +22,9 @@ class CategoriesServices {
   ) {
     const level = new Levels({ title, description, fa_class_icon, slug, pos })
     const result = await databaseService.levels.insertOne(level)
-    const createdLevel = await databaseService.levels.findOne({ _id: result.insertedId })
+    const createdLevel = await databaseService.levels.findOne({
+      _id: result.insertedId
+    })
     return createdLevel
   }
 
@@ -35,7 +40,9 @@ class CategoriesServices {
       { _id: new ObjectId(id) },
       { $set: { title, description, fa_class_icon, slug, pos } }
     )
-    const updatedLevel = await databaseService.levels.findOne({ _id: new ObjectId(id) })
+    const updatedLevel = await databaseService.levels.findOne({
+      _id: new ObjectId(id)
+    })
     return updatedLevel
   }
 
@@ -62,7 +69,9 @@ class CategoriesServices {
   ) {
     const type = new Types({ title, description, fa_class_icon, slug, pos })
     const result = await databaseService.types.insertOne(type)
-    const createdType = await databaseService.types.findOne({ _id: result.insertedId })
+    const createdType = await databaseService.types.findOne({
+      _id: result.insertedId
+    })
     return createdType
   }
 
@@ -78,7 +87,9 @@ class CategoriesServices {
       { _id: new ObjectId(id) },
       { $set: { title, description, fa_class_icon, slug, pos } }
     )
-    const updatedType = await databaseService.types.findOne({ _id: new ObjectId(id) })
+    const updatedType = await databaseService.types.findOne({
+      _id: new ObjectId(id)
+    })
     return updatedType
   }
 
@@ -92,7 +103,10 @@ class CategoriesServices {
   }
 
   async getTopics() {
-    const topics = await databaseService.topics.find().sort({ pos: 1 }).toArray()
+    const topics = await databaseService.topics
+      .find()
+      .sort({ pos: 1 })
+      .toArray()
     return topics
   }
 
@@ -105,7 +119,9 @@ class CategoriesServices {
   ) {
     const topic = new Topics({ title, description, fa_class_icon, slug, pos })
     const result = await databaseService.topics.insertOne(topic)
-    const createdTopic = await databaseService.topics.findOne({ _id: result.insertedId })
+    const createdTopic = await databaseService.topics.findOne({
+      _id: result.insertedId
+    })
     return createdTopic
   }
 
@@ -121,7 +137,9 @@ class CategoriesServices {
       { _id: new ObjectId(id) },
       { $set: { title, description, fa_class_icon, slug, pos } }
     )
-    const updatedTopic = await databaseService.topics.findOne({ _id: new ObjectId(id) })
+    const updatedTopic = await databaseService.topics.findOne({
+      _id: new ObjectId(id)
+    })
     return updatedTopic
   }
 

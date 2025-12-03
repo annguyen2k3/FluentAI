@@ -6,7 +6,7 @@ import { HttpStatus } from '~/constants/httpStatus'
 import { HisSVUserSentenceType } from '~/models/schemas/his-sv-user.schema'
 import User from '~/models/schemas/users.schema'
 import { databaseService } from '~/services/database.service'
-import speakingServices from '~/services/speaking.services'
+import speakingServices from '~/services/speaking.service'
 import { handleUploadAudio } from '~/utils/file'
 import { speechToText } from '~/utils/handle-speech'
 
@@ -105,7 +105,7 @@ export const renderSVPracticeController = async (
 
   const hisSVDoc = await databaseService.hisUsers.findOne({
     userId: user._id,
-    type: HistoryUserType.PRACTICE_SHADOWING,
+    type: HistoryUserType.PRACTICE_SPEAKING_SHADOWING,
     'content.svShadowingId': sv._id
   })
 

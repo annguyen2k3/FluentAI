@@ -33,7 +33,7 @@ export default class HisSVUser {
   update_at?: Date
 
   constructor(hisSVUser: HisSVUserType) {
-    this.svShadowingId = hisSVUser.svShadowingId
+    this.svShadowingId = hisSVUser.svShadowingId || new ObjectId()
     this.status = hisSVUser.status || StatusLesson.IN_PROGRESS
     this.sentences = hisSVUser.sentences || []
     this.create_at = hisSVUser.create_at || new Date()

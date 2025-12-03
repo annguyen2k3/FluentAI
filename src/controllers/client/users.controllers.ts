@@ -24,12 +24,16 @@ import { deleteFileFromS3 } from '~/utils/s3'
 
 // GET /users/login
 export const getLoginController = (req: Request, res: Response) => {
-  res.render('client/pages/auth/login.pug', { pageTitle: 'FluentAI - Đăng nhập' })
+  res.render('client/pages/auth/login.pug', {
+    pageTitle: 'FluentAI - Đăng nhập'
+  })
 }
 
 // GET /users/logout
 export const logoutController = async (req: Request, res: Response) => {
-  await databaseService.refreshTokens.deleteOne({ token: req.cookies.refresh_token })
+  await databaseService.refreshTokens.deleteOne({
+    token: req.cookies.refresh_token
+  })
   res.clearCookie('refresh_token')
   res.clearCookie('access_token')
   res.redirect('/users/login')
@@ -69,13 +73,19 @@ export const loginController = async (
 }
 
 // GET /users/google/start
-export const googleOAuthStartController = async (req: Request, res: Response) => {
+export const googleOAuthStartController = async (
+  req: Request,
+  res: Response
+) => {
   const url = await userService.getGooogleAuthUrl()
   return res.redirect(url)
 }
 
 // GET /users/google/callback
-export const googleOAuthCallbackController = async (req: Request, res: Response) => {
+export const googleOAuthCallbackController = async (
+  req: Request,
+  res: Response
+) => {
   const code = String(req.query.code || '')
   if (!code) return res.status(HttpStatus.BAD_REQUEST).send('Missing code')
 
@@ -97,7 +107,9 @@ export const googleOAuthCallbackController = async (req: Request, res: Response)
 
 // GET /users/register
 export const getRegisterController = (req: Request, res: Response) => {
-  res.render('client/pages/auth/register.pug', { pageTitle: 'FluentAI - Đăng ký' })
+  res.render('client/pages/auth/register.pug', {
+    pageTitle: 'FluentAI - Đăng ký'
+  })
 }
 
 // POST /users/register
@@ -154,7 +166,9 @@ export const verifyEmailController = async (
 
 // GET /users/forgot-password
 export const getForgotPasswordController = (req: Request, res: Response) => {
-  res.render('client/pages/auth/forgot-password.pug', { pageTitle: 'FluentAI - Quên mật khẩu' })
+  res.render('client/pages/auth/forgot-password.pug', {
+    pageTitle: 'FluentAI - Quên mật khẩu'
+  })
 }
 
 // POST /users/forgot-password/email
@@ -173,7 +187,10 @@ export const forgotPasswordEmailController = async (
 }
 
 // GET /users/forgot-password/otp
-export const getForgotPasswordOTPController = async (req: Request, res: Response) => {
+export const getForgotPasswordOTPController = async (
+  req: Request,
+  res: Response
+) => {
   const email = req.cookies.emailForgotPassword as string
 
   if (!email) {
@@ -202,7 +219,10 @@ export const forgotPasswordOTPController = async (
 }
 
 // GET /users/forgot-password/reset
-export const getForgotPasswordResetController = async (req: Request, res: Response) => {
+export const getForgotPasswordResetController = async (
+  req: Request,
+  res: Response
+) => {
   const otp = req.cookies.otpForgotPassword as string
   const email = req.cookies.emailForgotPassword as string
 
@@ -264,7 +284,9 @@ export const updateProfileController = async (req: Request, res: Response) => {
     newInfo.gender
   )
 
-  const newUser = await databaseService.users.findOne({ _id: new ObjectId(user._id) })
+  const newUser = await databaseService.users.findOne({
+    _id: new ObjectId(user._id)
+  })
 
   const returnUser = omit(newUser, ['password'])
 
@@ -292,7 +314,10 @@ export const changePasswordController = async (
 }
 
 // PATCH /users/profile/avatar
-export const updateAvatarProfileController = async (req: Request, res: Response) => {
+export const updateAvatarProfileController = async (
+  req: Request,
+  res: Response
+) => {
   const user = req.user as User
 
   const result = await mediasService.uploadImage(req)

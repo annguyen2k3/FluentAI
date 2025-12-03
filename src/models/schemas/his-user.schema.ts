@@ -2,12 +2,13 @@ import { ObjectId } from 'mongodb'
 import { HistoryUserType } from '~/constants/enum'
 import HisSVUser from './his-sv-user.schema'
 import HisSSUser from './his-ss-user.schema'
+import HisLVUser from './his-lv.schema'
 
 type HisUserType = {
   _id?: ObjectId
   userId: ObjectId
   type: HistoryUserType
-  content: HisSVUser | HisSSUser
+  content: HisSVUser | HisSSUser | HisLVUser
   create_at?: Date
   update_at?: Date
 }
@@ -16,7 +17,7 @@ export default class HisUser {
   _id?: ObjectId
   userId: ObjectId
   type: HistoryUserType
-  content: HisSVUser | HisSSUser
+  content: HisSVUser | HisSSUser | HisLVUser
   create_at?: Date
   update_at?: Date
 

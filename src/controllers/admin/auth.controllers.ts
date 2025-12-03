@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import md5 from 'md5'
 import { ObjectId } from 'mongodb'
 import { HttpStatus } from '~/constants/httpStatus'
-import adminServices from '~/services/admin.services'
+import adminServices from '~/services/admin.service'
 import { databaseService } from '~/services/database.service'
 import mediasService from '~/services/medias.service'
 import { deleteFileFromS3 } from '~/utils/s3'
@@ -19,7 +19,10 @@ export const getLoginController = async (req: Request, res: Response) => {
 // POST /admin/auth/login
 export const loginController = async (req: Request, res: Response) => {
   const { username, password } = req.body
-  const admin = await databaseService.admins.findOne({ username, password: md5(password) })
+  const admin = await databaseService.admins.findOne({
+    username,
+    password: md5(password)
+  })
   if (!admin) {
     return res.status(HttpStatus.UNAUTHORIZED).json({
       message: 'Sai tên đăng nhập hoặc mật khẩu',
@@ -51,7 +54,10 @@ export const logoutController = async (req: Request, res: Response) => {
 // GET /admin/auth/profile
 export const getProfileController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
-  res.render('admin/pages/auth/profile.pug', { pageTitle: 'Admin - Thông tin cá nhân', admin: admin })
+  res.render('admin/pages/auth/profile.pug', {
+    pageTitle: 'Admin - Thông tin cá nhân',
+    admin: admin
+  })
 }
 
 // PUT /admin/auth/profile
@@ -64,7 +70,9 @@ export const updateProfileController = async (req: Request, res: Response) => {
     { $set: { username, email, update_at: new Date() } }
   )
 
-  const updatedAdmin = await databaseService.admins.findOne({ _id: new ObjectId(admin._id) })
+  const updatedAdmin = await databaseService.admins.findOne({
+    _id: new ObjectId(admin._id)
+  })
   const returnAdmin = omit(updatedAdmin, ['password'])
 
   res.status(HttpStatus.OK).json({
@@ -92,14 +100,20 @@ export const changePasswordController = async (req: Request, res: Response) => {
 }
 
 // PATCH /admin/auth/profile/avatar
-export const updateAvatarProfileController = async (req: Request, res: Response) => {
+export const updateAvatarProfileController = async (
+  req: Request,
+  res: Response
+) => {
   const admin = req.admin as Admin
 
   const result = await mediasService.uploadImage(req)
 
   await Promise.all([
     deleteFileFromS3({ filename: admin.avatar as string }),
-    databaseService.admins.updateOne({ _id: new ObjectId(admin._id) }, { $set: { avatar: result[0].url } })
+    databaseService.admins.updateOne(
+      { _id: new ObjectId(admin._id) },
+      { $set: { avatar: result[0].url } }
+    )
   ])
 
   res.status(HttpStatus.OK).json({

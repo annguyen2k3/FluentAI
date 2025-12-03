@@ -5,6 +5,7 @@ import writingSentenceRoutes from './writing-sentence.routes'
 import writingParagraphRoutes from './writing-paragraph.routes'
 import speakingSentenceRoutes from './speaking-sentence.routes'
 import speakingShadowingRoutes from './speaking-shadowing.routes'
+import listeningVideoRoutes from './listening-video.routes'
 
 export default function (app: Express) {
   app.get('/', requireAuth, (req: Request, res: Response) => {
@@ -31,4 +32,6 @@ export default function (app: Express) {
   app.use('/speaking-sentence', speakingSentenceRoutes)
 
   app.use('/speaking-shadowing', speakingShadowingRoutes)
+
+  app.use('/listening-video', listeningVideoRoutes)
 }

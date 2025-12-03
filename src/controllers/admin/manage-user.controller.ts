@@ -9,10 +9,21 @@ import User from '~/models/schemas/users.schema'
 const prefixAdmin = process.env.PREFIX_ADMIN
 
 // GET /admin/users
-export const renderManageUserController = async (req: Request, res: Response) => {
+export const renderManageUserController = async (
+  req: Request,
+  res: Response
+) => {
   const admin = req.admin as Admin
   const today = new Date()
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0)
+  const startOfToday = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+    0,
+    0,
+    0,
+    0
+  )
   const endOfToday = new Date(
     today.getFullYear(),
     today.getMonth(),
@@ -28,8 +39,14 @@ export const renderManageUserController = async (req: Request, res: Response) =>
       {
         $facet: {
           total: [{ $count: 'count' }],
-          active: [{ $match: { status: UserStatus.ACTIVE } }, { $count: 'count' }],
-          blocked: [{ $match: { status: UserStatus.BLOCKED } }, { $count: 'count' }],
+          active: [
+            { $match: { status: UserStatus.ACTIVE } },
+            { $count: 'count' }
+          ],
+          blocked: [
+            { $match: { status: UserStatus.BLOCKED } },
+            { $count: 'count' }
+          ],
           newUsers: [
             { $match: { create_at: { $gte: startOfToday, $lte: endOfToday } } },
             { $count: 'count' }
@@ -137,7 +154,10 @@ export const deleteUserController = async (req: Request, res: Response) => {
 }
 
 // PUT /admin/users/update
-export const updateUserManageController = async (req: Request, res: Response) => {
+export const updateUserManageController = async (
+  req: Request,
+  res: Response
+) => {
   const user = req.user as User
   const { username, email, dateOfBirth, phoneNumber, gender } = req.body
   await userService.updateUserManage(

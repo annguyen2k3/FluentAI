@@ -1,0 +1,414 @@
+extends ../../layouts/default.pug
+
+block head
+    link(rel="stylesheet" href="/css/common.css")
+    link(rel="stylesheet" href="/css/layout.css")
+    link(rel="stylesheet" href="/css/speaking-sentence.css")
+
+block main-content
+    .speaking-choose__header
+        .speaking-choose__title-section
+            h1.speaking-choose__title
+                i.fas.fa-headphones.speaking-choose__title-icon
+                |  Luyện nghe theo video
+            p.speaking-choose__subtitle
+                | Chọn video phù hợp để luyện Comprehensible Input hoặc Active Listening & Note-taking.
+                button#lv-help-btn.lv-help-btn(type="button" aria-label="Xem hướng dẫn")
+                    i.fas.fa-question
+
+    .speaking-choose__filters
+        .speaking-choose__search-section
+            label.speaking-choose__filter-label(for="search-input") TÌM KIẾM
+            .speaking-choose__search-input-group
+                input#search-input.speaking-choose__search-input(type="text" placeholder="Tìm kiếm theo tên video...")
+        .speaking-choose__filter-group
+            label.speaking-choose__filter-label(for="filter-level") ★ CẤP ĐỘ
+            select#filter-level.speaking-choose__filter-select
+                option(value="" selected) Tất cả level
+                each level in levels
+                    option(value=level._id.toString()) #{level.title}
+        .speaking-choose__filter-group
+            label.speaking-choose__filter-label(for="filter-topic") ≡ CHỦ ĐỀ
+            select#filter-topic.speaking-choose__filter-select
+                option(value="" selected) Tất cả chủ đề
+                each topic in topics
+                    option(value=topic._id.toString()) #{topic.title}
+        .speaking-choose__filter-group
+            label.speaking-choose__filter-label(for="filter-status") ◆ TRẠNG THÁI
+            select#filter-status.speaking-choose__filter-select
+                option(value="" selected) Tất cả
+                option(value="not_started") Mới
+                option(value="in_progress") Đang luyện tập
+                option(value="completed") Đã hoàn thành
+        .speaking-choose__filter-group.speaking-choose__filter-group--actions
+            label.speaking-choose__filter-label.speaking-choose__filter-label--hidden Clear
+            button#clear-filters-btn.btn.btn-primary.speaking-choose__clear-filters-btn(type="button")
+                i.fas.fa-times
+                |  Xóa bộ lọc
+
+    #lv-guide-modal.lv-modal
+        .lv-modal__overlay#lv-guide-modal-overlay
+        .lv-modal__container
+            button#lv-guide-modal-close.lv-modal__close(type="button" aria-label="Đóng hướng dẫn")
+                i.fas.fa-times
+            h3.lv-modal__title Phương pháp luyện tập kỹ năng Nghe hiệu quả
+            .lv-modal__body
+                .lv-modal__column
+                    h4
+                        i.fas.fa-bullseye.me-2.text-primary
+                        | Nghe đầu vào dễ hiểu (Comprehensible Input)
+                    p
+                        i.fas.fa-tasks.me-2.text-info
+                        strong Cách thực hiện:
+                    ul
+                        li Lần 1: Nghe kèm phụ đề, ghi nhớ từ mới và cách diễn đạt để nắm nội dung tổng quát.
+                        li Lần 2: Nghe không nhìn phụ đề, cố gắng hiểu nội dung chính.
+                        li Lần 3: Nghe nhiều lần đến khi hiểu ít nhất 90% mà không cần dịch.
+                    p.mt-2
+                        i.fas.fa-lightbulb.me-2.text-warning
+                        strong Tại sao tốt:
+                    ul
+                        li 
+                            i.fas.fa-check-circle.text-success.me-2
+                            | Nó giúp não bộ tập trung vào việc hiểu ý nghĩa và mạch câu chuyện thay vì đánh vật với từng từ mới.
+                        li 
+                            i.fas.fa-check-circle.text-success.me-2
+                            | Bạn học được từ vựng trong ngữ cảnh cụ thể, dễ nhớ và áp dụng hơn.
+                        li 
+                            i.fas.fa-check-circle.text-success.me-2
+                            | Trình nghe tăng dần một cách tự nhiên, không bị quá tải.
+                .lv-modal__column
+                    h4
+                        i.fas.fa-headphones-alt.me-2.text-success
+                        | Nghe chủ động (Active Listening) &amp; Ghi chú (Note-taking)
+                    p
+                        i.fas.fa-tasks.me-2.text-info
+                        strong Cách thực hiện:
+                    ul
+                        li Nghe một đoạn hội thoại hoặc video tương đối dài.
+                        li Không cố ghi lại từng từ; tập trung ghi lại các từ khóa chính (ai, ở đâu, cái gì, con số, thời gian...).
+                        li Dựa trên các từ khóa đó, tóm tắt lại nội dung bằng lời của chính bạn.
+                    p.mt-2
+                        i.fas.fa-lightbulb.me-2.text-warning
+                        strong Tại sao tốt:
+                    ul
+                        li 
+                            i.fas.fa-check-circle.text-success.me-2
+                            | Rèn luyện khả năng xử lý thông tin nhanh, không bị kẹt ở từng từ đơn lẻ.
+                        li 
+                            i.fas.fa-check-circle.text-success.me-2
+                            | Giúp bạn quen với dạng bài Multiple Choice: nghe, lọc thông tin quan trọng rồi suy luận đáp án.
+                        li 
+                            i.fas.fa-check-circle.text-success.me-2
+                            | Phát triển tư duy hệ thống: thấy được mối liên hệ giữa các câu, các ý trong toàn đoạn.
+            p.mt-3.mb-0.text-muted
+                i.fas.fa-info-circle.me-2.text-info
+                strong Best practice: 
+                | Học hiệu quả nhất khi bạn luyện theo thứ tự 
+                strong  Nghe đầu vào dễ hiểu 
+                |  → sau đó chuyển sang 
+                strong  Nghe chủ động &amp; Ghi chú 
+                |  rồi làm trắc nghiệm để tổng kết nội dung.
+            .lv-modal__actions
+                button#lv-guide-modal-start.btn.btn-primary(type="button") Bắt đầu ngay
+
+    .speaking-choose__content
+        .row.g-3.speaking-choose__cards#lv-cards-container
+            .col-12
+                p.text-center.mb-0 Đang tải danh sách video nghe...
+        .speaking-choose__pagination
+            .speaking-choose__pagination-info#lv-pagination-info
+                | Hiển thị 0 - 0 của 0 video
+            .speaking-choose__pagination-controls
+                button#lv-prev-page.speaking-choose__pagination-btn(type="button" disabled)
+                    i.fas.fa-chevron-left
+                button#lv-current-page.speaking-choose__pagination-btn.speaking-choose__pagination-btn--active(type="button" disabled) 1
+                button#lv-next-page.speaking-choose__pagination-btn(type="button" disabled)
+                    i.fas.fa-chevron-right
+
+block scripts
+    script(type="module").
+        import { ApiBreakpoint } from '/js/api_breakpoint.js'
+
+        const cardsContainer = document.getElementById('lv-cards-container')
+        const searchInput = document.getElementById('search-input')
+        const filterLevel = document.getElementById('filter-level')
+        const filterTopic = document.getElementById('filter-topic')
+        const filterStatus = document.getElementById('filter-status')
+        const clearFiltersBtn = document.getElementById('clear-filters-btn')
+        const paginationInfo = document.getElementById('lv-pagination-info')
+        const prevPageBtn = document.getElementById('lv-prev-page')
+        const nextPageBtn = document.getElementById('lv-next-page')
+        const currentPageBtn = document.getElementById('lv-current-page')
+        const helpBtn = document.getElementById('lv-help-btn')
+        const guideModal = document.getElementById('lv-guide-modal')
+        const guideModalOverlay = document.getElementById('lv-guide-modal-overlay')
+        const guideModalClose = document.getElementById('lv-guide-modal-close')
+        const guideModalStart = document.getElementById('lv-guide-modal-start')
+
+        const state = {
+            page: 1,
+            limit: 8,
+            search: '',
+            level: '',
+            topic: '',
+            status: ''
+        }
+
+        function openGuideModal() {
+            if (!guideModal) return
+            guideModal.classList.add('lv-modal--visible')
+        }
+
+        function closeGuideModal() {
+            if (!guideModal) return
+            guideModal.classList.remove('lv-modal--visible')
+        }
+
+        function escapeHTML(text = '') {
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+        }
+
+        function mapStatusToBadge(status) {
+            if (!status) return { label: 'Mới', key: 'new' }
+            if (status === 'completed') return { label: 'Đã hoàn thành', key: 'completed' }
+            if (status === 'in_progress') return { label: 'Đang luyện tập', key: 'in-progress' }
+            return { label: 'Mới', key: 'new' }
+        }
+
+        function buildQuery() {
+            const params = new URLSearchParams()
+            params.set('page', state.page.toString())
+            params.set('limit', state.limit.toString())
+
+            if (state.search) params.set('search', state.search)
+            if (state.level) params.set('level', state.level)
+            if (state.topic) params.set('topic', state.topic)
+            if (state.status) params.set('status', state.status)
+
+            return params.toString()
+        }
+
+        function renderCards(items = []) {
+            if (!cardsContainer) return
+
+            if (!items.length) {
+                cardsContainer.innerHTML = `
+                    <div class="col-12">
+                        <p class="text-center text-muted mb-0">Không tìm thấy video nghe phù hợp.</p>
+                    </div>
+                `
+                return
+            }
+
+            cardsContainer.innerHTML = items
+                .map((item) => {
+                    const title = escapeHTML(item.title || '')
+                    const topicTitle = item.topic?.title
+                        ? escapeHTML(item.topic.title)
+                        : 'Chủ đề chung'
+                    const topicIcon = item.topic?.fa_class_icon
+                        ? item.topic.fa_class_icon
+                        : 'far fa-folder-open'
+                    const levelTitle = item.level?.title
+                        ? escapeHTML(item.level.title)
+                        : 'Mọi cấp độ'
+                    const levelIcon = item.level?.fa_class_icon
+                        ? item.level.fa_class_icon
+                        : 'far fa-graduation-cap'
+                    const slug = item.slug || ''
+                    const thumbnailUrl = item.thumbnailUrl || ''
+                    const status = mapStatusToBadge(item.history?.content?.status)
+                    const description = item.description ? escapeHTML(item.description) : ''
+                    const timeText =
+                        typeof item.time === 'number' && item.time > 0
+                            ? `${item.time} phút`
+                            : ''
+
+                    const thumb = thumbnailUrl
+                        ? `<div class="sv-card__thumb-wrapper">
+                               <img class="sv-card__thumb" src="${escapeHTML(thumbnailUrl)}" alt="${title}">
+                           </div>`
+                        : ''
+
+                    return `
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="speaking-card sv-card">
+                                ${thumb}
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="speaking-card__title m-0" title="${title}">${title}</h5>
+                                    <span class="speaking-card__badge" data-status="${status.key}">${status.label}</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-3 align-items-center speaking-card__meta">
+                                    <span><i class="${levelIcon} me-1"></i>${levelTitle}</span>
+                                    <span><i class="${topicIcon} me-1"></i>${topicTitle}</span>
+                                    ${
+                                        timeText
+                                            ? `<span class="lv-card__time ms-auto"><i class="far fa-clock"></i>${timeText}</span>`
+                                            : ''
+                                    }
+                                </div>
+                                ${
+                                    description
+                                        ? `<p class="lv-card__description" title="${description}">${description}</p>`
+                                        : ''
+                                }
+                                <div class="d-flex flex-column gap-2 mt-3">
+                                    <a href="/listening-video/comprehensible-input/${slug}" class="btn btn-outline-primary speaking-card__btn speaking-card__btn--small w-100 text-start">
+                                        <span class="fw-medium">Phương pháp:</span>
+                                        &nbsp;Comprehensible Input
+                                    </a>
+                                    <a href="/listening-video/active-listening/${slug}" class="btn btn-outline-primary speaking-card__btn speaking-card__btn--small w-100 text-start">
+                                        <span class="fw-medium">Phương pháp:</span>
+                                        &nbsp;Active Listening &amp; Note-taking
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                })
+                .join('')
+        }
+
+        function renderPagination(pagination) {
+            if (!paginationInfo || !prevPageBtn || !nextPageBtn || !currentPageBtn) return
+
+            const { page, limit, total, totalPages, hasNextPage, hasPrevPage } = pagination
+            const start = total === 0 ? 0 : (page - 1) * limit + 1
+            const end = Math.min(page * limit, total)
+
+            paginationInfo.textContent = `Hiển thị ${start} - ${end} của ${total} video`
+
+            currentPageBtn.textContent = page.toString()
+            prevPageBtn.disabled = !hasPrevPage
+            nextPageBtn.disabled = !hasNextPage
+        }
+
+        async function fetchList() {
+            if (!cardsContainer) return
+            cardsContainer.innerHTML = `
+                <div class="col-12">
+                    <p class="text-center mb-0">Đang tải danh sách video nghe...</p>
+                </div>
+            `
+
+            try {
+                const query = buildQuery()
+                const url = `${ApiBreakpoint.GET_LV_LIST}?${query}`
+                const res = await fetch(url)
+                const data = await res.json()
+
+                const items = Array.isArray(data.data) ? data.data : []
+                renderCards(items)
+                if (data.pagination) {
+                    renderPagination(data.pagination)
+                }
+            } catch (error) {
+                console.error('Error fetching LV list:', error)
+                cardsContainer.innerHTML = `
+                    <div class="col-12">
+                        <p class="text-center text-danger mb-0">Có lỗi khi tải danh sách video nghe.</p>
+                    </div>
+                `
+            }
+        }
+
+        if (searchInput) {
+            let searchTimeout = null
+            searchInput.addEventListener('input', function () {
+                const value = this.value.trim()
+                state.search = value
+                state.page = 1
+
+                if (searchTimeout) clearTimeout(searchTimeout)
+                searchTimeout = setTimeout(fetchList, 400)
+            })
+        }
+
+        if (filterLevel) {
+            filterLevel.addEventListener('change', function () {
+                state.level = this.value || ''
+                state.page = 1
+                fetchList()
+            })
+        }
+
+        if (filterTopic) {
+            filterTopic.addEventListener('change', function () {
+                state.topic = this.value || ''
+                state.page = 1
+                fetchList()
+            })
+        }
+
+        if (filterStatus) {
+            filterStatus.addEventListener('change', function () {
+                state.status = this.value || ''
+                state.page = 1
+                fetchList()
+            })
+        }
+
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener('click', function () {
+                state.page = 1
+                state.search = ''
+                state.level = ''
+                state.topic = ''
+                state.status = ''
+
+                if (searchInput) searchInput.value = ''
+                if (filterLevel) filterLevel.value = ''
+                if (filterTopic) filterTopic.value = ''
+                if (filterStatus) filterStatus.value = ''
+
+                fetchList()
+            })
+        }
+
+        if (prevPageBtn) {
+            prevPageBtn.addEventListener('click', function () {
+                if (state.page > 1) {
+                    state.page -= 1
+                    fetchList()
+                }
+            })
+        }
+
+        if (nextPageBtn) {
+            nextPageBtn.addEventListener('click', function () {
+                state.page += 1
+                fetchList()
+            })
+        }
+
+        if (helpBtn) {
+            helpBtn.addEventListener('click', openGuideModal)
+        }
+
+        if (guideModalOverlay) {
+            guideModalOverlay.addEventListener('click', closeGuideModal)
+        }
+
+        if (guideModalClose) {
+            guideModalClose.addEventListener('click', closeGuideModal)
+        }
+
+        if (guideModalStart) {
+            guideModalStart.addEventListener('click', closeGuideModal)
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeGuideModal()
+            }
+        })
+
+        fetchList()
+        openGuideModal()
+

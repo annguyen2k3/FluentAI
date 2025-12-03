@@ -33,13 +33,19 @@ class AdminServices {
   }
 
   private signAccessAndRefreshToken(user_id: string) {
-    return Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)])
+    return Promise.all([
+      this.signAccessToken(user_id),
+      this.signRefreshToken(user_id)
+    ])
   }
 
   async login(user_id: string) {
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    const [access_token, refresh_token] =
+      await this.signAccessAndRefreshToken(user_id)
 
-    await databaseService.refreshTokens.deleteOne({ user_id: new ObjectId(user_id) })
+    await databaseService.refreshTokens.deleteOne({
+      user_id: new ObjectId(user_id)
+    })
 
     await databaseService.refreshTokens.insertOne(
       new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })

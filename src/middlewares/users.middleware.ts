@@ -219,7 +219,11 @@ export const forgotPasswordResetValidator = validate(
   )
 )
 
-export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
+export const requireAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const access_token = req.cookies?.access_token as string
   const refresh_token = req.cookies?.refresh_token as string
 
@@ -227,7 +231,9 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     return res.redirect('/users/login')
   }
 
-  const refresh_token_exists = await databaseService.refreshTokens.findOne({ token: refresh_token })
+  const refresh_token_exists = await databaseService.refreshTokens.findOne({
+    token: refresh_token
+  })
   if (refresh_token_exists === null) {
     return res.redirect('/users/login')
   }
@@ -283,7 +289,9 @@ export const updateProfileValidator = validate(
       userId: {
         custom: {
           options: async (value, { req }) => {
-            const user = await databaseService.users.findOne({ _id: new ObjectId(value) })
+            const user = await databaseService.users.findOne({
+              _id: new ObjectId(value)
+            })
             if (!user) {
               throw new Error(USER_MESSAGES.USER_NOT_FOUND)
             }
@@ -300,7 +308,10 @@ export const updateProfileValidator = validate(
         },
         custom: {
           options: async (value, { req }) => {
-            const isExists = await userService.checkUsernameExists(value, req.user?._id.toString())
+            const isExists = await userService.checkUsernameExists(
+              value,
+              req.user?._id.toString()
+            )
             if (isExists) {
               throw new Error(USER_MESSAGES.USERNAME_EXISTS)
             }
@@ -318,7 +329,10 @@ export const updateProfileValidator = validate(
         trim: true,
         custom: {
           options: async (value, { req }) => {
-            const isExists = await userService.checkEmailExists(value, req.user?._id.toString())
+            const isExists = await userService.checkEmailExists(
+              value,
+              req.user?._id.toString()
+            )
             if (isExists) {
               throw new Error(USER_MESSAGES.EMAIL_EXISTS)
             }
@@ -525,7 +539,9 @@ export const userIdExistsValidator = validate(
       userId: {
         custom: {
           options: async (value, { req }) => {
-            const user = await databaseService.users.findOne({ _id: new ObjectId(value) })
+            const user = await databaseService.users.findOne({
+              _id: new ObjectId(value)
+            })
             if (!user) {
               throw new Error(USER_MESSAGES.USER_NOT_FOUND)
             }
@@ -545,7 +561,9 @@ export const updateUserManageValidator = validate(
       userId: {
         custom: {
           options: async (value, { req }) => {
-            const user = await databaseService.users.findOne({ _id: new ObjectId(value) })
+            const user = await databaseService.users.findOne({
+              _id: new ObjectId(value)
+            })
             if (!user) {
               throw new Error(USER_MESSAGES.USER_NOT_FOUND)
             }

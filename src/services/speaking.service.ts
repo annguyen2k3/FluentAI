@@ -379,7 +379,12 @@ class SpeakingServices {
                 $expr: {
                   $and: [
                     { $eq: ['$userId', history.userId] },
-                    { $eq: ['$type', HistoryUserType.PRACTICE_SHADOWING] },
+                    {
+                      $eq: [
+                        '$type',
+                        HistoryUserType.PRACTICE_SPEAKING_SHADOWING
+                      ]
+                    },
                     { $eq: ['$content.svShadowingId', '$$svId'] }
                   ]
                 }
@@ -459,7 +464,7 @@ class SpeakingServices {
 
     const hisUser = await databaseService.hisUsers.findOne({
       userId: userObjectId,
-      type: HistoryUserType.PRACTICE_SHADOWING,
+      type: HistoryUserType.PRACTICE_SPEAKING_SHADOWING,
       'content.svShadowingId': practiceObjectId
     })
 
@@ -472,7 +477,7 @@ class SpeakingServices {
 
       const newHisUser = new HisUser({
         userId: userObjectId,
-        type: HistoryUserType.PRACTICE_SHADOWING,
+        type: HistoryUserType.PRACTICE_SPEAKING_SHADOWING,
         content: newHisSVUser
       })
 
@@ -539,7 +544,7 @@ class SpeakingServices {
   async deleteSVHistory(userId: string, practiceId: string) {
     await databaseService.hisUsers.deleteOne({
       userId: new ObjectId(userId),
-      type: HistoryUserType.PRACTICE_SHADOWING,
+      type: HistoryUserType.PRACTICE_SPEAKING_SHADOWING,
       'content.svShadowingId': new ObjectId(practiceId)
     })
   }

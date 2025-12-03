@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { checkSchema } from 'express-validator'
 import { unset } from 'lodash'
 import { ObjectId } from 'mongodb'
-import adminServices from '~/services/admin.services'
+import adminServices from '~/services/admin.service'
 import { databaseService } from '~/services/database.service'
 import { verifyToken } from '~/utils/jwt'
 import { validate } from '~/utils/validation'
@@ -14,7 +14,11 @@ const prefixAdmin = process.env.PREFIX_ADMIN
 
 const ADMIN_USERNAME_REGEX = /^[a-zA-Z0-9]+$/
 
-export const requireAdminAuth = async (req: Request, res: Response, next: NextFunction) => {
+export const requireAdminAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const access_token = req.cookies?.access_token as string
   const refresh_token = req.cookies?.refresh_token as string
 
@@ -22,7 +26,9 @@ export const requireAdminAuth = async (req: Request, res: Response, next: NextFu
     return res.redirect(prefixAdmin + '/auth/login')
   }
 
-  const refresh_token_exists = await databaseService.refreshTokens.findOne({ token: refresh_token })
+  const refresh_token_exists = await databaseService.refreshTokens.findOne({
+    token: refresh_token
+  })
   if (refresh_token_exists === null) {
     return res.redirect(prefixAdmin + '/auth/login')
   }
@@ -32,7 +38,9 @@ export const requireAdminAuth = async (req: Request, res: Response, next: NextFu
       token: access_token,
       secretOrPublicKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
     })
-    const admin = await databaseService.admins.findOne({ _id: new ObjectId(decoded.user_id) })
+    const admin = await databaseService.admins.findOne({
+      _id: new ObjectId(decoded.user_id)
+    })
     if (!admin) {
       return res.redirect(prefixAdmin + '/auth/login')
     }
@@ -47,7 +55,9 @@ export const requireAdminAuth = async (req: Request, res: Response, next: NextFu
           secretOrPublicKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
         })
 
-        const admin = await databaseService.admins.findOne({ _id: new ObjectId(decoded.user_id) })
+        const admin = await databaseService.admins.findOne({
+          _id: new ObjectId(decoded.user_id)
+        })
         if (!admin) {
           return res.redirect(prefixAdmin + '/auth/login')
         }

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { Admin } from 'mongodb'
 import { HttpStatus } from '~/constants/httpStatus'
-import categoriesServices from '~/services/categories.services'
+import categoriesServices from '~/services/categories.service'
 
 export const renderLevelsController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
@@ -16,7 +16,13 @@ export const renderLevelsController = async (req: Request, res: Response) => {
 export const createLevelController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
   const { title, description, fa_class_icon, slug, pos } = req.body
-  const level = await categoriesServices.createLevel(title, description, fa_class_icon, slug, pos)
+  const level = await categoriesServices.createLevel(
+    title,
+    description,
+    fa_class_icon,
+    slug,
+    pos
+  )
   res.status(HttpStatus.CREATED).json({
     status: HttpStatus.CREATED,
     message: 'Cấp độ đã được tạo thành công',
@@ -72,7 +78,13 @@ export const renderTypesController = async (req: Request, res: Response) => {
 export const createTypeController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
   const { title, description, fa_class_icon, slug, pos } = req.body
-  const type = await categoriesServices.createType(title, description, fa_class_icon, slug, pos)
+  const type = await categoriesServices.createType(
+    title,
+    description,
+    fa_class_icon,
+    slug,
+    pos
+  )
   res.status(HttpStatus.CREATED).json({
     status: HttpStatus.CREATED,
     message: 'Loại đã được tạo thành công',
@@ -83,7 +95,14 @@ export const createTypeController = async (req: Request, res: Response) => {
 export const updateTypeController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
   const { id, title, description, fa_class_icon, slug, pos } = req.body
-  const type = await categoriesServices.updateType(id, title, description, fa_class_icon, slug, pos)
+  const type = await categoriesServices.updateType(
+    id,
+    title,
+    description,
+    fa_class_icon,
+    slug,
+    pos
+  )
   res.status(HttpStatus.OK).json({
     status: HttpStatus.OK,
     message: 'Loại đã được cập nhật thành công',
@@ -121,7 +140,13 @@ export const renderTopicsController = async (req: Request, res: Response) => {
 export const createTopicController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
   const { title, description, fa_class_icon, slug, pos } = req.body
-  const topic = await categoriesServices.createTopic(title, description, fa_class_icon, slug, pos)
+  const topic = await categoriesServices.createTopic(
+    title,
+    description,
+    fa_class_icon,
+    slug,
+    pos
+  )
   res.status(HttpStatus.CREATED).json({
     status: HttpStatus.CREATED,
     message: 'Chủ đề đã được tạo thành công',

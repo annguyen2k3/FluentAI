@@ -1,6 +1,11 @@
 import { signToken } from '~/utils/jwt'
 import { databaseService } from './database.service'
-import { GenderType, TokenType, UserStatus, VerifyEmailType } from '~/constants/enum'
+import {
+  GenderType,
+  TokenType,
+  UserStatus,
+  VerifyEmailType
+} from '~/constants/enum'
 import { config } from 'dotenv'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import { ObjectId } from 'mongodb'
@@ -44,13 +49,19 @@ class UserService {
   }
 
   private signAccessAndRefreshToken(user_id: string) {
-    return Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)])
+    return Promise.all([
+      this.signAccessToken(user_id),
+      this.signRefreshToken(user_id)
+    ])
   }
 
   async login(user_id: string) {
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    const [access_token, refresh_token] =
+      await this.signAccessAndRefreshToken(user_id)
 
-    await databaseService.refreshTokens.deleteOne({ user_id: new ObjectId(user_id) })
+    await databaseService.refreshTokens.deleteOne({
+      user_id: new ObjectId(user_id)
+    })
 
     await databaseService.refreshTokens.insertOne(
       new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
@@ -67,9 +78,13 @@ class UserService {
 
     const user_id = new ObjectId()
 
-    await databaseService.users.insertOne(new User({ _id: user_id, email, password: passwordHash }))
+    await databaseService.users.insertOne(
+      new User({ _id: user_id, email, password: passwordHash })
+    )
 
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id.toString())
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(
+      user_id.toString()
+    )
 
     await databaseService.refreshTokens.insertOne(
       new RefreshToken({ user_id: user_id, token: refresh_token })
@@ -103,23 +118,30 @@ class UserService {
       redirect_uri: process.env.GOOGLE_REDIRECT_URI || ''
     }).toString()
 
-    const { data } = await axios.post('https://oauth2.googleapis.com/token', body, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    })
+    const { data } = await axios.post(
+      'https://oauth2.googleapis.com/token',
+      body,
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      }
+    )
 
     return data as { access_token: string; id_token: string }
   }
 
   private async getGoogleUserInfo(access_token: string, id_token: string) {
-    const { data } = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-      params: {
-        access_token,
-        alt: 'json'
-      },
-      headers: {
-        Authorization: `Bearer ${id_token}`
+    const { data } = await axios.get(
+      'https://www.googleapis.com/oauth2/v3/userinfo',
+      {
+        params: {
+          access_token,
+          alt: 'json'
+        },
+        headers: {
+          Authorization: `Bearer ${id_token}`
+        }
       }
-    })
+    )
     return data as {
       sub: string
       name: string
@@ -140,17 +162,22 @@ class UserService {
     const userInfo = await this.getGoogleUserInfo(access_token, id_token)
 
     if (!userInfo.email_verified) {
-      throw new ErrorWithStatus(USER_MESSAGES.GMAIL_NOT_VERIFIED, HttpStatus.BAD_REQUEST)
+      throw new ErrorWithStatus(
+        USER_MESSAGES.GMAIL_NOT_VERIFIED,
+        HttpStatus.BAD_REQUEST
+      )
     }
     // Kiểm tra xem người dùng đã đăng ký chưa
     const user = await databaseService.users.findOne({ email: userInfo.email })
     if (user) {
       // Nếu đã đăng ký, đăng nhập và trả về token
-      const [access_token, refresh_token] = await this.signAccessAndRefreshToken(
-        user._id.toString()
-      )
+      const [access_token, refresh_token] =
+        await this.signAccessAndRefreshToken(user._id.toString())
       await databaseService.refreshTokens.insertOne(
-        new RefreshToken({ user_id: new ObjectId(user?._id), token: refresh_token })
+        new RefreshToken({
+          user_id: new ObjectId(user?._id),
+          token: refresh_token
+        })
       )
       return {
         access_token,
@@ -169,9 +196,13 @@ class UserService {
           avatar: userInfo.picture
         })
       )
-      const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id.toString())
+      const [access_token, refresh_token] =
+        await this.signAccessAndRefreshToken(user_id.toString())
       await databaseService.refreshTokens.insertOne(
-        new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+        new RefreshToken({
+          user_id: new ObjectId(user_id),
+          token: refresh_token
+        })
       )
       return {
         access_token,
@@ -193,7 +224,9 @@ class UserService {
       ].join(' ')
     }
 
-    const queryString = new URLSearchParams(query as Record<string, string>).toString()
+    const queryString = new URLSearchParams(
+      query as Record<string, string>
+    ).toString()
     return `${url}?${queryString}`
   }
 
@@ -226,7 +259,10 @@ class UserService {
 
   async resetPassword(email: string, password: string) {
     const passwordHash = md5(password)
-    await databaseService.users.updateOne({ email }, { $set: { password: passwordHash } })
+    await databaseService.users.updateOne(
+      { email },
+      { $set: { password: passwordHash } }
+    )
   }
 
   async getUserById(user_id: string) {
@@ -250,7 +286,15 @@ class UserService {
   ) {
     return await databaseService.users.updateOne(
       { _id: new ObjectId(user_id) },
-      { $set: { username, date_of_birth, phone_number, gender, update_at: new Date() } }
+      {
+        $set: {
+          username,
+          date_of_birth,
+          phone_number,
+          gender,
+          update_at: new Date()
+        }
+      }
     )
   }
 
@@ -347,7 +391,9 @@ class UserService {
         { _id: new ObjectId(userId) },
         { $set: { status: UserStatus.BLOCKED } }
       ),
-      databaseService.refreshTokens.deleteMany({ user_id: new ObjectId(userId) })
+      databaseService.refreshTokens.deleteMany({
+        user_id: new ObjectId(userId)
+      })
     ])
   }
 
