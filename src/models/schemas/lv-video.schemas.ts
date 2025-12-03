@@ -3,6 +3,8 @@ import { createSlug } from '~/utils/format'
 
 export type TranscriptSentenceType = {
   pos: number
+  startTime: number
+  endTime: number
   enText: string
   viText?: string
 }

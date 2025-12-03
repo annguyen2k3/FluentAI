@@ -1,6 +1,8 @@
 import { ObjectId } from 'mongodb'
 import { StatusLesson, HistoryUserType } from '~/constants/enum'
 import { databaseService } from './database.service'
+import HisLVUser from '~/models/schemas/his-lv.schema'
+import HisUser from '~/models/schemas/his-user.schema'
 
 class ListeningService {
   async getLVList(find: {
@@ -143,6 +145,71 @@ class ListeningService {
         hasPrevPage: page > 1
       }
     }
+  }
+
+  async getLVDetail(slug: string) {
+    const pipeline = [
+      { $match: { slug } },
+      {
+        $lookup: {
+          from: 'levels',
+          localField: 'level',
+          foreignField: '_id',
+          as: 'level'
+        }
+      },
+      { $unwind: { path: '$level', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'topics',
+          localField: 'topics',
+          foreignField: '_id',
+          as: 'topicsDetail'
+        }
+      }
+    ]
+
+    const result = await databaseService.listeningVideos
+      .aggregate(pipeline)
+      .toArray()
+    const lv = result[0]
+
+    if (!lv) {
+      throw new Error('Video nghe không tồn tại')
+    }
+
+    if (lv.level) {
+      lv.levelTitle = lv.level.title || ''
+    }
+
+    return lv
+  }
+
+  async updateHistory(userId: ObjectId, lvId: ObjectId, status: StatusLesson) {
+    const history = await databaseService.hisUsers.findOne({
+      userId,
+      type: HistoryUserType.PRACTICE_LISTENING_VIDEO,
+      content: { lvVideoId: lvId }
+    })
+
+    if (!history) {
+      const newHisLV = new HisLVUser({
+        lvVideoId: lvId,
+        status
+      })
+      const newHisUser = new HisUser({
+        userId,
+        type: HistoryUserType.PRACTICE_LISTENING_VIDEO,
+        content: newHisLV
+      })
+      await databaseService.hisUsers.insertOne(newHisUser)
+      return
+    }
+
+    await databaseService.hisUsers.updateOne(
+      { _id: history._id },
+      { $set: { 'content.status': status, update_at: new Date() } }
+    )
   }
 }
 

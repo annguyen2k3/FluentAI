@@ -26,9 +26,6 @@ export const renderListeningVideoController = async (
 }
 
 // GET /listening-video/list
-// Description: Get list video of listening video
-// Method: GET
-// Query: level, topic, page, limit, search, sortKey, sortOrder, status
 export const getLVListController = async (req: Request, res: Response) => {
   const user = req.user as User
   const find: {
@@ -87,4 +84,32 @@ export const getLVListController = async (req: Request, res: Response) => {
     status: HttpStatus.OK,
     ...data
   })
+}
+
+// GET /listening-video/comprehensible-input/:slug
+export const renderLVCIController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const slug = req.params.slug
+
+  try {
+    const lv = await listeningService.getLVDetail(slug)
+
+    await listeningService.updateHistory(
+      user._id as ObjectId,
+      lv._id as ObjectId,
+      StatusLesson.IN_PROGRESS
+    )
+
+    res.render('client/pages/listening-video/practice-ci.pug', {
+      pageTitle: 'Luyện nghe video - Comprehensible Input',
+      user,
+      lv
+    })
+  } catch (error) {
+    return res.status(HttpStatus.NOT_FOUND).json({
+      message:
+        error instanceof Error ? error.message : 'Video nghe không tồn tại',
+      status: HttpStatus.NOT_FOUND
+    })
+  }
 }

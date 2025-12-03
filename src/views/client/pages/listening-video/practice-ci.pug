@@ -1,0 +1,512 @@
+extends ../../layouts/default.pug
+
+block head
+    link(rel="stylesheet" href="/css/common.css")
+    link(rel="stylesheet" href="/css/layout.css")
+    link(rel="stylesheet" href="/css/speaking-sentence.css")
+
+block main-content
+    - const videoUrl = (lv && lv.videoUrl) || ''
+    - const thumbnailUrl = (lv && lv.thumbnailUrl) || ''
+    - const ytMatch = videoUrl && videoUrl.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)
+    - const ytId = ytMatch && ytMatch[2] && ytMatch[2].length === 11 ? ytMatch[2] : ''
+    - const youtubeEmbedUrl = ytId ? `https://www.youtube.com/embed/${ytId}?enablejsapi=1` : videoUrl
+    - const timeText = typeof lv?.time === 'number' && lv.time > 0 ? `${lv.time} phút` : ''
+
+    .row.g-4
+        .col-lg-7
+            .practice-content
+                if youtubeEmbedUrl
+                    .sv-video
+                        .sv-video__frame
+                            iframe#lv-ci-youtube-player.sv-video__player(
+                                src=youtubeEmbedUrl
+                                title="Listening video player"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen
+                            )
+                        .sv-video__controls
+                            .sv-video__controls-left
+                                .lv-ci-video-progress
+                                    input#lv-ci-progress-bar.lv-ci-progress-bar(type="range" min="0" max="100" value="0" step="0.1")
+                                    .lv-ci-video-time
+                                        span#lv-ci-current-time 0:00
+                                        span /
+                                        span#lv-ci-duration-time 0:00
+                            .sv-video__controls-right(style="margin-left: auto;")
+                                button#lv-ci-play-pause-btn.btn.btn-outline-primary.btn-sm(type="button")
+                                    i.fas.fa-play.me-1
+                                    | Phát
+                                button#lv-ci-toggle-media-btn.btn.btn-outline-secondary.btn-sm(type="button") Ẩn video
+                else if thumbnailUrl
+                    .sv-video
+                        .sv-video__frame
+                            img(src=thumbnailUrl alt=lv.title class="sv-video__player")
+                else
+                    .alert.alert-warning.mb-3
+                        | Chưa có video cho bài nghe này.
+
+                .mt-4
+                    .practice-title-section
+                        h2.fs-4.mb-2.fw-bold #{lv.title || 'Luyện nghe video'}
+                        .d-flex.flex-wrap.align-items-center.gap-2.lv-ci__meta
+                            span.badge.bg-light.text-dark.border
+                                i.fas.fa-signal.me-1
+                                | Level:
+                                span.ms-1 #{lv.levelTitle || 'Đang cập nhật'}
+                            if timeText
+                                span.badge.bg-light.text-dark.border
+                                    i.far.fa-clock.me-1
+                                    | #{timeText}
+                            span.badge.bg-primary-subtle.text-primary.border-0
+                                i.fas.fa-headphones.me-1
+                                | Comprehensible Input
+
+                        if lv.topicsDetail && Array.isArray(lv.topicsDetail) && lv.topicsDetail.length
+                            .mt-2
+                                each t in lv.topicsDetail
+                                    span.lv-topic-badge.me-2
+                                        i(class=(t.fa_class_icon || 'far fa-folder-open') + ' me-1')
+                                        | #{t.title}
+
+                    if lv.description
+                        .mt-3
+                            h3.fs-6.text-uppercase.text-muted.mb-2
+                                i.fas.fa-book-open.me-2
+                                | Mô tả bài nghe
+                            pre.lv-ci__description !{lv.description}
+
+        .col-lg-5
+            .practice-sidebar#lv-ci-sidebar
+                .practice-sidebar__header
+                    h3.practice-sidebar__title Transcript
+                    .practice-sidebar__header-controls
+                        span.text-muted.small.me-2 Hiển thị:
+                        .btn-group.btn-group-sm(role="group" aria-label="Ẩn/hiện EN - VI")
+                            button#lv-ci-toggle-en.btn.btn-outline-primary.active(type="button") EN
+                            button#lv-ci-toggle-vi.btn.btn-outline-secondary.active(type="button") VI
+                .practice-sidebar__content
+                    .lv-ci-transcript-container
+                        .practice-sidebar__list.lv-ci-transcript-list#lv-ci-transcript-list
+                            p.text-muted.mb-0 Đang tải transcript...
+                .practice-sidebar__actions
+                    button#lv-ci-active-btn.practice-sidebar__action-btn(type="button")
+                        i.fas.fa-pen-alt.me-1
+                        | Luyện tập Active Listening & Note-taking
+                    button#lv-ci-quit-btn.practice-sidebar__action-btn.practice-sidebar__action-btn--quit(type="button")
+                        i.fas.fa-sign-out-alt.me-1
+                        | Thoát
+                .mt-2
+                    button#lv-ci-complete-btn.btn.btn-success.w-100(type="button")
+                        i.fas.fa-check-circle.me-1
+                        | Đánh dấu hoàn thành bài nghe
+
+    script#lv-ci-data(type="application/json") !{JSON.stringify(lv || {})}
+
+block scripts
+    script(type="module").
+        document.addEventListener('DOMContentLoaded', () => {
+            const dataEl = document.getElementById('lv-ci-data')
+            const listEl = document.getElementById('lv-ci-transcript-list')
+            const activeBtn = document.getElementById('lv-ci-active-btn')
+            const quitBtn = document.getElementById('lv-ci-quit-btn')
+            const completeBtn = document.getElementById('lv-ci-complete-btn')
+            const toggleEnBtn = document.getElementById('lv-ci-toggle-en')
+            const toggleViBtn = document.getElementById('lv-ci-toggle-vi')
+            const toggleMediaBtn = document.getElementById('lv-ci-toggle-media-btn')
+            const playPauseBtn = document.getElementById('lv-ci-play-pause-btn')
+            const progressBar = document.getElementById('lv-ci-progress-bar')
+            const currentTimeEl = document.getElementById('lv-ci-current-time')
+            const durationTimeEl = document.getElementById('lv-ci-duration-time')
+
+            let state = {
+                transcript: [],
+                showEn: true,
+                showVi: true,
+                currentIndex: 0
+            }
+
+            const youtubeEl = document.getElementById('lv-ci-youtube-player')
+            const youtubeState = {
+                player: null,
+                ready: false,
+                syncIntervalId: null
+            }
+
+            try {
+                const raw = dataEl ? dataEl.textContent : '{}'
+                const parsed = JSON.parse(raw || '{}')
+                if (Array.isArray(parsed.transcript)) {
+                    state.transcript = parsed.transcript
+                        .slice()
+                        .sort((a, b) => (a.pos || 0) - (b.pos || 0))
+                }
+                if (parsed.slug) {
+                    state.slug = parsed.slug
+                }
+            } catch (err) {
+                console.error('Không parse được dữ liệu listening video:', err)
+            }
+
+            function formatTime(seconds) {
+                if (typeof seconds !== 'number' || isNaN(seconds)) return '0:00'
+                const totalSeconds = Math.floor(seconds)
+                const mins = Math.floor(totalSeconds / 60)
+                const secs = totalSeconds % 60
+                const centiseconds = Math.floor((seconds - totalSeconds) * 100)
+                return `${mins}:${secs.toString().padStart(2, '0')}${centiseconds > 0 ? '.' + centiseconds.toString().padStart(2, '0') : ''}`
+            }
+
+            function formatVideoTime(seconds) {
+                if (typeof seconds !== 'number' || isNaN(seconds)) return '0:00'
+                const totalSeconds = Math.floor(seconds)
+                const mins = Math.floor(totalSeconds / 60)
+                const secs = totalSeconds % 60
+                return `${mins}:${secs.toString().padStart(2, '0')}`
+            }
+
+            function updateVideoProgress() {
+                if (!youtubeState.player || !progressBar || !currentTimeEl || !durationTimeEl) return
+                try {
+                    const currentTime = youtubeState.player.getCurrentTime()
+                    const duration = youtubeState.player.getDuration()
+                    
+                    if (typeof currentTime === 'number' && !isNaN(currentTime)) {
+                        currentTimeEl.textContent = formatVideoTime(currentTime)
+                    }
+                    
+                    if (typeof duration === 'number' && !isNaN(duration) && duration > 0) {
+                        durationTimeEl.textContent = formatVideoTime(duration)
+                        if (!progressBar.isSeeking) {
+                            const percentage = (currentTime / duration) * 100
+                            progressBar.value = Math.min(Math.max(percentage, 0), 100)
+                        }
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi cập nhật progress:', error)
+                }
+            }
+
+            function getSentenceStart(sentence) {
+                if (!sentence) return 0
+                if (typeof sentence.startTime === 'number') return sentence.startTime
+                return 0
+            }
+
+            function getSentenceEnd(sentence) {
+                if (!sentence) return 0
+                if (typeof sentence.endTime === 'number') return sentence.endTime
+                return 0
+            }
+
+            function seekVideoToSentence(sentence) {
+                if (!youtubeState.player || !sentence) return
+                const rawStart = getSentenceStart(sentence)
+                if (Number.isFinite(rawStart) && rawStart > 0) {
+                    youtubeState.player.seekTo(Math.max(rawStart, 0), true)
+                    youtubeState.player.playVideo()
+                }
+            }
+
+            function syncSentenceWithVideo() {
+                if (!youtubeState.player || !state.transcript.length) return
+                let currentTime = 0
+                try {
+                    const t = youtubeState.player.getCurrentTime && youtubeState.player.getCurrentTime()
+                    if (typeof t === 'number' && !isNaN(t)) {
+                        currentTime = t
+                    }
+                } catch (error) {
+                    return
+                }
+
+                updateVideoProgress()
+
+                for (let i = 0; i < state.transcript.length; i++) {
+                    const s = state.transcript[i]
+                    const start = getSentenceStart(s)
+                    const end = getSentenceEnd(s) || start
+                    if (currentTime >= start && currentTime < (end || start + 0.1)) {
+                        if (state.currentIndex !== i) {
+                            state.currentIndex = i
+                            renderTranscript()
+                        }
+                        break
+                    }
+                }
+            }
+
+            function startVideoSync() {
+                if (youtubeState.syncIntervalId) return
+                youtubeState.syncIntervalId = window.setInterval(syncSentenceWithVideo, 500)
+            }
+
+            function stopVideoSync() {
+                if (youtubeState.syncIntervalId) {
+                    clearInterval(youtubeState.syncIntervalId)
+                    youtubeState.syncIntervalId = null
+                }
+            }
+
+            function renderTranscript() {
+                if (!listEl) return
+                if (!state.transcript.length) {
+                    listEl.innerHTML =
+                        '<p class="text-muted mb-0">Chưa có transcript cho bài nghe này.</p>'
+                    return
+                }
+                
+                const itemsHtml = state.transcript
+                    .map((s, index) => {
+                        const number = (index + 1).toString()
+                        const enText = (s.enText || '').trim()
+                        const viText = (s.viText || '').trim()
+                        const enDisplay = enText || '(Chưa có câu tiếng Anh)'
+                        const viDisplay = viText || ''
+                        const enStyle = state.showEn ? '' : ' style="display:none"'
+                        const viStyle = state.showVi ? '' : ' style="display:none"'
+                        const startTime = typeof s.startTime === 'number' ? s.startTime : 0
+                        const endTime = typeof s.endTime === 'number' ? s.endTime : startTime
+                        const timeDisplay = startTime > 0 || endTime > 0 
+                            ? `${formatTime(startTime)} - ${formatTime(endTime)}`
+                            : ''
+                        const isActive = index === state.currentIndex
+                        const itemClass = isActive ? 'practice-sidebar__item--active' : ''
+                        return `
+                            <div class="practice-sidebar__item lv-ci-transcript-item ${itemClass}" data-index="${index}">
+                                <div class="lv-ci-transcript-item__number-wrapper">
+                                    <div class="practice-sidebar__item-number lv-ci-transcript-item__number">${number}</div>
+                                    ${timeDisplay ? `<div class="lv-ci-transcript-item__time">${timeDisplay}</div>` : ''}
+                                </div>
+                                <div class="practice-sidebar__item-content lv-ci-transcript-item__content">
+                                    <p class="practice-sidebar__item-text lv-ci-transcript-item__en"${enStyle}>${enDisplay}</p>
+                                    ${
+                                        viDisplay
+                                            ? `<p class="lv-ci-transcript-item__vi text-muted mb-0"${viStyle}>${viDisplay}</p>`
+                                            : ''
+                                    }
+                                </div>
+                            </div>
+                        `
+                    })
+                    .join('')
+
+                listEl.innerHTML = itemsHtml
+
+                const items = listEl.querySelectorAll('.lv-ci-transcript-item')
+                items.forEach((item, index) => {
+                    item.addEventListener('click', () => {
+                        const sentence = state.transcript[index]
+                        if (sentence) {
+                            state.currentIndex = index
+                            renderTranscript()
+                            seekVideoToSentence(sentence)
+                        }
+                    })
+                })
+            }
+
+            function updateToggleButtons() {
+                if (toggleEnBtn) {
+                    if (state.showEn) {
+                        toggleEnBtn.classList.add('btn-primary', 'active')
+                        toggleEnBtn.classList.remove('btn-outline-primary')
+                    } else {
+                        toggleEnBtn.classList.remove('btn-primary', 'active')
+                        toggleEnBtn.classList.add('btn-outline-primary')
+                    }
+                }
+                if (toggleViBtn) {
+                    if (state.showVi) {
+                        toggleViBtn.classList.add('btn-secondary', 'active')
+                        toggleViBtn.classList.remove('btn-outline-secondary')
+                    } else {
+                        toggleViBtn.classList.remove('btn-secondary', 'active')
+                        toggleViBtn.classList.add('btn-outline-secondary')
+                    }
+                }
+            }
+
+            if (activeBtn) {
+                activeBtn.addEventListener('click', () => {
+                    if (!state.slug) {
+                        window.location.href = '/listening-video'
+                        return
+                    }
+                    window.location.href = `/listening-video/active-listening/${encodeURIComponent(
+                        state.slug
+                    )}`
+                })
+            }
+
+            if (quitBtn) {
+                quitBtn.addEventListener('click', () => {
+                    window.location.href = '/listening-video'
+                })
+            }
+
+            if (completeBtn) {
+                completeBtn.addEventListener('click', () => {
+                    // Hiện tại chỉ đánh dấu hoàn thành trên UI, có thể nối với API sau
+                    completeBtn.classList.add('disabled')
+                    completeBtn.innerHTML =
+                        '<i class="fas fa-check-double me-1"></i> Đã đánh dấu hoàn thành'
+                })
+            }
+
+            if (toggleEnBtn) {
+                toggleEnBtn.addEventListener('click', () => {
+                    state.showEn = !state.showEn
+                    updateToggleButtons()
+                    renderTranscript()
+                })
+            }
+
+            if (toggleViBtn) {
+                toggleViBtn.addEventListener('click', () => {
+                    state.showVi = !state.showVi
+                    updateToggleButtons()
+                    renderTranscript()
+                })
+            }
+
+            renderTranscript()
+            updateToggleButtons()
+
+            function updatePlayPauseButton() {
+                if (!playPauseBtn || !youtubeState.player) return
+                try {
+                    const playerState = youtubeState.player.getPlayerState()
+                    if (playerState === YT.PlayerState.PLAYING) {
+                        playPauseBtn.innerHTML = '<i class="fas fa-pause me-1"></i> Dừng'
+                    } else {
+                        playPauseBtn.innerHTML = '<i class="fas fa-play me-1"></i> Phát'
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi cập nhật nút play/pause:', error)
+                }
+            }
+
+            if (playPauseBtn && youtubeEl) {
+                playPauseBtn.addEventListener('click', function () {
+                    if (!youtubeState.player) return
+                    try {
+                        const playerState = youtubeState.player.getPlayerState()
+                        if (playerState === YT.PlayerState.PLAYING) {
+                            youtubeState.player.pauseVideo()
+                        } else {
+                            youtubeState.player.playVideo()
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi điều khiển video:', error)
+                    }
+                })
+            }
+
+            function setupProgressBarSeek() {
+                if (!progressBar || progressBar.seekSetupDone) return
+                
+                progressBar.isSeeking = false
+                progressBar.seekSetupDone = true
+                
+                progressBar.addEventListener('mousedown', function () {
+                    this.isSeeking = true
+                })
+                
+                progressBar.addEventListener('mouseup', function () {
+                    this.isSeeking = false
+                    if (!youtubeState.player) return
+                    try {
+                        const duration = youtubeState.player.getDuration()
+                        if (typeof duration === 'number' && !isNaN(duration) && duration > 0) {
+                            const seekTime = (parseFloat(this.value) / 100) * duration
+                            youtubeState.player.seekTo(seekTime, true)
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi seek video:', error)
+                    }
+                })
+                
+                progressBar.addEventListener('input', function () {
+                    if (!youtubeState.player) return
+                    try {
+                        const duration = youtubeState.player.getDuration()
+                        if (typeof duration === 'number' && !isNaN(duration) && duration > 0) {
+                            const seekTime = (parseFloat(this.value) / 100) * duration
+                            youtubeState.player.seekTo(seekTime, true)
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi seek video:', error)
+                    }
+                })
+
+                progressBar.addEventListener('click', function (e) {
+                    if (!youtubeState.player) return
+                    try {
+                        const rect = this.getBoundingClientRect()
+                        const clickX = e.clientX - rect.left
+                        const percentage = (clickX / rect.width) * 100
+                        const duration = youtubeState.player.getDuration()
+                        if (typeof duration === 'number' && !isNaN(duration) && duration > 0) {
+                            const seekTime = (percentage / 100) * duration
+                            youtubeState.player.seekTo(seekTime, true)
+                            this.value = percentage
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi seek video:', error)
+                    }
+                })
+            }
+
+            if (progressBar) {
+                setupProgressBarSeek()
+            }
+
+            if (toggleMediaBtn && youtubeEl) {
+                toggleMediaBtn.addEventListener('click', function () {
+                    const frame = youtubeEl.closest('.sv-video__frame')
+                    if (!frame) return
+                    const isHidden = frame.style.display === 'none'
+                    frame.style.display = isHidden ? '' : 'none'
+                    this.textContent = isHidden ? 'Ẩn video' : 'Hiện video'
+                })
+            }
+
+            if (youtubeEl) {
+                const tag = document.createElement('script')
+                tag.src = 'https://www.youtube.com/iframe_api'
+                document.head.appendChild(tag)
+
+                window.onYouTubeIframeAPIReady = function () {
+                    if (!youtubeEl) return
+                    youtubeState.player = new YT.Player('lv-ci-youtube-player', {
+                        events: {
+                            onReady: function () {
+                                youtubeState.ready = true
+                                startVideoSync()
+                                updatePlayPauseButton()
+                                if (progressBar) {
+                                    setupProgressBarSeek()
+                                }
+                            },
+                            onStateChange: function (event) {
+                                if (event.data === YT.PlayerState.PLAYING) {
+                                    startVideoSync()
+                                    updatePlayPauseButton()
+                                }
+                                if (
+                                    event.data === YT.PlayerState.PAUSED ||
+                                    event.data === YT.PlayerState.ENDED
+                                ) {
+                                    stopVideoSync()
+                                    updatePlayPauseButton()
+                                }
+                            }
+                        }
+                    })
+                }
+            }
+        })
+
+
