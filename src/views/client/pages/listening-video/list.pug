@@ -417,6 +417,13 @@ block scripts
             }
         })
 
+        const SESSION_STORAGE_KEY = 'lv-guide-modal-shown'
+        const hasShownModal = sessionStorage.getItem(SESSION_STORAGE_KEY)
+
         fetchList()
-        openGuideModal()
+        
+        if (!hasShownModal) {
+            openGuideModal()
+            sessionStorage.setItem(SESSION_STORAGE_KEY, 'true')
+        }
 
