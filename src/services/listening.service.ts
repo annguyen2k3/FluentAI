@@ -175,7 +175,7 @@ class ListeningService {
     const lv = result[0]
 
     if (!lv) {
-      throw new Error('Video nghe không tồn tại')
+      return null
     }
 
     if (lv.level) {
@@ -189,7 +189,7 @@ class ListeningService {
     const history = await databaseService.hisUsers.findOne({
       userId,
       type: HistoryUserType.PRACTICE_LISTENING_VIDEO,
-      content: { lvVideoId: lvId }
+      'content.lvVideoId': lvId
     })
 
     if (!history) {

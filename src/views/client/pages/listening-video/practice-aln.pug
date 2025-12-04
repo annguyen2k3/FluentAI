@@ -1,0 +1,603 @@
+extends ../../layouts/default.pug
+include ../../mixins/modalConfirm.pug
+
+block head
+    link(rel="stylesheet" href="/css/common.css")
+    link(rel="stylesheet" href="/css/layout.css")
+    link(rel="stylesheet" href="/css/speaking-sentence.css")
+
+block main-content
+    - const videoUrl = (lv && lv.videoUrl) || ''
+    - const thumbnailUrl = (lv && lv.thumbnailUrl) || ''
+    - const ytMatch = videoUrl && videoUrl.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)
+    - const ytId = ytMatch && ytMatch[2] && ytMatch[2].length === 11 ? ytMatch[2] : ''
+    - const youtubeEmbedUrl = ytId ? `https://www.youtube.com/embed/${ytId}?enablejsapi=1` : videoUrl
+    - const timeText = typeof lv?.time === 'number' && lv.time > 0 ? `${lv.time} phút` : ''
+
+    .row.g-4
+        .col-lg-7
+            .practice-content
+                .lv-aln-practice-view
+                    if youtubeEmbedUrl
+                        .sv-video
+                            .sv-video__frame
+                                iframe#lv-aln-youtube-player.sv-video__player(
+                                    src=youtubeEmbedUrl
+                                    title="Listening video player"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowfullscreen
+                                )
+                            .sv-video__controls
+                                .sv-video__controls-left
+                                    .lv-aln-video-progress
+                                        input#lv-aln-progress-bar.lv-aln-progress-bar(type="range" min="0" max="100" value="0" step="0.1")
+                                        .lv-aln-video-time
+                                            span#lv-aln-current-time 0:00
+                                            span /
+                                            span#lv-aln-duration-time 0:00
+                                .sv-video__controls-right(style="margin-left: auto;")
+                                    button#lv-aln-play-pause-btn.btn.btn-outline-primary.btn-sm(type="button")
+                                        i.fas.fa-play.me-1
+                                        | Phát
+                                    button#lv-aln-toggle-media-btn.btn.btn-outline-secondary.btn-sm(type="button") Ẩn video
+                    else if thumbnailUrl
+                        .sv-video
+                            .sv-video__frame
+                                img(src=thumbnailUrl alt=lv.title class="sv-video__player")
+                    else
+                        .alert.alert-warning.mb-3
+                            | Chưa có video cho bài nghe này.
+
+                    .mt-4
+                        .practice-title-section
+                            h2.fs-4.mb-2.fw-bold #{lv.title || 'Luyện nghe video'}
+                            .d-flex.flex-wrap.align-items-center.gap-2.lv-aln__meta
+                                span.badge.bg-light.text-dark.border
+                                    i.fas.fa-signal.me-1
+                                    | Level:
+                                    span.ms-1 #{lv.levelTitle || 'Đang cập nhật'}
+                                if timeText
+                                    span.badge.bg-light.text-dark.border
+                                        i.far.fa-clock.me-1
+                                        | #{timeText}
+                                span.badge.bg-primary-subtle.text-primary.border-0
+                                    i.fas.fa-headphones.me-1
+                                    | Active Listening & Note-taking
+
+                            if lv.topicsDetail && Array.isArray(lv.topicsDetail) && lv.topicsDetail.length
+                                .mt-2
+                                    each t in lv.topicsDetail
+                                        span.lv-topic-badge.me-2
+                                            i(class=(t.fa_class_icon || 'far fa-folder-open') + ' me-1')
+                                            | #{t.title}
+
+                        if lv.description
+                            .mt-3
+                                h3.fs-6.text-uppercase.text-muted.mb-2
+                                    i.fas.fa-book-open.me-2
+                                    | Mô tả bài nghe
+                                pre.lv-aln__description !{lv.description}
+
+                .lv-aln-quiz-view.d-none
+                    if lv && Array.isArray(lv.questions) && lv.questions.length
+                        h3.fs-5.mb-3.fw-bold
+                            i.fas.fa-clipboard-check.me-2(style="color: var(--primary-color);")
+                            | Bài trắc nghiệm thu hoạch
+
+                        .lv-aln-quiz-view__score.d-none.alert(role="status")
+                            span.lv-aln-quiz-view__score-badge.badge.me-2
+                            span.lv-aln-quiz-view__score-text
+                        .lv-aln-quiz-view__actions.d-none.mb-4.d-flex.justify-content-end.gap-3
+                            button#lv-aln-quiz-retry-btn.btn.btn-primary(type="button") Luyện tập nghe lại bài này
+                            button#lv-aln-quiz-next-btn.btn.btn-outline-primary(type="button")
+                                | Chọn bài nghe tiếp theo
+                                i.fas.fa-arrow-right.ms-2
+                        form#lv-aln-quiz-form
+                            each q, idx in lv.questions
+                                .card.mb-3.lv-aln-quiz__question
+                                    .card-body
+                                        h5.card-title.mb-3
+                                            | Câu #{idx + 1}. #{q.question}
+                                        .lv-aln-quiz__options
+                                            each val, key in q.options
+                                                .form-check.mb-2
+                                                    input.form-check-input(
+                                                        type="radio"
+                                                        name=`question-${idx}`
+                                                        id=`question-${idx}-${key}`
+                                                        value=key
+                                                    )
+                                                    label.form-check-label(for=`question-${idx}-${key}`)
+                                                        | #{key}. #{val}
+                                        .lv-aln-quiz__result.mt-2.small.text-muted.d-none(
+                                            data-answer=q.answer
+                                            data-explanation=q.explanation
+                                        )
+                        .d-flex.justify-content-end.mt-3
+                            button#lv-aln-quiz-check-btn.btn.btn-primary(type="button") Kiểm tra đáp án
+                    else
+                        .alert.alert-info.mt-3
+                            | Chưa có câu hỏi trắc nghiệm cho bài nghe này.
+
+        .col-lg-5
+            .practice-sidebar#lv-aln-sidebar
+                .practice-sidebar__header.d-flex.justify-content-between.align-items-center
+                    h3.practice-sidebar__title.mb-0 Note Taking
+                    button#lv-aln-note-clear-btn.btn.btn-sm.btn-outline-warning.p-1(type="button" title="Xóa tất cả ghi chú")
+                        i.fas.fa-eraser
+                .practice-sidebar__content
+                    .lv-aln-note-container
+                        textarea#lv-aln-note-textarea.lv-aln-note-textarea(
+                            placeholder="Ghi chú của bạn... Hãy ghi lại những điểm quan trọng khi nghe video."
+                            rows="20"
+                        )
+                .practice-sidebar__actions
+                    button#lv-aln-ci-btn.practice-sidebar__action-btn(type="button")
+                        i.fas.fa-headphones.me-1
+                        | Luyện tập Comprehensible Input
+                    button#lv-aln-quit-btn.practice-sidebar__action-btn.practice-sidebar__action-btn--quit(type="button")
+                        i.fas.fa-sign-out-alt.me-1
+                        | Thoát
+                .mt-2
+                    button#lv-aln-quiz-btn.btn.btn-success.w-100(type="button")
+                        i.fas.fa-arrows-rotate.me-1
+                        | Làm bài trắc nghiệm thu hoạch
+
+    script#lv-aln-data(type="application/json") !{JSON.stringify(lv || {})}
+
+block scripts
+    script(type="module").
+        import { ApiBreakpoint } from '/js/api_breakpoint.js'
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const dataEl = document.getElementById('lv-aln-data')
+            const noteTextarea = document.getElementById('lv-aln-note-textarea')
+            const noteClearBtn = document.getElementById('lv-aln-note-clear-btn')
+            const ciBtn = document.getElementById('lv-aln-ci-btn')
+            const quitBtn = document.getElementById('lv-aln-quit-btn')
+            const quizBtn = document.getElementById('lv-aln-quiz-btn')
+            const practiceView = document.querySelector('.lv-aln-practice-view')
+            const quizView = document.querySelector('.lv-aln-quiz-view')
+            const quizForm = document.getElementById('lv-aln-quiz-form')
+            const quizCheckBtn = document.getElementById('lv-aln-quiz-check-btn')
+            const quizActionsEl = document.querySelector('.lv-aln-quiz-view__actions')
+            const quizNextBtn = document.getElementById('lv-aln-quiz-next-btn')
+            const quizRetryBtn = document.getElementById('lv-aln-quiz-retry-btn')
+            const toggleMediaBtn = document.getElementById('lv-aln-toggle-media-btn')
+            const playPauseBtn = document.getElementById('lv-aln-play-pause-btn')
+            const progressBar = document.getElementById('lv-aln-progress-bar')
+            const currentTimeEl = document.getElementById('lv-aln-current-time')
+            const durationTimeEl = document.getElementById('lv-aln-duration-time')
+
+            let state = {
+                slug: null,
+                notes: ''
+            }
+
+            const youtubeEl = document.getElementById('lv-aln-youtube-player')
+            const youtubeState = {
+                player: null,
+                ready: false
+            }
+
+            try {
+                const raw = dataEl ? dataEl.textContent : '{}'
+                const parsed = JSON.parse(raw || '{}')
+                if (parsed.slug) {
+                    state.slug = parsed.slug
+                }
+                if (parsed.notes) {
+                    state.notes = parsed.notes
+                    if (noteTextarea) {
+                        noteTextarea.value = state.notes
+                    }
+                }
+            } catch (err) {
+                console.error('Không parse được dữ liệu listening video:', err)
+            }
+
+            if (noteTextarea) {
+                const savedNotes = localStorage.getItem(`lv-aln-notes-${state.slug}`)
+                if (savedNotes) {
+                    noteTextarea.value = savedNotes
+                    state.notes = savedNotes
+                }
+
+                noteTextarea.addEventListener('input', function() {
+                    state.notes = this.value
+                    if (state.slug) {
+                        localStorage.setItem(`lv-aln-notes-${state.slug}`, this.value)
+                    }
+                })
+            }
+
+            if (noteClearBtn && noteTextarea) {
+                noteClearBtn.addEventListener('click', () => {
+                    noteTextarea.value = ''
+                    state.notes = ''
+                    if (state.slug) {
+                        localStorage.removeItem(`lv-aln-notes-${state.slug}`)
+                    }
+                })
+            }
+
+            function formatVideoTime(seconds) {
+                if (typeof seconds !== 'number' || isNaN(seconds)) return '0:00'
+                const totalSeconds = Math.floor(seconds)
+                const mins = Math.floor(totalSeconds / 60)
+                const secs = totalSeconds % 60
+                return `${mins}:${secs.toString().padStart(2, '0')}`
+            }
+
+            function updateVideoProgress() {
+                if (!youtubeState.player || !progressBar || !currentTimeEl || !durationTimeEl) return
+                try {
+                    const currentTime = youtubeState.player.getCurrentTime()
+                    const duration = youtubeState.player.getDuration()
+                    
+                    if (typeof currentTime === 'number' && !isNaN(currentTime)) {
+                        currentTimeEl.textContent = formatVideoTime(currentTime)
+                    }
+                    
+                    if (typeof duration === 'number' && !isNaN(duration) && duration > 0) {
+                        durationTimeEl.textContent = formatVideoTime(duration)
+                        if (!progressBar.isSeeking) {
+                            const percentage = (currentTime / duration) * 100
+                            progressBar.value = Math.min(Math.max(percentage, 0), 100)
+                        }
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi cập nhật progress:', error)
+                }
+            }
+
+            function startVideoProgressUpdate() {
+                if (youtubeState.progressIntervalId) return
+                youtubeState.progressIntervalId = window.setInterval(updateVideoProgress, 500)
+            }
+
+            function stopVideoProgressUpdate() {
+                if (youtubeState.progressIntervalId) {
+                    clearInterval(youtubeState.progressIntervalId)
+                    youtubeState.progressIntervalId = null
+                }
+            }
+
+            if (ciBtn) {
+                ciBtn.addEventListener('click', () => {
+                    if (!state.slug) {
+                        window.location.href = '/listening-video'
+                        return
+                    }
+                    window.location.href = `/listening-video/comprehensible-input/${encodeURIComponent(
+                        state.slug
+                    )}`
+                })
+            }
+
+            if (quitBtn) {
+                quitBtn.addEventListener('click', () => {
+                    window.location.href = '/listening-video'
+                })
+            }
+
+            if (quizBtn && practiceView && quizView) {
+                const quizBtnInitialHtml = quizBtn.innerHTML
+                const quizBtnBackHtml = '<i class="fas fa-arrows-rotate me-1"></i> Nghe lại'
+
+                quizBtn.addEventListener('click', () => {
+                    const isPracticeVisible = !practiceView.classList.contains('d-none')
+                    if (isPracticeVisible) {
+                        practiceView.classList.add('d-none')
+                        quizView.classList.remove('d-none')
+                        quizBtn.innerHTML = quizBtnBackHtml
+                    } else {
+                        quizView.classList.add('d-none')
+                        practiceView.classList.remove('d-none')
+                        quizBtn.innerHTML = quizBtnInitialHtml
+                    }
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                })
+            }
+
+            if (quizCheckBtn && quizForm) {
+                quizCheckBtn.addEventListener('click', () => {
+                    const questionEls = Array.from(quizForm.querySelectorAll('.lv-aln-quiz__question'))
+                    const questionStates = []
+                    let hasUnanswered = false
+                    let correctCount = 0
+
+                    questionEls.forEach((qEl) => {
+                        const inputs = qEl.querySelectorAll('input[type="radio"]')
+                        const resultEl = qEl.querySelector('.lv-aln-quiz__result')
+                        if (!inputs.length || !resultEl) return
+                        const name = inputs[0].name
+                        const checked = quizForm.querySelector(`input[name="${name}"]:checked`)
+                        const answer = resultEl.dataset.answer
+                        const explanation = resultEl.dataset.explanation || ''
+
+                        questionStates.push({ resultEl, checked, answer, explanation })
+
+                        if (!checked) {
+                            hasUnanswered = true
+                        } else if (checked.value === answer) {
+                            correctCount += 1
+                        }
+                    })
+
+                    // Cập nhật hiển thị từng câu
+                    questionStates.forEach(({ resultEl, checked, answer, explanation }) => {
+                        resultEl.classList.remove(
+                            'd-none',
+                            'text-success',
+                            'text-danger',
+                            'lv-aln-quiz__result--warning',
+                            'lv-aln-quiz__result--correct',
+                            'lv-aln-quiz__result--incorrect'
+                        )
+
+                        if (hasUnanswered) {
+                            if (!checked) {
+                                resultEl.classList.add('lv-aln-quiz__result--warning')
+                                resultEl.textContent = 'Bạn chưa chọn đáp án cho câu này.'
+                            } else {
+                                // Đã chọn nhưng chưa cho xem đáp án khi còn câu bỏ trống
+                                resultEl.classList.add('d-none')
+                            }
+                        } else {
+                            if (checked && checked.value === answer) {
+                                resultEl.classList.add('lv-aln-quiz__result--correct')
+                                const explanationText =
+                                    explanation && explanation.trim().length
+                                        ? explanation
+                                        : 'không có lời giải thích cho câu này'
+                                resultEl.innerHTML = `Đáp án đúng: <strong>${answer}</strong><br/>Giải thích: ${explanationText}`
+                            } else if (checked) {
+                                resultEl.classList.add('lv-aln-quiz__result--incorrect')
+                                const explanationText =
+                                    explanation && explanation.trim().length
+                                        ? explanation
+                                        : 'không có lời giải thích cho câu này'
+                                resultEl.innerHTML = `Đáp án đúng: <strong>${answer}</strong><br/>Giải thích: ${explanationText}`
+                            } else {
+                                // Trường hợp kỹ thuật, nhưng vẫn xử lý an toàn
+                                resultEl.classList.add('lv-aln-quiz__result--warning')
+                                resultEl.textContent = 'Bạn chưa chọn đáp án cho câu này.'
+                            }
+                        }
+                    })
+
+                    const scoreEl = document.querySelector('.lv-aln-quiz-view__score')
+                    const scoreBadgeEl = document.querySelector('.lv-aln-quiz-view__score-badge')
+                    const scoreTextEl = document.querySelector('.lv-aln-quiz-view__score-text')
+
+                    if (scoreEl) {
+                        if (hasUnanswered) {
+                            scoreEl.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-info')
+                            scoreEl.classList.add('alert', 'alert-warning')
+                            if (scoreBadgeEl) {
+                                scoreBadgeEl.textContent = ''
+                                scoreBadgeEl.className = 'lv-aln-quiz-view__score-badge badge me-2'
+                            }
+                            if (scoreTextEl) {
+                                scoreTextEl.textContent =
+                                    'Vui lòng chọn đáp án cho tất cả các câu hỏi trước khi xem điểm.'
+                            }
+                        } else {
+                            const totalQuestions = questionEls.length
+                            const isPassed = totalQuestions > 0 && correctCount / totalQuestions >= 0.8
+
+                            scoreEl.classList.remove('d-none', 'alert-warning', 'alert-danger', 'alert-info')
+                            scoreEl.classList.add('alert', isPassed ? 'alert-success' : 'alert-danger')
+
+                            if (scoreBadgeEl) {
+                                scoreBadgeEl.textContent = isPassed ? 'Đạt' : 'Chưa đạt'
+                                scoreBadgeEl.className = `lv-aln-quiz-view__score-badge badge me-2 ${
+                                    isPassed ? 'bg-success' : 'bg-danger'
+                                }`
+                            }
+                            if (scoreTextEl) {
+                                const baseText = `${correctCount}/${totalQuestions} câu đúng`
+                                const message = isPassed
+                                    ? 'Tuyệt vời! Bạn đã đạt yêu cầu, hãy tiếp tục luyện tập để giữ phong độ nhé.'
+                                    : 'Cố gắng lên! Hãy xem lại đáp án và thử luyện nghe lại thêm một lần nữa nhé.'
+                                scoreTextEl.textContent = `${baseText}. ${message}`
+                            }
+
+                            if (quizActionsEl) {
+                                quizActionsEl.classList.remove('d-none')
+                                if (quizNextBtn && quizRetryBtn) {
+                                    if (isPassed) {
+                                        quizNextBtn.classList.remove('d-none')
+                                        quizNextBtn.className = 'btn btn-primary me-2'
+                                        quizRetryBtn.className = 'btn btn-outline-secondary'
+                                    } else {
+                                        quizNextBtn.classList.add('d-none')
+                                        quizRetryBtn.className = 'btn btn-outline-danger'
+                                    }
+                                }
+                            }
+
+                            // Disable tất cả lựa chọn sau khi đã chấm điểm đủ câu
+                            questionEls.forEach((qEl) => {
+                                const inputs = qEl.querySelectorAll('input[type="radio"]')
+                                inputs.forEach((input) => {
+                                    input.disabled = true
+                                })
+                            })
+
+                            if (isPassed && state.slug) {
+                                const url = ApiBreakpoint.UPDATE_LV_STATUS.replace(
+                                    '{slug}',
+                                    encodeURIComponent(state.slug)
+                                )
+                                window
+                                    .fetch(url, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({ status: 'completed' })
+                                    })
+                                    .catch((err) => {
+                                        console.error('Không cập nhật được trạng thái bài nghe:', err)
+                                    })
+                            }
+
+                            if (quizCheckBtn) {
+                                quizCheckBtn.classList.add('d-none')
+                            }
+                        }
+                        window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }
+                })
+            }
+
+            if (quizNextBtn) {
+                quizNextBtn.addEventListener('click', () => {
+                    window.location.href = '/listening-video'
+                })
+            }
+
+            if (quizRetryBtn) {
+                quizRetryBtn.addEventListener('click', () => {
+                    window.location.reload()
+                })
+            }
+
+            function updatePlayPauseButton() {
+                if (!playPauseBtn || !youtubeState.player) return
+                try {
+                    const playerState = youtubeState.player.getPlayerState()
+                    if (playerState === YT.PlayerState.PLAYING) {
+                        playPauseBtn.innerHTML = '<i class="fas fa-pause me-1"></i> Dừng'
+                    } else {
+                        playPauseBtn.innerHTML = '<i class="fas fa-play me-1"></i> Phát'
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi cập nhật nút play/pause:', error)
+                }
+            }
+
+            if (playPauseBtn && youtubeEl) {
+                playPauseBtn.addEventListener('click', function () {
+                    if (!youtubeState.player) return
+                    try {
+                        const playerState = youtubeState.player.getPlayerState()
+                        if (playerState === YT.PlayerState.PLAYING) {
+                            youtubeState.player.pauseVideo()
+                        } else {
+                            youtubeState.player.playVideo()
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi điều khiển video:', error)
+                    }
+                })
+            }
+
+            function setupProgressBarSeek() {
+                if (!progressBar || progressBar.seekSetupDone) return
+                
+                progressBar.isSeeking = false
+                progressBar.seekSetupDone = true
+                
+                progressBar.addEventListener('mousedown', function () {
+                    this.isSeeking = true
+                })
+                
+                progressBar.addEventListener('mouseup', function () {
+                    this.isSeeking = false
+                    if (!youtubeState.player) return
+                    try {
+                        const duration = youtubeState.player.getDuration()
+                        if (typeof duration === 'number' && !isNaN(duration) && duration > 0) {
+                            const seekTime = (parseFloat(this.value) / 100) * duration
+                            youtubeState.player.seekTo(seekTime, true)
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi seek video:', error)
+                    }
+                })
+                
+                progressBar.addEventListener('input', function () {
+                    if (!youtubeState.player) return
+                    try {
+                        const duration = youtubeState.player.getDuration()
+                        if (typeof duration === 'number' && !isNaN(duration) && duration > 0) {
+                            const seekTime = (parseFloat(this.value) / 100) * duration
+                            youtubeState.player.seekTo(seekTime, true)
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi seek video:', error)
+                    }
+                })
+
+                progressBar.addEventListener('click', function (e) {
+                    if (!youtubeState.player) return
+                    try {
+                        const rect = this.getBoundingClientRect()
+                        const clickX = e.clientX - rect.left
+                        const percentage = (clickX / rect.width) * 100
+                        const duration = youtubeState.player.getDuration()
+                        if (typeof duration === 'number' && !isNaN(duration) && duration > 0) {
+                            const seekTime = (percentage / 100) * duration
+                            youtubeState.player.seekTo(seekTime, true)
+                            this.value = percentage
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi seek video:', error)
+                    }
+                })
+            }
+
+            if (progressBar) {
+                setupProgressBarSeek()
+            }
+
+            if (toggleMediaBtn && youtubeEl) {
+                toggleMediaBtn.addEventListener('click', function () {
+                    const frame = youtubeEl.closest('.sv-video__frame')
+                    if (!frame) return
+                    const isHidden = frame.style.display === 'none'
+                    frame.style.display = isHidden ? '' : 'none'
+                    this.textContent = isHidden ? 'Ẩn video' : 'Hiện video'
+                })
+            }
+
+            if (youtubeEl) {
+                const tag = document.createElement('script')
+                tag.src = 'https://www.youtube.com/iframe_api'
+                document.head.appendChild(tag)
+
+                window.onYouTubeIframeAPIReady = function () {
+                    if (!youtubeEl) return
+                    youtubeState.player = new YT.Player('lv-aln-youtube-player', {
+                        events: {
+                            onReady: function () {
+                                youtubeState.ready = true
+                                startVideoProgressUpdate()
+                                updatePlayPauseButton()
+                                if (progressBar) {
+                                    setupProgressBarSeek()
+                                }
+                            },
+                            onStateChange: function (event) {
+                                if (event.data === YT.PlayerState.PLAYING) {
+                                    startVideoProgressUpdate()
+                                    updatePlayPauseButton()
+                                }
+                                if (
+                                    event.data === YT.PlayerState.PAUSED ||
+                                    event.data === YT.PlayerState.ENDED
+                                ) {
+                                    stopVideoProgressUpdate()
+                                    updatePlayPauseButton()
+                                }
+                            }
+                        }
+                    })
+                }
+            }
+        })
+

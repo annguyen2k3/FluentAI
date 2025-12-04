@@ -8,3 +8,15 @@ mixin modalConfirmDanger(id, title, subtitle, confirmText, cancelText)
             .practice-reset-modal__actions
                 button.btn.btn-outline-secondary(type="button" id=`${id}-cancel`) #{cancelText || 'Hủy'}
                 button.btn.btn-danger(type="button" id=`${id}-confirm`) #{confirmText || 'Đồng ý'}
+
+
+mixin modalConfirmInfo(id, title, subtitle, confirmText, cancelText)
+    .practice-reset-modal(id=id)
+        .practice-reset-modal__dialog
+            if title
+                h4.practice-reset-modal__title #{title}
+            if subtitle
+                p.practice-reset-modal__subtitle #{subtitle}
+            .practice-reset-modal__actions
+                button.btn.btn-outline-secondary(type="button" id=`${id}-cancel`) #{cancelText || 'Hủy'}
+                button.btn.btn-info(type="button" id=`${id}-confirm`) #{confirmText || 'Đồng ý'}

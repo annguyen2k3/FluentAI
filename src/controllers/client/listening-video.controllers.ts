@@ -91,25 +91,79 @@ export const renderLVCIController = async (req: Request, res: Response) => {
   const user = req.user as User
   const slug = req.params.slug
 
-  try {
-    const lv = await listeningService.getLVDetail(slug)
+  const lv = await listeningService.getLVDetail(slug)
 
-    await listeningService.updateHistory(
-      user._id as ObjectId,
-      lv._id as ObjectId,
-      StatusLesson.IN_PROGRESS
-    )
+  if (!lv) {
+    return res.redirect('/listening-video')
+  }
 
-    res.render('client/pages/listening-video/practice-ci.pug', {
-      pageTitle: 'Luyện nghe video - Comprehensible Input',
-      user,
-      lv
+  await listeningService.updateHistory(
+    user._id as ObjectId,
+    lv._id as ObjectId,
+    StatusLesson.IN_PROGRESS
+  )
+
+  res.render('client/pages/listening-video/practice-ci.pug', {
+    pageTitle: 'Luyện nghe video - Comprehensible Input',
+    user,
+    lv
+  })
+}
+
+// GET /listening-video/active-listening/:slug
+export const renderLVALNController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const slug = req.params.slug
+
+  const lv = await listeningService.getLVDetail(slug)
+
+  if (!lv) {
+    return res.redirect('/listening-video')
+  }
+
+  await listeningService.updateHistory(
+    user._id as ObjectId,
+    lv._id as ObjectId,
+    StatusLesson.IN_PROGRESS
+  )
+
+  res.render('client/pages/listening-video/practice-aln.pug', {
+    pageTitle: 'Luyện nghe video - Active Listening',
+    user,
+    lv
+  })
+}
+
+// PUT /listening-video/update-status/:slug
+export const updateLVStatusController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const slug = req.params.slug
+  const status = req.body.status as StatusLesson
+
+  if (!status) {
+    return res.status(HttpStatus.BAD_REQUEST).json({
+      message: 'Trạng thái không hợp lệ',
+      status: HttpStatus.BAD_REQUEST
     })
-  } catch (error) {
+  }
+
+  const lv = await databaseService.listeningVideos.findOne({ slug })
+
+  if (!lv) {
     return res.status(HttpStatus.NOT_FOUND).json({
-      message:
-        error instanceof Error ? error.message : 'Video nghe không tồn tại',
+      message: 'Video nghe không tồn tại',
       status: HttpStatus.NOT_FOUND
     })
   }
+
+  await listeningService.updateHistory(
+    user._id as ObjectId,
+    lv._id as ObjectId,
+    status
+  )
+
+  return res.status(HttpStatus.OK).json({
+    message: 'Trạng thái video nghe đã được cập nhật thành công',
+    status: HttpStatus.OK
+  })
 }

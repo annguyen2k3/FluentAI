@@ -106,6 +106,8 @@ block main-content
 
 block scripts
     script(type="module").
+        import { ApiBreakpoint } from '/js/api_breakpoint.js'
+
         document.addEventListener('DOMContentLoaded', () => {
             const dataEl = document.getElementById('lv-ci-data')
             const listEl = document.getElementById('lv-ci-transcript-list')
@@ -121,6 +123,7 @@ block scripts
             const durationTimeEl = document.getElementById('lv-ci-duration-time')
 
             let state = {
+                slug: null,
                 transcript: [],
                 showEn: true,
                 showVi: true,
@@ -137,13 +140,13 @@ block scripts
             try {
                 const raw = dataEl ? dataEl.textContent : '{}'
                 const parsed = JSON.parse(raw || '{}')
+                if (parsed.slug) {
+                    state.slug = parsed.slug
+                }
                 if (Array.isArray(parsed.transcript)) {
                     state.transcript = parsed.transcript
                         .slice()
                         .sort((a, b) => (a.pos || 0) - (b.pos || 0))
-                }
-                if (parsed.slug) {
-                    state.slug = parsed.slug
                 }
             } catch (err) {
                 console.error('Không parse được dữ liệu listening video:', err)
@@ -347,11 +350,42 @@ block scripts
             }
 
             if (completeBtn) {
-                completeBtn.addEventListener('click', () => {
-                    // Hiện tại chỉ đánh dấu hoàn thành trên UI, có thể nối với API sau
-                    completeBtn.classList.add('disabled')
-                    completeBtn.innerHTML =
-                        '<i class="fas fa-check-double me-1"></i> Đã đánh dấu hoàn thành'
+                completeBtn.addEventListener('click', async () => {
+                    if (!state.slug) {
+                        console.error('Không tìm thấy slug của bài nghe')
+                        return
+                    }
+
+                    const originalHtml = completeBtn.innerHTML
+                    completeBtn.disabled = true
+                    completeBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Đang xử lý...'
+
+                    try {
+                        const url = ApiBreakpoint.UPDATE_LV_STATUS.replace(
+                            '{slug}',
+                            encodeURIComponent(state.slug)
+                        )
+                        const response = await window.fetch(url, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ status: 'completed' })
+                        })
+
+                        if (response.ok) {
+                            completeBtn.classList.add('disabled')
+                            completeBtn.innerHTML =
+                                '<i class="fas fa-check-double me-1"></i> Đã đánh dấu hoàn thành'
+                        } else {
+                            throw new Error('Không cập nhật được trạng thái')
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi cập nhật trạng thái bài nghe:', error)
+                        completeBtn.disabled = false
+                        completeBtn.innerHTML = originalHtml
+                        alert('Có lỗi xảy ra khi cập nhật trạng thái. Vui lòng thử lại.')
+                    }
                 })
             }
 
