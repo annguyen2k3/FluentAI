@@ -454,8 +454,10 @@ const wsPractice = document.querySelector('[ws-data-practice]')
 if (wsPractice) {
   const wsData = JSON.parse(wsPractice.getAttribute('ws-data-practice'))
   const feedbackDescription = document.querySelector('[feedback-description]')
+  const wsLoadingEl = document.getElementById('ws-loading')
   const buttonSubmit = document.querySelector('[button-submit]')
   const buttonNext = document.querySelector('[button-next]')
+  const userTranslationInput = document.querySelector('[user_translation]')
 
   const listSentences = wsData.list
   let currentIndex = 1
@@ -573,6 +575,14 @@ if (wsPractice) {
     buttonNext.classList.add('d-none')
     buttonSubmit.classList.remove('d-none')
     document.querySelector('[user_translation]').value = ''
+    if (wsLoadingEl) {
+      wsLoadingEl.style.display = 'none'
+    }
+    if (feedbackDescription) {
+      feedbackDescription.style.display = 'block'
+      feedbackDescription.innerHTML =
+        'Click <span class="letter-highlight">Submit</span> to get feedback from <span class="letter-highlight">AI</span>. The system will review your translation and point out its strengths and areas for improvement.'
+    }
   })
 
   if (buttonSubmit) {
@@ -587,6 +597,15 @@ if (wsPractice) {
         alertError('Vui lòng nhập bản dịch của bạn')
         return
       }
+
+      if (wsLoadingEl) {
+        wsLoadingEl.style.display = 'flex'
+      }
+      if (feedbackDescription) {
+        feedbackDescription.style.display = 'none'
+      }
+      buttonSubmit.disabled = true
+
       const requestUrl = `${ApiBreakpoint.POST_PRACTICE_WS}/${wsData.slug}`
       fetch(requestUrl, {
         method: 'POST',
@@ -601,12 +620,31 @@ if (wsPractice) {
       })
         .then((response) => response.json())
         .then((data) => {
+          if (wsLoadingEl) {
+            wsLoadingEl.style.display = 'none'
+          }
+          if (feedbackDescription) {
+            feedbackDescription.style.display = 'block'
+          }
+          buttonSubmit.disabled = false
+
           if (data.status === 200) {
             console.log(data.evaluateResult)
             feedbackDescription.innerHTML = renderFeedback(data.evaluateResult)
+            if (userTranslationInput) {
+              userTranslationInput.value = ''
+            }
             if (data.evaluateResult.passed) {
               if (currentIndex === listSentences.length) {
-                window.location.href = `/writing-sentence/practice/complete/${wsData.slug}`
+                const loadingOverlay = document.getElementById(
+                  'practice-complete-loading'
+                )
+                if (loadingOverlay) {
+                  loadingOverlay.style.display = 'flex'
+                }
+                setTimeout(() => {
+                  window.location.href = `/writing-sentence/practice/complete/${wsData.slug}`
+                }, 300)
               } else {
                 buttonNext.classList.remove('d-none')
                 buttonSubmit.classList.add('d-none')
@@ -620,9 +658,71 @@ if (wsPractice) {
             alertError(data.message)
           }
         })
-        .catch((error) => console.error('Error:', error))
+        .catch((error) => {
+          console.error('Error:', error)
+          if (wsLoadingEl) {
+            wsLoadingEl.style.display = 'none'
+          }
+          if (feedbackDescription) {
+            feedbackDescription.style.display = 'block'
+          }
+          buttonSubmit.disabled = false
+        })
     })
   }
+
+  if (userTranslationInput && feedbackDescription) {
+    userTranslationInput.addEventListener('input', function () {
+      const suggestionElement = feedbackDescription.querySelector(
+        '.ws-feedback__sentence'
+      )
+      if (suggestionElement) {
+        suggestionElement.remove()
+      }
+    })
+  }
+
+  function getActiveButton() {
+    if (
+      buttonSubmit &&
+      !buttonSubmit.classList.contains('d-none') &&
+      !buttonSubmit.disabled
+    ) {
+      return buttonSubmit
+    }
+    if (
+      buttonNext &&
+      !buttonNext.classList.contains('d-none') &&
+      !buttonNext.disabled
+    ) {
+      return buttonNext
+    }
+    return null
+  }
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+      const activeButton = getActiveButton()
+      if (activeButton) {
+        event.preventDefault()
+        activeButton.click()
+      }
+    } else if (event.key === ' ' || event.code === 'Space') {
+      if (
+        userTranslationInput &&
+        document.activeElement !== userTranslationInput
+      ) {
+        event.preventDefault()
+        userTranslationInput.focus()
+      }
+    } else if ((event.ctrlKey || event.metaKey) && event.key === 'h') {
+      event.preventDefault()
+      const hintBtn = document.querySelector('.practice-actions__btn--hint')
+      if (hintBtn) {
+        hintBtn.click()
+      }
+    }
+  })
 }
 
 function formatHighlight(text = '') {

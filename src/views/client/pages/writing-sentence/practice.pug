@@ -1,4 +1,5 @@
 extends ../../layouts/default.pug
+include ../../mixins/loading.pug
 
 block head
     link(rel="stylesheet" href="/css/style.css")
@@ -46,6 +47,23 @@ block main-content
                         button(class="practice-actions__btn practice-actions__btn--submit d-none" button-next)
                             | Câu tiếp theo
                             i(class="fas fa-arrow-right")
+                
+                div(class="practice-shortcuts mt-3 pt-3 border-top")
+                    p(class="practice-shortcuts__title mb-2 text-muted small fw-semibold")
+                        i(class="fas fa-keyboard me-2")
+                        | Phím tắt
+                    div(class="practice-shortcuts__list d-flex flex-wrap gap-3")
+                        div(class="practice-shortcuts__item")
+                            kbd(class="practice-shortcuts__key") Enter
+                            span(class="practice-shortcuts__desc text-muted small") Nộp bài / Câu tiếp theo
+                        div(class="practice-shortcuts__item")
+                            kbd(class="practice-shortcuts__key") Space
+                            span(class="practice-shortcuts__desc text-muted small") Focus vào ô nhập
+                        div(class="practice-shortcuts__item")
+                            kbd(class="practice-shortcuts__key") Ctrl
+                            span(class="practice-shortcuts__plus") +
+                            kbd(class="practice-shortcuts__key") H
+                            span(class="practice-shortcuts__desc text-muted small") Hiển thị gợi ý
 
         div(class="col-lg-4")
             div(class="practice-sidebar")
@@ -54,6 +72,8 @@ block main-content
                         h3(class="practice-feedback__title")
                             i(class="fa-solid fa-robot p-2" style="color: #2107e9;")
                             | Đánh giá từ AI
+                        div#ws-loading.practice-feedback__loading(style="display: none;")
+                            +loadingIndicator('AI đang chấm bài dịch của bạn...')
                         p(class="practice-feedback__description" feedback-description)
                             | Click 
                             span(class="letter-highlight") Submit
@@ -111,5 +131,6 @@ block main-content
                                     span(class="hint-modal__highlight") Lễ hội Halloween
                                     | .
 
+    +loadingOverlay('practice-complete-loading', 'Đang chuyển đến trang đánh giá tổng quan...')
 
     script(src="/js/writing-sentence.js" type="module")

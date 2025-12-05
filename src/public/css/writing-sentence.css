@@ -167,3 +167,8 @@
   border-radius: var(--border-radius-md);
   box-shadow: 0 8px 20px rgba(57, 69, 242, 0.2);
 }
+
+.practice-feedback__loading {
+  display: none;
+  margin-bottom: var(--spacing-md);
+}
