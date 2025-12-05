@@ -577,6 +577,10 @@ if (wpPractice) {
   const buttonSubmit = document.querySelector('[button-submit]')
   const buttonNext = document.querySelector('[button-next]')
   const buttonQuit = document.querySelector('[button-quit]')
+  const userTranslationInput = document.querySelector('[user_translation]')
+  const feedbackDescription = document.querySelector('[feedback-description]')
+  const wpLoadingEl = document.getElementById('wp-loading')
+  let currentEvaluateResult = null
   if (buttonQuit) {
     buttonQuit.addEventListener('click', function (e) {
       e.preventDefault()
@@ -593,6 +597,13 @@ if (wpPractice) {
         alertError('Vui lòng nhập bản dịch của bạn')
         return
       }
+      if (wpLoadingEl) {
+        wpLoadingEl.style.display = 'flex'
+      }
+      if (feedbackDescription) {
+        feedbackDescription.style.display = 'none'
+      }
+      buttonSubmit.disabled = true
       const requestUrl = `${ApiBreakpoint.POST_PRACTICE_WP}/${wpData.slug}`
       fetch(requestUrl, {
         method: 'POST',
@@ -608,18 +619,34 @@ if (wpPractice) {
         .then((response) => response.json())
         .then((data) => {
           console.log(data)
+          if (wpLoadingEl) {
+            wpLoadingEl.style.display = 'none'
+          }
+          if (feedbackDescription) {
+            feedbackDescription.style.display = 'block'
+          }
+          buttonSubmit.disabled = false
           if (data.status === 200) {
-            const feedbackDescription = document.querySelector(
-              '[feedback-description]'
-            )
             if (feedbackDescription) {
               feedbackDescription.innerHTML = renderFeedback(
                 data.evaluateResult
               )
             }
+            if (userTranslationInput) {
+              userTranslationInput.value = ''
+            }
             if (data.evaluateResult.passed) {
+              currentEvaluateResult = data.evaluateResult
               if (currentIndex === sentences.length) {
-                window.location.href = `/writing-paragraph/practice/complete/${wpData.slug}`
+                const loadingOverlay = document.getElementById(
+                  'practice-complete-loading'
+                )
+                if (loadingOverlay) {
+                  loadingOverlay.style.display = 'flex'
+                }
+                setTimeout(() => {
+                  window.location.href = `/writing-paragraph/practice/complete/${wpData.slug}`
+                }, 300)
               } else {
                 buttonNext.classList.remove('d-none')
                 buttonSubmit.classList.add('d-none')
@@ -627,26 +654,47 @@ if (wpPractice) {
             } else {
               buttonNext.classList.add('d-none')
               buttonSubmit.classList.remove('d-none')
+              currentEvaluateResult = null
             }
-            document.querySelector('[user_translation]').value = ''
           } else {
             alertError(data.message)
           }
         })
-        .catch((error) => console.error('Error:', error))
+        .catch((error) => {
+          console.error('Error:', error)
+          if (wpLoadingEl) {
+            wpLoadingEl.style.display = 'none'
+          }
+          if (feedbackDescription) {
+            feedbackDescription.style.display = 'block'
+          }
+          buttonSubmit.disabled = false
+        })
     })
   }
 
   if (buttonNext) {
     buttonNext.addEventListener('click', function () {
+      if (currentEvaluateResult && currentEvaluateResult.tokens) {
+        const translatedSentence = getSentenceTextFromTokens(
+          currentEvaluateResult.tokens
+        )
+        if (translatedSentence) {
+          const currentSentenceElement =
+            sentencesDisplay.querySelector(`.sentence-inprogress`)
+          if (currentSentenceElement) {
+            currentSentenceElement.textContent = translatedSentence
+          }
+        }
+      }
       currentIndex++
       renderSentence(currentIndex)
       buttonNext.classList.add('d-none')
       buttonSubmit.classList.remove('d-none')
-      document.querySelector('[user_translation]').value = ''
-      const feedbackDescription = document.querySelector(
-        '[feedback-description]'
-      )
+      currentEvaluateResult = null
+      if (userTranslationInput) {
+        userTranslationInput.value = ''
+      }
       if (feedbackDescription) {
         feedbackDescription.innerHTML = `
           Click 
@@ -663,6 +711,19 @@ if (wpPractice) {
     return (text || '').replace(/\{([^}]+)\}/g, (_, group) => {
       return `<span class="letter-hi">${group}</span>`
     })
+  }
+
+  function getSentenceTextFromTokens(tokens = []) {
+    if (!tokens.length) return ''
+    return tokens
+      .map((token) => {
+        if (token.state === 'removed') {
+          return ''
+        }
+        return token.text
+      })
+      .filter((text) => text.trim().length > 0)
+      .join(' ')
   }
 
   function renderSentenceTokens(tokens = []) {
@@ -734,6 +795,59 @@ if (wpPractice) {
 
     return sections.join('')
   }
+
+  if (userTranslationInput && feedbackDescription) {
+    userTranslationInput.addEventListener('input', function () {
+      const suggestionElement = feedbackDescription.querySelector(
+        '.ws-feedback__sentence'
+      )
+      if (suggestionElement) {
+        suggestionElement.remove()
+      }
+    })
+  }
+
+  function getActiveButton() {
+    if (
+      buttonSubmit &&
+      !buttonSubmit.classList.contains('d-none') &&
+      !buttonSubmit.disabled
+    ) {
+      return buttonSubmit
+    }
+    if (
+      buttonNext &&
+      !buttonNext.classList.contains('d-none') &&
+      !buttonNext.disabled
+    ) {
+      return buttonNext
+    }
+    return null
+  }
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+      const activeButton = getActiveButton()
+      if (activeButton) {
+        event.preventDefault()
+        activeButton.click()
+      }
+    } else if (event.key === ' ' || event.code === 'Space') {
+      if (
+        userTranslationInput &&
+        document.activeElement !== userTranslationInput
+      ) {
+        event.preventDefault()
+        userTranslationInput.focus()
+      }
+    } else if ((event.ctrlKey || event.metaKey) && event.key === 'h') {
+      event.preventDefault()
+      const hintBtn = document.querySelector('.practice-actions__btn--hint')
+      if (hintBtn) {
+        hintBtn.click()
+      }
+    }
+  })
 }
 
 function formatHighlight(text = '') {
