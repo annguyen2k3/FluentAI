@@ -379,6 +379,7 @@ window.alertError = function (message, time = 5000) {
       dictionaryContainer.classList.toggle(
         'dictionary-widget__container--active'
       )
+      dictionaryToggle.classList.toggle('dictionary-widget__toggle--active')
     })
 
     document.addEventListener('click', function (event) {
@@ -389,6 +390,7 @@ window.alertError = function (message, time = 5000) {
         dictionaryContainer.classList.remove(
           'dictionary-widget__container--active'
         )
+        dictionaryToggle.classList.remove('dictionary-widget__toggle--active')
       }
     })
   }

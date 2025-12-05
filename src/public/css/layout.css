@@ -397,6 +397,32 @@ body {
   font-size: 1.5rem;
 }
 
+.dictionary-widget__toggle--active {
+  background: #6b7280;
+}
+
+.dictionary-widget__toggle-icon {
+  transition:
+    opacity var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.dictionary-widget__toggle-icon--close {
+  position: absolute;
+  opacity: 0;
+  transform: scale(0.7);
+}
+
+.dictionary-widget__toggle--active .dictionary-widget__toggle-icon--book {
+  opacity: 0;
+  transform: scale(0.7);
+}
+
+.dictionary-widget__toggle--active .dictionary-widget__toggle-icon--close {
+  opacity: 1;
+  transform: scale(1);
+}
+
 .dictionary-widget__toggle:hover {
   background: var(--secondary-color);
   transform: scale(1.1);
@@ -427,38 +453,53 @@ body {
   pointer-events: auto;
 }
 
-.dictionary-widget__add-btn {
+.dictionary-widget__lookup-btn {
   position: absolute;
   bottom: 10px;
   right: 10px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #87ceeb;
+  padding: 8px 14px;
+  min-height: 36px;
+  min-width: 44px;
+  border-radius: 12px;
+  background: #3945f2;
   color: #fff;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transition: all var(--transition-fast);
   font-size: 1rem;
   z-index: 10;
-  padding: 0;
 }
 
-.dictionary-widget__add-btn:hover {
-  background: #6bb6d6;
+.dictionary-widget__lookup-btn:hover {
+  background: #08128b;
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.dictionary-widget__add-btn:active {
+.dictionary-widget__lookup-btn:active {
   transform: scale(0.95);
 }
 
-.dictionary-widget__add-tooltip {
+.dictionary-widget__lookup-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dictionary-widget__lookup-icon {
+  font-size: 1rem;
+}
+
+.dictionary-widget__lookup-icon--arrow {
+  font-size: 0.85rem;
+}
+
+.dictionary-widget__lookup-tooltip {
   position: absolute;
   bottom: calc(100% + 10px);
   right: 0;
@@ -477,7 +518,7 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.dictionary-widget__add-tooltip::after {
+.dictionary-widget__lookup-tooltip::after {
   content: '';
   position: absolute;
   top: 100%;
@@ -486,7 +527,7 @@ body {
   border-top-color: #1f2937;
 }
 
-.dictionary-widget__add-btn:hover .dictionary-widget__add-tooltip {
+.dictionary-widget__lookup-btn:hover .dictionary-widget__lookup-tooltip {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
@@ -510,15 +551,16 @@ body {
     height: 350px;
   }
 
-  .dictionary-widget__add-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 0.9rem;
+  .dictionary-widget__lookup-btn {
+    padding: 7px 12px;
+    min-height: 32px;
+    min-width: 40px;
+    font-size: 0.95rem;
     bottom: 8px;
     right: 8px;
   }
 
-  .dictionary-widget__add-tooltip {
+  .dictionary-widget__lookup-tooltip {
     font-size: 0.65rem;
     padding: 0.4rem 0.6rem;
     white-space: normal;
