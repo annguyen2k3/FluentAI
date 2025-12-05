@@ -495,7 +495,6 @@ if (wsPractice) {
                       </span>
                   </div>
               </div>
-              <button class="hint-modal__add-btn">+ Thêm vào từ điển</button>
             </div>
           `
         })

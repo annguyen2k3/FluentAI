@@ -30,9 +30,12 @@ export const loginController = async (req: Request, res: Response) => {
     })
   }
   const result = await adminServices.login(admin._id.toString())
+  res.clearCookie('refresh_token')
+  res.clearCookie('access_token')
   res.cookie('refresh_token', result.refresh_token, {
     httpOnly: true,
-    sameSite: 'lax'
+    sameSite: 'lax',
+    maxAge: 100 * 24 * 60 * 60 * 1000
   })
   res.cookie('access_token', result.access_token, {
     httpOnly: true,

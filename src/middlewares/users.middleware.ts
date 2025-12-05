@@ -272,7 +272,8 @@ export const requireAuth = async (
         })
         res.cookie('refresh_token', new_tokens.refresh_token, {
           httpOnly: true,
-          sameSite: 'lax'
+          sameSite: 'lax',
+          maxAge: 100 * 24 * 60 * 60 * 1000
         })
         return next()
       } catch (error) {
@@ -280,6 +281,77 @@ export const requireAuth = async (
       }
     }
     return res.redirect('/users/login')
+  }
+}
+
+export const optionalAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const access_token = req.cookies?.access_token as string
+  const refresh_token = req.cookies?.refresh_token as string
+
+  if (!access_token || !refresh_token) {
+    req.user = null
+    return next()
+  }
+
+  const refresh_token_exists = await databaseService.refreshTokens.findOne({
+    token: refresh_token
+  })
+  if (refresh_token_exists === null) {
+    req.user = null
+    return next()
+  }
+
+  try {
+    const decoded = await verifyToken({
+      token: access_token,
+      secretOrPublicKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
+    })
+    const user = await userService.getUserById(decoded.user_id)
+    if (!user || user.status === UserStatus.BLOCKED) {
+      req.user = null
+      return next()
+    }
+    unset(user, 'password')
+    req.user = user as User
+    return next()
+  } catch (error: any) {
+    if (error?.name === 'TokenExpiredError') {
+      try {
+        const decoded = await verifyToken({
+          token: refresh_token,
+          secretOrPublicKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+        })
+
+        const user = await userService.getUserById(decoded.user_id)
+        if (!user) {
+          req.user = null
+          return next()
+        }
+        unset(user, 'password')
+
+        req.user = user
+        const new_tokens = await userService.login(user._id.toString())
+        res.cookie('access_token', new_tokens.access_token, {
+          httpOnly: true,
+          sameSite: 'lax'
+        })
+        res.cookie('refresh_token', new_tokens.refresh_token, {
+          httpOnly: true,
+          sameSite: 'lax',
+          maxAge: 100 * 24 * 60 * 60 * 1000
+        })
+        return next()
+      } catch (error) {
+        req.user = null
+        return next()
+      }
+    }
+    req.user = null
+    return next()
   }
 }
 

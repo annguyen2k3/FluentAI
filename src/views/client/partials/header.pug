@@ -29,36 +29,40 @@ header(class="header")
                                 i(class="fas fa-headphones nav-icon")
                                 |  Luyện nghe
                         div(class="nav-item")
-                            a(class="nav-link" href="#")
+                            a(class="nav-link" href="/introduction")
                                 i(class="fas fa-info-circle nav-icon")
                                 |  Về chúng tôi
             div(class="col-2 text-end")
-                div(class="header__actions")
-                    i(class="fas fa-bell header__icon")
-                    div(class="header__avatar")
-                        img(src=user.avatar alt="Avatar" class="header__avatar-img")
-                        div(class="avatar-modal")
-                            div(class="avatar-modal__header")
-                                img(src=user.avatar alt="Avatar" class="avatar-modal__avatar")
-                                div(class="avatar-modal__info")
-                                    h4(class="avatar-modal__name") #{user.username}
-                                    p(class="avatar-modal__email") #{user.email}
-                                    div(class="avatar-modal__assets")
-                                        span(class="avatar-modal__assets-text")
-                                            | Tài sản: 120
-                                            i(class="fa-brands fa-bitcoin fs-6" style="color: #FFD43B;")
-                                        button(class="avatar-modal__topup-btn") + Nạp thêm
-                            div(class="avatar-modal__divider")
-                            div(class="avatar-modal__menu")
-                                a(href="/users/profile" class="avatar-modal__item")
-                                    i(class="fas fa-user avatar-modal__icon")
-                                    |  Thông tin cá nhân
-                                a(href="#" class="avatar-modal__item")
-                                    i(class="fas fa-bookmark avatar-modal__icon")
-                                    |  Bài viết đã lưu
-                                a(href="#" class="avatar-modal__item")
-                                    i(class="fas fa-history avatar-modal__icon")
-                                    |  Lịch sử hoạt động
-                                a(href="/users/logout" class="avatar-modal__item")
-                                    i(class="fas fa-sign-out-alt avatar-modal__icon")
-                                    |  Đăng xuất
+                if user
+                    div(class="header__actions")
+                        div(class="header__avatar")
+                            img(src=user.avatar alt="Avatar" class="header__avatar-img")
+                            div(class="avatar-modal")
+                                div(class="avatar-modal__header")
+                                    img(src=user.avatar alt="Avatar" class="avatar-modal__avatar")
+                                    div(class="avatar-modal__info")
+                                        h4(class="avatar-modal__name") #{user.username}
+                                        p(class="avatar-modal__email") #{user.email}
+                                        div(class="avatar-modal__assets")
+                                            span(class="avatar-modal__assets-text")
+                                                | Tài sản: 120
+                                                i(class="fa-brands fa-bitcoin fs-6" style="color: #FFD43B;")
+                                            button(class="avatar-modal__topup-btn") + Nạp thêm
+                                div(class="avatar-modal__divider")
+                                div(class="avatar-modal__menu")
+                                    a(href="/users/profile" class="avatar-modal__item")
+                                        i(class="fas fa-user avatar-modal__icon")
+                                        |  Thông tin cá nhân
+                                    a(href="#" class="avatar-modal__item")
+                                        i(class="fas fa-bookmark avatar-modal__icon")
+                                        |  Bài viết đã lưu
+                                    a(href="#" class="avatar-modal__item")
+                                        i(class="fas fa-history avatar-modal__icon")
+                                        |  Lịch sử hoạt động
+                                    a(href="/users/logout" class="avatar-modal__item")
+                                        i(class="fas fa-sign-out-alt avatar-modal__icon")
+                                        |  Đăng xuất
+                else
+                    div(class="header__actions")
+                        a(href="/users/login" class="btn btn-primary") Đăng nhập
+                        a(href="/users/register" class="btn btn-secondary") Đăng ký

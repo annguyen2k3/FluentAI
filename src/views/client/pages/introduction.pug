@@ -1,0 +1,247 @@
+extends ../layouts/default.pug
+
+block head
+    link(rel="stylesheet" href="/css/introduction.css")
+
+block main-content
+    .introduction-page
+        section.introduction-hero
+            .container
+                .row.align-items-center
+                    .col-12.col-lg-6
+                        .introduction-hero__content
+                            h1.introduction-hero__title
+                                | Học tiếng Anh thông minh với 
+                                span.introduction-hero__title-highlight AI
+                            p.introduction-hero__subtitle
+                                | Môi trường học tập tương tác, giúp bạn cải thiện toàn diện các kỹ năng Viết, Nói và Nghe thông qua phản hồi thông minh, tức thì và được cá nhân hóa từ Trí tuệ nhân tạo.
+                            .introduction-hero__actions
+                                a.btn.btn-primary.btn-lg(href="/dashboard")
+                                    i.fas.fa-rocket.me-2
+                                    | Bắt đầu ngay
+                                a.btn.btn-outline-primary.btn-lg(href="#features")
+                                    i.fas.fa-info-circle.me-2
+                                    | Tìm hiểu thêm
+                    .col-12.col-lg-6
+                        .introduction-hero__visual
+                            .introduction-hero__visual-robot
+                                i.fas.fa-robot
+                            .introduction-hero__visual-item.introduction-hero__visual-item--1
+                                i.fas.fa-pencil-alt
+                            .introduction-hero__visual-item.introduction-hero__visual-item--2
+                                i.fas.fa-microphone
+                            .introduction-hero__visual-item.introduction-hero__visual-item--3
+                                i.fas.fa-headphones
+
+        section.introduction-problem
+            .container
+                .row.justify-content-center
+                    .col-12.col-lg-10
+                        .introduction-problem__content
+                            h2.introduction-problem__title
+                                i.fas.fa-question-circle.me-3
+                                | Vấn đề bạn đang gặp phải?
+                            .row.mt-4
+                                .col-12.col-md-6.mb-4
+                                    .introduction-problem__card.introduction-animate
+                                        .introduction-problem__card-icon
+                                            i.fas.fa-times-circle
+                                        h3.introduction-problem__card-title Thiếu phản hồi tức thì
+                                        p.introduction-problem__card-text
+                                            | Khó nhận được phản hồi chi tiết cho từng lỗi sai. Việc tìm giáo viên để sửa lỗi thường xuyên tốn kém và không phải lúc nào cũng khả thi.
+                                .col-12.col-md-6.mb-4
+                                    .introduction-problem__card.introduction-animate
+                                        .introduction-problem__card-icon
+                                            i.fas.fa-ban
+                                        h3.introduction-problem__card-title Học thụ động
+                                        p.introduction-problem__card-text
+                                            | Nhiều nền tảng chỉ tập trung vào bài tập trắc nghiệm, flashcard, không giúp bạn thực sự vận dụng ngôn ngữ trong giao tiếp thực tế.
+                                .col-12.col-md-6.mb-4
+                                    .introduction-problem__card.introduction-animate
+                                        .introduction-problem__card-icon
+                                            i.fas.fa-exclamation-triangle
+                                        h3.introduction-problem__card-title Phản hồi không cá nhân hóa
+                                        p.introduction-problem__card-text
+                                            | Các công cụ dịch tự động chỉ đưa ra kết quả mà không giải thích lỗi sai. Công cụ luyện nói chưa chỉ ra lỗi ở từng âm vị cụ thể.
+                                .col-12.col-md-6.mb-4
+                                    .introduction-problem__card.introduction-animate
+                                        .introduction-problem__card-icon
+                                            i.fas.fa-puzzle-piece
+                                        h3.introduction-problem__card-title Thiếu tích hợp
+                                        p.introduction-problem__card-text
+                                            | Phải sử dụng nhiều ứng dụng khác nhau cho từng kỹ năng riêng lẻ, thiếu một môi trường học tập tích hợp và đồng bộ.
+
+        section#features.introduction-features
+            .container
+                .introduction-features__header
+                    h2.introduction-features__title
+                        i.fas.fa-star.me-3
+                        | Ba chức năng cốt lõi
+                    p.introduction-features__subtitle
+                        | Tập trung vào các kỹ năng vận dụng thực tế, giúp bạn học tiếng Anh giao tiếp một cách tự nhiên và hiệu quả
+                
+                .row.mt-5
+                    .col-12.col-lg-4.mb-4
+                        .introduction-feature-card.introduction-animate
+                            .introduction-feature-card__badge
+                                i.fas.fa-robot.me-2
+                                | Hỗ trợ AI
+                            .introduction-feature-card__icon.introduction-feature-card__icon--blue
+                                i.fas.fa-pencil-alt
+                            h3.introduction-feature-card__title Luyện kỹ năng Viết
+                            p.introduction-feature-card__description
+                                | Luyện dịch Việt-Anh theo từng câu hoặc cả đoạn văn. AI phân tích bản dịch, chỉ ra lỗi sai ở cấp độ từ/cụm từ, giải thích chi tiết về ngữ pháp, cách dùng từ và đưa ra gợi ý cải thiện.
+                            ul.introduction-feature-card__benefits
+                                li
+                                    i.fas.fa-check-circle.text-success.me-2
+                                    | Phản hồi tức thì và chi tiết
+                                li
+                                    i.fas.fa-check-circle.text-success.me-2
+                                    | Giải thích ngữ pháp dễ hiểu
+                                li
+                                    i.fas.fa-check-circle.text-success.me-2
+                                    | Gợi ý cải thiện cụ thể
+                            a.introduction-feature-card__link(href="/write-sentence/setup")
+                                | Khám phá ngay 
+                                i.fas.fa-arrow-right.ms-2
+
+                    .col-12.col-lg-4.mb-4
+                        .introduction-feature-card.introduction-animate
+                            .introduction-feature-card__badge
+                                i.fas.fa-robot.me-2
+                                | Hỗ trợ AI
+                            .introduction-feature-card__icon.introduction-feature-card__icon--red
+                                i.fas.fa-microphone
+                            h3.introduction-feature-card__title Luyện kỹ năng Nói
+                            p.introduction-feature-card__description
+                                | Luyện phát âm theo chủ đề và trình độ. AI sử dụng công nghệ nhận dạng giọng nói để phân tích file ghi âm, chỉ rõ các từ phát âm đúng/sai và đưa ra hướng dẫn cụ thể để sửa lỗi.
+                            ul.introduction-feature-card__benefits
+                                li
+                                    i.fas.fa-check-circle.text-success.me-2
+                                    | Đánh giá phát âm chính xác từng từ
+                                li
+                                    i.fas.fa-check-circle.text-success.me-2
+                                    | Hướng dẫn sửa lỗi cụ thể
+                                li
+                                    i.fas.fa-check-circle.text-success.me-2
+                                    | Luyện tập theo chủ đề thực tế
+                            a.introduction-feature-card__link(href="/speaking-sentence/")
+                                | Khám phá ngay 
+                                i.fas.fa-arrow-right.ms-2
+
+                    .col-12.col-lg-4.mb-4
+                        .introduction-feature-card.introduction-animate
+                            .introduction-feature-card__badge
+                                i.fas.fa-headphones.me-2
+                                | Tương tác cao
+                            .introduction-feature-card__icon.introduction-feature-card__icon--green
+                                i.fas.fa-headphones-alt
+                            h3.introduction-feature-card__title Luyện kỹ năng Nghe
+                            p.introduction-feature-card__description
+                                | Luyện nghe với video, chép lại transcript và làm bài trắc nghiệm. Hệ thống chỉ ra từ nghe sai/thiếu, giúp bạn cải thiện khả năng nghe hiểu một cách tự nhiên thông qua Comprehensible Input và Active Listening.
+                            ul.introduction-feature-card__benefits
+                                li
+                                    i.fas.fa-check-circle.text-success.me-2
+                                    | Học từ ngữ cảnh thực tế
+                                li
+                                    i.fas.fa-check-circle.text-success.me-2
+                                    | Phương pháp tiếp thu tự nhiên
+                                li
+                                    i.fas.fa-check-circle.text-success.me-2
+                                    | Đánh giá chi tiết từng từ
+                            a.introduction-feature-card__link(href="/listening-video")
+                                | Khám phá ngay 
+                                i.fas.fa-arrow-right.ms-2
+
+        section.introduction-advantages
+            .container
+                .introduction-advantages__header
+                    h2.introduction-advantages__title
+                        i.fas.fa-lightbulb.me-3
+                        | Tại sao chọn chúng tôi?
+                    p.introduction-advantages__subtitle
+                        | Những ưu điểm vượt trội giúp bạn học tiếng Anh giao tiếp hiệu quả và tự nhiên
+                
+                .row.mt-5
+                    .col-12.col-md-6.col-lg-3.mb-4
+                        .introduction-advantage-item.introduction-animate
+                            .introduction-advantage-item__icon
+                                i.fas.fa-comments
+                            h3.introduction-advantage-item__title Tiếng Anh giao tiếp
+                            p.introduction-advantage-item__text
+                                | Tập trung vào tiếng Anh giao tiếp thực tế, giúp bạn tự tin sử dụng trong cuộc sống hàng ngày và công việc.
+                    
+                    .col-12.col-md-6.col-lg-3.mb-4
+                        .introduction-advantage-item.introduction-animate
+                            .introduction-advantage-item__icon
+                                i.fas.fa-seedling
+                            h3.introduction-advantage-item__title Tiếp thu tự nhiên
+                            p.introduction-advantage-item__text
+                                | Áp dụng phương pháp Comprehensible Input và Active Listening, giúp bạn học ngôn ngữ một cách tự nhiên như trẻ em học tiếng mẹ đẻ.
+                    
+                    .col-12.col-md-6.col-lg-3.mb-4
+                        .introduction-advantage-item.introduction-animate
+                            .introduction-advantage-item__icon
+                                i.fas.fa-user-cog
+                            h3.introduction-advantage-item__title Cá nhân hóa
+                            p.introduction-advantage-item__text
+                                | AI phân tích điểm yếu của bạn và đưa ra phản hồi được cá nhân hóa, giúp bạn cải thiện đúng những gì cần thiết.
+                    
+                    .col-12.col-md-6.col-lg-3.mb-4
+                        .introduction-advantage-item.introduction-animate
+                            .introduction-advantage-item__icon
+                                i.fas.fa-clock
+                            h3.introduction-advantage-item__title Phản hồi tức thì
+                            p.introduction-advantage-item__text
+                                | Nhận phản hồi chi tiết ngay lập tức sau mỗi bài luyện tập, không cần chờ đợi giáo viên hay người hướng dẫn.
+
+        section.introduction-cta
+            .container
+                .introduction-cta__content
+                    h2.introduction-cta__title
+                        | Sẵn sàng bắt đầu hành trình học tiếng Anh của bạn?
+                    p.introduction-cta__subtitle
+                        | Tham gia cùng hàng nghìn người học đang cải thiện kỹ năng tiếng Anh mỗi ngày
+                    .introduction-cta__actions
+                        a.btn.btn-primary.btn-lg.me-3(href="/dashboard")
+                            i.fas.fa-rocket.me-2
+                            | Bắt đầu ngay
+
+block scripts
+    script.
+        document.addEventListener('DOMContentLoaded', function() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            }
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('introduction-animate--visible')
+                    }
+                })
+            }, observerOptions)
+
+            const animateElements = document.querySelectorAll('.introduction-animate')
+            animateElements.forEach(function(el) {
+                observer.observe(el)
+            })
+
+            const smoothScrollLinks = document.querySelectorAll('a[href^="#"]')
+            smoothScrollLinks.forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href')
+                    if (href !== '#' && href.startsWith('#')) {
+                        e.preventDefault()
+                        const target = document.querySelector(href)
+                        if (target) {
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            })
+                        }
+                    }
+                })
+            })
+        })

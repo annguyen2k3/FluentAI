@@ -35,7 +35,8 @@ export enum PartOfSpeech {
 export enum PromptFeature {
   WRITE_SENTENCE = 'write_sentence',
   WRITE_PARAGRAPH = 'write_paragraph',
-  SPEAKING = 'speaking'
+  SPEAKING = 'speaking',
+  TRANSLATE = 'translate'
 }
 
 export enum PromptFeatureType {
