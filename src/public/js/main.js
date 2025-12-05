@@ -368,3 +368,28 @@ window.alertError = function (message, time = 5000) {
 
   return alertContainer
 }
+;(function () {
+  const dictionaryToggle = document.getElementById('dictionaryWidgetToggle')
+  const dictionaryContainer = document.getElementById(
+    'dictionaryWidgetContainer'
+  )
+
+  if (dictionaryToggle && dictionaryContainer) {
+    dictionaryToggle.addEventListener('click', function () {
+      dictionaryContainer.classList.toggle(
+        'dictionary-widget__container--active'
+      )
+    })
+
+    document.addEventListener('click', function (event) {
+      const isClickInsideWidget = dictionaryContainer.contains(event.target)
+      const isClickOnToggle = dictionaryToggle.contains(event.target)
+
+      if (!isClickInsideWidget && !isClickOnToggle) {
+        dictionaryContainer.classList.remove(
+          'dictionary-widget__container--active'
+        )
+      }
+    })
+  }
+})()
