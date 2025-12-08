@@ -204,6 +204,7 @@ if (wsListChoose) {
   let levelId = wsListChoose.getAttribute('level')
   let topicId = wsListChoose.getAttribute('topic') || ''
   let statusId = ''
+  const localStatusMap = loadLocalHistoryStatus()
 
   function escapeHTML(text = '') {
     return text
@@ -221,6 +222,24 @@ if (wsListChoose) {
     if (status === 'in_progress')
       return { label: 'Đang tiến hành', key: 'in-progress' }
     return { label: 'Mới', key: 'new' }
+  }
+
+  function loadLocalHistoryStatus() {
+    const map = {}
+    Object.keys(localStorage || {}).forEach((key) => {
+      if (!key.startsWith('ws-history-')) return
+      const slug = key.replace('ws-history-', '')
+      try {
+        const items = JSON.parse(localStorage.getItem(key)) || []
+        if (Array.isArray(items) && items.length) {
+          const allPassed = items.every((it) => it?.passed)
+          map[slug] = allPassed ? 'completed' : 'in_progress'
+        }
+      } catch (error) {
+        /* ignore malformed local storage */
+      }
+    })
+    return map
   }
 
   function renderPagination(pagination) {
@@ -378,7 +397,10 @@ if (wsListChoose) {
               const topicTitle = ws.topic?.title
                 ? escapeHTML(ws.topic.title)
                 : 'Chủ đề chung'
-              const status = mapStatusToBadge(ws.history?.content?.status)
+              const historyStatus =
+                ws.history?.content?.status || ws.history?.status || ''
+              const statusValue = historyStatus || ''
+              const status = mapStatusToBadge(statusValue)
               const firstSentence =
                 ws.list && ws.list[0] ? escapeHTML(ws.list[0].content) : ''
 
@@ -488,17 +510,108 @@ if (wsListChoose) {
 // Write-sentence practice interactions
 const wsPractice = document.querySelector('[ws-data-practice]')
 if (wsPractice) {
-  const wsData = JSON.parse(wsPractice.getAttribute('ws-data-practice'))
+  const wsDataEl = document.getElementById('ws-data')
+  const hisWSDataEl = document.getElementById('his-ws-data')
+
+  const rawWS = wsDataEl ? wsDataEl.textContent : '{}'
+  const rawHisWS = hisWSDataEl ? hisWSDataEl.textContent : '{}'
+
+  let wsData, hisWSData
+  try {
+    wsData = JSON.parse(rawWS)
+  } catch (error) {
+    wsData = {}
+  }
+
+  try {
+    hisWSData = JSON.parse(rawHisWS)
+  } catch (error) {
+    hisWSData = {}
+  }
+
+  const practiceSlug = wsData?.slug || ''
+  const practiceHistoryKey = `ws-history-${wsData.slug || wsData._id || 'default'}`
+  let practiceHistory = []
+  try {
+    const stored = localStorage.getItem(practiceHistoryKey)
+    practiceHistory = stored ? JSON.parse(stored) || [] : []
+  } catch (error) {
+    practiceHistory = []
+  }
+
   const feedbackDescription = document.querySelector('[feedback-description]')
   const wsLoadingEl = document.getElementById('ws-loading')
   const buttonSubmit = document.querySelector('[button-submit]')
   const buttonNext = document.querySelector('[button-next]')
   const userTranslationInput = document.querySelector('[user_translation]')
 
-  const listSentences = wsData.list
-  let currentIndex = 1
+  const listSentences = wsData.list || []
+
+  function getMergedHistorySentences() {
+    const base = hisWSData?.content?.sentences || []
+    const map = new Map()
+    base.forEach((item) => {
+      if (item?.sentence_original) {
+        map.set(item.sentence_original, item)
+      }
+    })
+    practiceHistory.forEach((item) => {
+      if (item?.sentence_original) {
+        map.set(item.sentence_original, item)
+      }
+    })
+    return Array.from(map.values())
+  }
+
+  function getInitialIndex() {
+    const merged = getMergedHistorySentences()
+    for (let i = 0; i < listSentences.length; i++) {
+      const s = listSentences[i]
+      const hist = merged.find(
+        (h) => h.sentence_original === s.content && h.passed === true
+      )
+      if (!hist) {
+        return i + 1
+      }
+    }
+    return listSentences.length > 0 ? listSentences.length : 1
+  }
+
+  function isAllCompleted() {
+    const merged = getMergedHistorySentences()
+    if (!listSentences.length) return false
+    return listSentences.every((s) =>
+      merged.some((h) => h.sentence_original === s.content && h.passed)
+    )
+  }
+
+  const allCompleted = isAllCompleted()
+  let currentIndex = getInitialIndex()
 
   function renderSentence(index) {
+    if (allCompleted) {
+      const sentenceContent = document.querySelector('[sentence_vi]')
+      if (sentenceContent) {
+        sentenceContent.textContent =
+          'Bạn đã hoàn thành xuất sắc bài luyện tập này. Nếu muốn luyện tập lại hãy xoá lịch sử và bắt đầu lại.'
+      }
+      const progressIndex = document.querySelector('[progress-index]')
+      if (progressIndex) {
+        progressIndex.textContent = listSentences.length
+      }
+      const progressFill = document.querySelector('[progress-fill]')
+      if (progressFill) {
+        progressFill.style.width = '100%'
+      }
+      if (buttonSubmit) {
+        buttonSubmit.disabled = true
+      }
+      if (buttonNext) {
+        buttonNext.classList.add('d-none')
+      }
+      return
+    }
+
     const sentence = listSentences[index - 1]
     if (sentence) {
       console.log(sentence)
@@ -595,6 +708,23 @@ if (wsPractice) {
     return sections.join('')
   }
 
+  function saveClientHistory(evaluateResult) {
+    if (!evaluateResult || !evaluateResult.sentence_original) return
+    const idx = practiceHistory.findIndex(
+      (item) => item.sentence_original === evaluateResult.sentence_original
+    )
+    if (idx >= 0) {
+      practiceHistory[idx] = evaluateResult
+    } else {
+      practiceHistory.push(evaluateResult)
+    }
+    try {
+      localStorage.setItem(practiceHistoryKey, JSON.stringify(practiceHistory))
+    } catch (error) {
+      /* ignore storage errors */
+    }
+  }
+
   renderSentence(currentIndex)
 
   const buttonQuit = document.querySelector('[button-quit]')
@@ -607,6 +737,13 @@ if (wsPractice) {
 
   buttonNext.addEventListener('click', function () {
     currentIndex++
+    const isLast = currentIndex > listSentences.length
+    if (isLast) {
+      if (practiceSlug) {
+        window.location.href = `/writing-sentence/practice/complete/${practiceSlug}`
+      }
+      return
+    }
     renderSentence(currentIndex)
     buttonNext.classList.add('d-none')
     buttonSubmit.classList.remove('d-none')
@@ -642,7 +779,13 @@ if (wsPractice) {
       }
       buttonSubmit.disabled = true
 
-      const requestUrl = `${ApiBreakpoint.POST_PRACTICE_WS}/${wsData.slug}`
+      if (!practiceSlug) {
+        alertError('Không tìm thấy mã bài luyện tập')
+        buttonSubmit.disabled = false
+        return
+      }
+
+      const requestUrl = `${ApiBreakpoint.POST_PRACTICE_WS}/${practiceSlug}`
       fetch(requestUrl, {
         method: 'POST',
         headers: {
@@ -671,6 +814,8 @@ if (wsPractice) {
               userTranslationInput.value = ''
             }
             if (data.evaluateResult.passed) {
+              saveClientHistory(data.evaluateResult)
+              renderHistoryList()
               if (currentIndex === listSentences.length) {
                 const loadingOverlay = document.getElementById(
                   'practice-complete-loading'
@@ -678,9 +823,11 @@ if (wsPractice) {
                 if (loadingOverlay) {
                   loadingOverlay.style.display = 'flex'
                 }
-                setTimeout(() => {
-                  window.location.href = `/writing-sentence/practice/complete/${wsData.slug}`
-                }, 300)
+                if (practiceSlug) {
+                  setTimeout(() => {
+                    window.location.href = `/writing-sentence/practice/complete/${practiceSlug}`
+                  }, 300)
+                }
               } else {
                 buttonNext.classList.remove('d-none')
                 buttonSubmit.classList.add('d-none')
@@ -759,6 +906,200 @@ if (wsPractice) {
       }
     }
   })
+
+  const shortcutsToggle = document.getElementById('practice-shortcuts-toggle')
+  const shortcutsList = document.getElementById('practice-shortcuts-list')
+  const shortcutsArrow = document.getElementById('practice-shortcuts-arrow')
+
+  if (shortcutsToggle && shortcutsList && shortcutsArrow) {
+    shortcutsToggle.addEventListener('click', function () {
+      const isHidden = shortcutsList.classList.contains('d-none')
+      if (isHidden) {
+        shortcutsList.classList.remove('d-none')
+        shortcutsArrow.classList.remove('fa-chevron-down')
+        shortcutsArrow.classList.add('fa-chevron-up')
+      } else {
+        shortcutsList.classList.add('d-none')
+        shortcutsArrow.classList.remove('fa-chevron-up')
+        shortcutsArrow.classList.add('fa-chevron-down')
+      }
+    })
+  }
+
+  function getCompletedSentences() {
+    const historySentences = getMergedHistorySentences()
+    const completedSentences = new Set()
+
+    historySentences.forEach((hisSentence) => {
+      if (hisSentence.passed) {
+        const sentenceIndex = listSentences.findIndex(
+          (s) => s.content === hisSentence.sentence_original
+        )
+        if (sentenceIndex !== -1) {
+          completedSentences.add(sentenceIndex)
+        }
+      }
+    })
+
+    return completedSentences
+  }
+
+  function getHistorySentenceByIndex(index) {
+    const historySentences = getMergedHistorySentences()
+    const sentence = listSentences[index]
+    if (!sentence) return null
+
+    return historySentences.find(
+      (hisSentence) => hisSentence.sentence_original === sentence.content
+    )
+  }
+
+  function renderHistoryList() {
+    const historyListEl = document.getElementById('practice-history-list')
+    if (!historyListEl || !listSentences.length) return
+
+    const completedSentences = getCompletedSentences()
+
+    let html = '<div class="practice-history__items">'
+
+    listSentences.forEach((sentence, index) => {
+      const isCompleted = completedSentences.has(index)
+
+      const itemClass = isCompleted
+        ? 'practice-history__item practice-history__item--completed practice-history__item--clickable'
+        : 'practice-history__item'
+
+      html += `
+        <div class="${itemClass}" data-sentence-index="${index}">
+          <div class="practice-history__item-number">${index + 1}</div>
+          <div class="practice-history__item-content">
+            <p class="practice-history__item-text">${escapeHTML(sentence.content || '')}</p>
+            <span class="practice-history__item-status">
+              ${isCompleted ? '<i class="fas fa-check-circle"></i> Đã hoàn thành' : '<i class="fas fa-circle"></i> Chưa hoàn thành'}
+            </span>
+          </div>
+        </div>
+      `
+    })
+
+    html += '</div>'
+    historyListEl.innerHTML = html
+
+    const historyItems = historyListEl.querySelectorAll(
+      '.practice-history__item--clickable'
+    )
+    historyItems.forEach((item) => {
+      item.addEventListener('click', function () {
+        const sentenceIndex = parseInt(
+          this.getAttribute('data-sentence-index'),
+          10
+        )
+        if (isNaN(sentenceIndex)) return
+
+        const historySentence = getHistorySentenceByIndex(sentenceIndex)
+        if (!historySentence) return
+
+        if (feedbackDescription) {
+          feedbackDescription.style.display = 'block'
+          feedbackDescription.innerHTML = renderFeedback(historySentence)
+        }
+
+        if (wsLoadingEl) {
+          wsLoadingEl.style.display = 'none'
+        }
+      })
+    })
+  }
+
+  function escapeHTML(text = '') {
+    const div = document.createElement('div')
+    div.textContent = text
+    return div.innerHTML
+  }
+
+  const historyToggle = document.getElementById('practice-history-toggle')
+  const historyList = document.getElementById('practice-history-list')
+  const historyArrow = document.getElementById('practice-history-arrow')
+  const resetHistoryBtn = document.querySelector('[reset-history-btn]')
+  const resetModalEl = document.getElementById('ws-reset-modal')
+  const resetCancelBtn = document.getElementById('ws-reset-modal-cancel')
+  const resetConfirmBtn = document.getElementById('ws-reset-modal-confirm')
+
+  if (historyToggle && historyList && historyArrow) {
+    renderHistoryList()
+
+    historyToggle.addEventListener('click', function () {
+      const isHidden = historyList.classList.contains('d-none')
+      if (isHidden) {
+        historyList.classList.remove('d-none')
+        historyArrow.classList.remove('fa-chevron-down')
+        historyArrow.classList.add('fa-chevron-up')
+      } else {
+        historyList.classList.add('d-none')
+        historyArrow.classList.remove('fa-chevron-up')
+        historyArrow.classList.add('fa-chevron-down')
+      }
+    })
+  }
+
+  const showResetModal = () => {
+    if (!resetModalEl) return
+    resetModalEl.classList.add('practice-reset-modal--visible')
+  }
+
+  const hideResetModal = () => {
+    if (!resetModalEl) return
+    resetModalEl.classList.remove('practice-reset-modal--visible')
+  }
+
+  if (resetCancelBtn) {
+    resetCancelBtn.addEventListener('click', hideResetModal)
+  }
+
+  if (resetModalEl) {
+    resetModalEl.addEventListener('click', function (event) {
+      if (event.target === resetModalEl) {
+        hideResetModal()
+      }
+    })
+  }
+
+  if (resetHistoryBtn) {
+    resetHistoryBtn.addEventListener('click', function () {
+      if (!practiceSlug) return
+      showResetModal()
+    })
+  }
+
+  if (resetConfirmBtn) {
+    resetConfirmBtn.addEventListener('click', async function () {
+      if (!practiceSlug) {
+        hideResetModal()
+        return
+      }
+      resetConfirmBtn.disabled = true
+      try {
+        const endpoint = ApiBreakpoint.DELETE_HISTORY_PRACTICE_WS.replace(
+          '{slug}',
+          encodeURIComponent(practiceSlug)
+        )
+        const res = await fetch(endpoint, { method: 'DELETE' })
+        if (!res.ok) throw new Error('Failed to delete history')
+        localStorage.removeItem(practiceHistoryKey)
+        window.location.reload()
+      } catch (error) {
+        console.error('Xóa lịch sử thất bại:', error)
+        if (typeof window.alertError === 'function') {
+          window.alertError('Không thể xóa lịch sử. Vui lòng thử lại.')
+        } else {
+          alert('Không thể xóa lịch sử. Vui lòng thử lại.')
+        }
+      } finally {
+        resetConfirmBtn.disabled = false
+        hideResetModal()
+      }
+    })
+  }
 }
 
 function formatHighlight(text = '') {

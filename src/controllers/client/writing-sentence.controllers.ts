@@ -115,6 +115,8 @@ export const getWSListController = async (req: Request, res: Response) => {
 
   const data = await writingService.getWSList(find)
 
+  console.log('data', data)
+
   res.status(HttpStatus.OK).json({
     message: 'Danh sách bài học đã lấy thành công',
     status: HttpStatus.OK,
@@ -136,10 +138,16 @@ export const getPracticeWSController = async (req: Request, res: Response) => {
     return res.redirect('/writing-sentence/setup')
   }
 
+  const hisWSUser = await writingService.getHisWSUser(
+    user._id?.toString() as string,
+    ws._id?.toString() as string
+  )
+
   res.render('client/pages/writing-sentence/practice.pug', {
     pageTitle: 'Luyện tập câu',
     user: user,
-    ws
+    ws,
+    hisWSUser
   })
 }
 
@@ -169,6 +177,31 @@ export const postPracticeWSController = async (req: Request, res: Response) => {
     status: HttpStatus.OK,
     user: user,
     evaluateResult: evaluateResult
+  })
+}
+
+// DELETE /writing-sentence/practice/:slug
+export const deleteHistoryPracticeWSController = async (
+  req: Request,
+  res: Response
+) => {
+  const user = req.user as User
+  const slug = req.params.slug as string
+
+  const ws = await databaseService.wsLists.findOne({ slug: slug })
+  if (!ws) {
+    return res.status(HttpStatus.NOT_FOUND).json({
+      message: 'Không tìm thấy bài học',
+      status: HttpStatus.NOT_FOUND
+    })
+  }
+  await writingService.deleteHisWSUser(
+    user._id?.toString() as string,
+    ws._id?.toString() as string
+  )
+  return res.status(HttpStatus.OK).json({
+    message: 'Xóa lịch sử luyện tập thành công',
+    status: HttpStatus.OK
   })
 }
 

@@ -342,6 +342,146 @@
   font-weight: 400;
 }
 
+.practice-history {
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid #e5e7eb;
+}
+
+.practice-history__title {
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+}
+
+.practice-history__arrow {
+  transition: transform var(--transition-fast);
+  font-size: 0.75rem;
+}
+
+.practice-history__list {
+  margin-top: var(--spacing-sm);
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+[reset-history-btn]:hover {
+  color: #dc2626;
+}
+
+.practice-history__reset-btn {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 140px;
+  padding: 6px 14px;
+}
+
+.practice-history__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.practice-history__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  transition: all var(--transition-fast);
+}
+
+.practice-history__item--completed {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.practice-history__item--clickable {
+  cursor: pointer;
+}
+
+.practice-history__item--clickable:hover {
+  background: #dcfce7;
+  border-color: #4ade80;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(34, 197, 94, 0.1);
+}
+
+.practice-history__item--disabled {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.practice-history__item-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.practice-history__item--completed .practice-history__item-number {
+  background: #22c55e;
+  color: #ffffff;
+}
+
+.practice-history__item--disabled .practice-history__item-number {
+  background: #e5e7eb;
+  color: #9ca3af;
+}
+
+.practice-history__item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.practice-history__item-text {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+.practice-history__item--disabled .practice-history__item-text {
+  color: #9ca3af;
+}
+
+.practice-history__item-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.practice-history__item--completed .practice-history__item-status {
+  color: #22c55e;
+}
+
+.practice-history__item--disabled .practice-history__item-status {
+  color: #9ca3af;
+}
+
+.practice-history__item-status i {
+  font-size: 0.75rem;
+}
+
 .practice-shortcuts {
   margin-top: var(--spacing-md);
   padding-top: var(--spacing-md);
@@ -355,6 +495,11 @@
   color: #6b7280;
   display: flex;
   align-items: center;
+}
+
+.practice-shortcuts__arrow {
+  transition: transform var(--transition-fast);
+  font-size: 0.75rem;
 }
 
 .practice-shortcuts__list {

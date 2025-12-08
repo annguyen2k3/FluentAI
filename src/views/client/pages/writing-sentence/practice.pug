@@ -1,5 +1,6 @@
 extends ../../layouts/default.pug
 include ../../mixins/loading.pug
+include ../../mixins/modalConfirm.pug
 
 block head
     link(rel="stylesheet" href="/css/style.css")
@@ -49,10 +50,11 @@ block main-content
                             i(class="fas fa-arrow-right")
                 
                 div(class="practice-shortcuts mt-3 pt-3 border-top")
-                    p(class="practice-shortcuts__title mb-2 text-muted small fw-semibold")
+                    p(class="practice-shortcuts__title mb-2 text-muted small fw-semibold d-flex align-items-center" id="practice-shortcuts-toggle" style="cursor: pointer;")
                         i(class="fas fa-keyboard me-2")
                         | Phím tắt
-                    div(class="practice-shortcuts__list d-flex flex-wrap gap-3")
+                        i(class="fas fa-chevron-down practice-shortcuts__arrow ms-2" id="practice-shortcuts-arrow")
+                    div(class="practice-shortcuts__list d-flex flex-wrap gap-3 d-none" id="practice-shortcuts-list")
                         div(class="practice-shortcuts__item")
                             kbd(class="practice-shortcuts__key") Enter
                             span(class="practice-shortcuts__desc text-muted small") Nộp bài / Câu tiếp theo
@@ -64,6 +66,17 @@ block main-content
                             span(class="practice-shortcuts__plus") +
                             kbd(class="practice-shortcuts__key") H
                             span(class="practice-shortcuts__desc text-muted small") Hiển thị gợi ý
+
+                div(class="practice-history mt-3 pt-3 border-top")
+                    div(class="d-flex align-items-center justify-content-between mb-2")
+                        p(class="practice-history__title mb-0 text-muted small fw-semibold d-flex align-items-center" id="practice-history-toggle" style="cursor: pointer;")
+                            i(class="fas fa-history me-2")
+                            | Lịch sử luyện tập
+                            i(class="fas fa-chevron-down practice-history__arrow ms-2" id="practice-history-arrow")
+                        button(class="practice-sidebar__action-btn practice-sidebar__action-btn--reset practice-history__reset-btn" type="button" reset-history-btn)
+                            i(class="fas fa-redo-alt")
+                            |  Luyện tập lại từ đầu
+                    div(class="practice-history__list d-none" id="practice-history-list")
 
         div(class="col-lg-4")
             div(class="practice-sidebar")
@@ -110,6 +123,14 @@ block main-content
                                     | - Họ quyết định 
                                     span(class="hint-modal__highlight") không tổ chức
                                     |  ngày lễ năm nay do cuộc khủng hoảng.
+
+    +modalConfirmDanger(
+        'ws-reset-modal',
+        'Xác nhận xoá lịch sử luyện tập?',
+        'Xác nhận xoá lịch sử luyện tập của danh sách này và luyện tập lại từ đầu.',
+        'Đồng ý',
+        'Hủy'
+    )
                     
                     div(class="hint-modal__item")
                         div(class="hint-modal__item-content")
@@ -132,5 +153,8 @@ block main-content
                                     | .
 
     +loadingOverlay('practice-complete-loading', 'Đang chuyển đến trang đánh giá tổng quan...')
+
+    script#ws-data(type="application/json") !{JSON.stringify(ws || {})}
+    script#his-ws-data(type="application/json") !{JSON.stringify(hisWSUser || {})}
 
     script(src="/js/writing-sentence.js" type="module")

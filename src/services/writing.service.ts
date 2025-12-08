@@ -369,6 +369,24 @@ class WritingService {
     )
   }
 
+  async getHisWSUser(userId: string, practiceId: string) {
+    const hisPracticeUser = await databaseService.hisPracticeUsers.findOne({
+      userId: new ObjectId(userId),
+      type: HistoryUserType.PRACTICE_WRITING_SENTENCE,
+      'content.wsListId': new ObjectId(practiceId)
+    })
+    return hisPracticeUser
+  }
+
+  async deleteHisWSUser(userId: string, practiceId: string) {
+    await databaseService.hisPracticeUsers.deleteOne({
+      userId: new ObjectId(userId),
+      type: HistoryUserType.PRACTICE_WRITING_SENTENCE,
+      'content.wsListId': new ObjectId(practiceId)
+    })
+    return true
+  }
+
   async getWPList(find: {
     level?: ObjectId
     topic?: ObjectId

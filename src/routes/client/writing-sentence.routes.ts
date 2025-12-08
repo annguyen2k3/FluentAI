@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+  deleteHistoryPracticeWSController,
   getCompleteWSController,
   getPracticeCustomTopicWSController,
   getPracticeWSController,
@@ -87,6 +88,16 @@ writingSentenceRoutes.get(
   requireAuth,
   renderWSPraticeValidator,
   wrapRequestHandler(getCompleteWSController)
+)
+
+// DELETE /writing-sentence/practice/history/:slug
+// Description: Delete history practice writing sentence
+// Method: DELETE
+// Params: {slug: string}
+writingSentenceRoutes.delete(
+  '/practice/history/:slug',
+  requireAuth,
+  wrapRequestHandler(deleteHistoryPracticeWSController)
 )
 
 // POST /writing-sentence/custom-topic/preview
