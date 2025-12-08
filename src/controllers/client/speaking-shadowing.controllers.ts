@@ -103,7 +103,7 @@ export const renderSVPracticeController = async (
     return res.redirect('/speaking-shadowing')
   }
 
-  const hisSVDoc = await databaseService.hisUsers.findOne({
+  const hisSVDoc = await databaseService.hisPracticeUsers.findOne({
     userId: user._id,
     type: HistoryUserType.PRACTICE_SPEAKING_SHADOWING,
     'content.svShadowingId': sv._id

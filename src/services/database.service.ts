@@ -13,7 +13,7 @@ import Admin from '~/models/schemas/admin.schema'
 import SSList from '~/models/schemas/ss-list.schema'
 import HisSSUser from '~/models/schemas/his-ss-user.schema'
 import SVShadowing from '~/models/schemas/sv-shadowing.schema'
-import HisUser from '~/models/schemas/his-user.schema'
+import HisPracticeUser from '~/models/schemas/his-practice-user.schema'
 import ListeningVideo from '~/models/schemas/lv-video.schemas'
 config()
 
@@ -117,8 +117,8 @@ class DatabaseService {
     return this.db.collection('sv_shadowings')
   }
 
-  get hisUsers(): Collection<HisUser> {
-    return this.db.collection('his_users')
+  get hisPracticeUsers(): Collection<HisPracticeUser> {
+    return this.db.collection('his_practice_users')
   }
 
   get listeningVideos(): Collection<ListeningVideo> {

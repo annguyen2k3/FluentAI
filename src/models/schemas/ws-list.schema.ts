@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { VocabularyHintType } from '../Other'
 import { createSlug } from '~/utils/format'
+import { StatusLesson } from '~/constants/enum'
 
 export type SentenceWriteType = {
   pos: number
@@ -13,6 +14,7 @@ interface WSListType {
   title: string
   topic: ObjectId
   level: ObjectId
+  isActive?: boolean
   list: SentenceWriteType[]
   pos?: number
   slug?: string
@@ -28,6 +30,7 @@ export default class WSList {
   list: SentenceWriteType[]
   pos?: number
   slug?: string
+  isActive?: boolean
   create_at?: Date
   update_at?: Date
 
@@ -39,6 +42,7 @@ export default class WSList {
     this.list = wsList.list || []
     this.pos = wsList.pos || 1
     this.slug = wsList.slug || createSlug(wsList.title)
+    this.isActive = wsList.isActive || true
     this.create_at = wsList.create_at || new Date()
     this.update_at = wsList.update_at || new Date()
   }

@@ -26,7 +26,7 @@ import HisSSUser, {
 import HisSVUser, {
   HisSVUserSentenceType
 } from '~/models/schemas/his-sv-user.schema'
-import HisUser from '~/models/schemas/his-user.schema'
+import HisPracticeUser from '~/models/schemas/his-practice-user.schema'
 
 function fillTemplate(tpl: string, vars: Record<string, string>) {
   return Object.keys(vars).reduce(
@@ -371,7 +371,7 @@ class SpeakingServices {
       // Lấy history từ collection his_users (đã tối ưu), lọc theo user + type + svShadowingId
       basePipeline.push({
         $lookup: {
-          from: 'his_users',
+          from: 'his_practice_users',
           let: { svId: '$_id' },
           pipeline: [
             {
@@ -462,30 +462,30 @@ class SpeakingServices {
     const userObjectId = new ObjectId(userId)
     const practiceObjectId = new ObjectId(practiceId)
 
-    const hisUser = await databaseService.hisUsers.findOne({
+    const hisPracticeUser = await databaseService.hisPracticeUsers.findOne({
       userId: userObjectId,
       type: HistoryUserType.PRACTICE_SPEAKING_SHADOWING,
       'content.svShadowingId': practiceObjectId
     })
 
-    if (!hisUser) {
+    if (!hisPracticeUser) {
       const newHisSVUser = new HisSVUser({
         svShadowingId: practiceObjectId,
         status: StatusLesson.IN_PROGRESS,
         sentences: [sentence]
       })
 
-      const newHisUser = new HisUser({
+      const newHisPracticeUser = new HisPracticeUser({
         userId: userObjectId,
         type: HistoryUserType.PRACTICE_SPEAKING_SHADOWING,
         content: newHisSVUser
       })
 
-      await databaseService.hisUsers.insertOne(newHisUser)
+      await databaseService.hisPracticeUsers.insertOne(newHisPracticeUser)
       return
     }
 
-    const currentContent = hisUser.content as HisSVUser
+    const currentContent = hisPracticeUser.content as HisSVUser
     const sentences = [...(currentContent.sentences || [])]
 
     const existingIndex = sentences.findIndex(
@@ -503,8 +503,8 @@ class SpeakingServices {
     })
 
     if (!svShadowing?.transcript?.length) {
-      await databaseService.hisUsers.updateOne(
-        { _id: hisUser._id },
+      await databaseService.hisPracticeUsers.updateOne(
+        { _id: hisPracticeUser._id },
         {
           $set: {
             'content.sentences': sentences,
@@ -533,8 +533,8 @@ class SpeakingServices {
       update_at: new Date()
     }
 
-    await databaseService.hisUsers.updateOne(
-      { _id: hisUser._id },
+    await databaseService.hisPracticeUsers.updateOne(
+      { _id: hisPracticeUser._id },
       {
         $set: setFields
       }
@@ -542,7 +542,7 @@ class SpeakingServices {
   }
 
   async deleteSVHistory(userId: string, practiceId: string) {
-    await databaseService.hisUsers.deleteOne({
+    await databaseService.hisPracticeUsers.deleteOne({
       userId: new ObjectId(userId),
       type: HistoryUserType.PRACTICE_SPEAKING_SHADOWING,
       'content.svShadowingId': new ObjectId(practiceId)

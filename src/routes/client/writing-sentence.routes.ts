@@ -40,7 +40,7 @@ writingSentenceRoutes.get(
 // GET /writing-sentence/list
 // Description: Get list of writing sentences
 // Method: GET
-// Query: level, topic, page, limit, search, sortKey, sortOrder
+// Query: level, topic, page, limit, search, sortKey, sortOrder, status
 writingSentenceRoutes.get(
   '/list',
   requireAuth,

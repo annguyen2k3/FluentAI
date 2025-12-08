@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb'
 import { StatusLesson, HistoryUserType } from '~/constants/enum'
 import { databaseService } from './database.service'
 import HisLVUser from '~/models/schemas/his-lv.schema'
-import HisUser from '~/models/schemas/his-user.schema'
+import HisPracticeUser from '~/models/schemas/his-practice-user.schema'
 
 class ListeningService {
   async getLVList(find: {
@@ -67,7 +67,7 @@ class ListeningService {
     if (history?.userId) {
       basePipeline.push({
         $lookup: {
-          from: 'his_users',
+          from: 'his_practice_users',
           let: { lvId: '$_id' },
           pipeline: [
             {
@@ -186,7 +186,7 @@ class ListeningService {
   }
 
   async updateHistory(userId: ObjectId, lvId: ObjectId, status: StatusLesson) {
-    const history = await databaseService.hisUsers.findOne({
+    const history = await databaseService.hisPracticeUsers.findOne({
       userId,
       type: HistoryUserType.PRACTICE_LISTENING_VIDEO,
       'content.lvVideoId': lvId
@@ -197,16 +197,16 @@ class ListeningService {
         lvVideoId: lvId,
         status
       })
-      const newHisUser = new HisUser({
+      const newHisPracticeUser = new HisPracticeUser({
         userId,
         type: HistoryUserType.PRACTICE_LISTENING_VIDEO,
         content: newHisLV
       })
-      await databaseService.hisUsers.insertOne(newHisUser)
+      await databaseService.hisPracticeUsers.insertOne(newHisPracticeUser)
       return
     }
 
-    await databaseService.hisUsers.updateOne(
+    await databaseService.hisPracticeUsers.updateOne(
       { _id: history._id },
       { $set: { 'content.status': status, update_at: new Date() } }
     )

@@ -433,29 +433,30 @@
 }
 
 .wp-choose__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 700;
+  white-space: nowrap;
+  background: #e5e7eb;
+  color: #374151;
 }
 
-.wp-choose__badge--new {
-  background: #e0e7ff;
-  color: var(--primary-color);
-}
-
-.wp-choose__badge[inprocess] {
-  background: #e7e8ab;
-  color: #f26d08;
-}
-
-.wp-choose__badge[new] {
+.wp-choose__badge[data-status='new'] {
   background: #b7e0f8;
   color: #02108f;
 }
 
-.wp-choose__badge[completed] {
-  background: #b2f6ba;
+.wp-choose__badge[data-status='in-progress'] {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.wp-choose__badge[data-status='completed'] {
+  background: #dcfce7;
   color: #027625;
 }
 

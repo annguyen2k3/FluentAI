@@ -64,6 +64,8 @@ export enum StatusLesson {
 }
 
 export enum HistoryUserType {
+  PRACTICE_WRITING_SENTENCE = 'practice_writing_sentence',
+  PRACTICE_WRITING_PARAGRAPH = 'practice_writing_paragraph',
   PRACTICE_SPEAKING_SENTENCE = 'practice_speaking_sentence',
   PRACTICE_SPEAKING_SHADOWING = 'practice_speaking_shadowing',
   PRACTICE_LISTENING_VIDEO = 'practice_listening_video'

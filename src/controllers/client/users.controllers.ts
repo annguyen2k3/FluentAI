@@ -59,7 +59,8 @@ export const loginController = async (
 
   res.cookie('refresh_token', result.refresh_token, {
     httpOnly: true,
-    sameSite: 'lax'
+    sameSite: 'lax',
+    maxAge: 100 * 24 * 60 * 60 * 1000
   })
   res.cookie('access_token', result.access_token, {
     httpOnly: true,

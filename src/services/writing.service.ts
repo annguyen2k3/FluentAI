@@ -7,7 +7,12 @@ import {
   completeAndDeleteSession,
   sendMessageOnce
 } from '~/utils/gemini'
-import { PromptFeature, PromptFeatureType } from '~/constants/enum'
+import {
+  PromptFeature,
+  PromptFeatureType,
+  StatusLesson,
+  HistoryUserType
+} from '~/constants/enum'
 import { ErrorWithStatus } from '~/models/Errors'
 import { HttpStatus } from '~/constants/httpStatus'
 import WSList, { SentenceWriteType } from '~/models/schemas/ws-list.schema'
@@ -25,6 +30,10 @@ import {
   ResPromptWritingParagraphPreviewTopic,
   ResPromptWritingParagraphTranslation
 } from '~/models/responses/prompt/res-wp.schema'
+import { HisWSUserSentenceType } from '~/models/schemas/his-ws-user.schema'
+import HisWSUser from '~/models/schemas/his-ws-user.schema'
+import HisUser from '~/models/schemas/his-practice-user.schema'
+import HisPracticeUser from '~/models/schemas/his-practice-user.schema'
 config()
 
 function sk(userId: string, practiceId: string) {
@@ -64,49 +73,121 @@ class WritingService {
     search?: string
     sortKey?: string
     sortOrder?: 'asc' | 'desc'
+    history?: {
+      userId: ObjectId
+      status?: StatusLesson
+    }
   }) {
-    const { page = 1, limit = 10, ...matchQuery } = find
+    const {
+      page = 1,
+      limit = 10,
+      sortKey = 'pos',
+      sortOrder = 'asc',
+      history,
+      ...matchQuery
+    } = find
     const skip = (page - 1) * limit
-    const matchStage: any = {}
+    const matchStage: Record<string, unknown> = {}
     if (matchQuery.level) matchStage.level = matchQuery.level
     if (matchQuery.topic) matchStage.topic = matchQuery.topic
     if (matchQuery.search)
       matchStage.title = { $regex: matchQuery.search, $options: 'i' }
 
-    const [data, total] = await Promise.all([
-      databaseService.wsLists
-        .aggregate([
-          { $match: matchStage },
-          {
-            $sort: {
-              [matchQuery.sortKey as string]:
-                matchQuery.sortOrder === 'asc' ? 1 : -1
+    const basePipeline: Record<string, unknown>[] = [
+      { $match: matchStage },
+      {
+        $sort: {
+          [sortKey]: sortOrder === 'asc' ? 1 : -1
+        }
+      },
+      {
+        $lookup: {
+          from: 'levels',
+          localField: 'level',
+          foreignField: '_id',
+          as: 'level'
+        }
+      },
+      { $unwind: '$level' },
+      {
+        $lookup: {
+          from: 'topics',
+          localField: 'topic',
+          foreignField: '_id',
+          as: 'topic'
+        }
+      },
+      { $unwind: '$topic' }
+    ]
+
+    if (history?.userId) {
+      basePipeline.push({
+        $lookup: {
+          from: 'his_practice_users',
+          let: { wsId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$userId', history.userId] },
+                    {
+                      $eq: ['$type', HistoryUserType.PRACTICE_WRITING_SENTENCE]
+                    },
+                    { $eq: ['$content.wsListId', '$$wsId'] }
+                  ]
+                }
+              }
+            },
+            { $limit: 1 }
+          ],
+          as: 'history'
+        }
+      })
+
+      basePipeline.push({
+        $addFields: {
+          history: { $arrayElemAt: ['$history', 0] }
+        }
+      })
+
+      basePipeline.push({
+        $addFields: {
+          history: {
+            $cond: [{ $ifNull: ['$history', false] }, '$history', {}]
+          }
+        }
+      })
+
+      if (history.status) {
+        if (history.status === StatusLesson.NOT_STARTED) {
+          basePipeline.push({
+            $match: {
+              $or: [
+                { history: {} },
+                { 'history.content.status': { $exists: false } }
+              ]
             }
-          },
-          {
-            $lookup: {
-              from: 'levels',
-              localField: 'level',
-              foreignField: '_id',
-              as: 'level'
+          })
+        } else {
+          basePipeline.push({
+            $match: {
+              'history.content.status': history.status
             }
-          },
-          { $unwind: '$level' },
-          {
-            $lookup: {
-              from: 'topics',
-              localField: 'topic',
-              foreignField: '_id',
-              as: 'topic'
-            }
-          },
-          { $unwind: '$topic' },
-          { $skip: skip },
-          { $limit: limit }
-        ])
-        .toArray(),
-      databaseService.wsLists.countDocuments(matchStage)
+          })
+        }
+      }
+    }
+
+    const dataPipeline = [...basePipeline, { $skip: skip }, { $limit: limit }]
+    const countPipeline = [...basePipeline, { $count: 'total' }]
+
+    const [data, totalResult] = await Promise.all([
+      databaseService.wsLists.aggregate(dataPipeline).toArray(),
+      databaseService.wsLists.aggregate(countPipeline).toArray()
     ])
+
+    const total = totalResult[0]?.total || 0
 
     const totalPages = Math.ceil(total / limit)
     return {
@@ -201,6 +282,91 @@ class WritingService {
   async deleteWSList(id: string) {
     await databaseService.wsLists.deleteOne({ _id: new ObjectId(id) })
     return true
+  }
+
+  async updateHisWSUser(
+    userId: string,
+    practiceId: string,
+    sentence: HisWSUserSentenceType
+  ) {
+    const userObjectId = new ObjectId(userId)
+    const practiceObjectId = new ObjectId(practiceId)
+
+    const hisPracticeUser = await databaseService.hisPracticeUsers.findOne({
+      userId: userObjectId,
+      type: HistoryUserType.PRACTICE_WRITING_SENTENCE,
+      'content.wsListId': practiceObjectId
+    })
+
+    if (!hisPracticeUser) {
+      const newHisWSUser = new HisWSUser({
+        wsListId: practiceObjectId,
+        status: StatusLesson.IN_PROGRESS,
+        sentences: [sentence]
+      })
+
+      const newHisPracticeUser = new HisPracticeUser({
+        userId: userObjectId,
+        type: HistoryUserType.PRACTICE_WRITING_SENTENCE,
+        content: newHisWSUser
+      })
+
+      await databaseService.hisPracticeUsers.insertOne(newHisPracticeUser)
+      return
+    }
+
+    const currentContent = hisPracticeUser.content as HisWSUser
+    const sentences = [...(currentContent.sentences || [])]
+
+    const existingIndex = sentences.findIndex(
+      (item) => item.sentence_original === sentence.sentence_original
+    )
+
+    if (existingIndex >= 0) {
+      sentences[existingIndex] = sentence
+    } else {
+      sentences.push(sentence)
+    }
+
+    const wsList = await databaseService.wsLists.findOne({
+      _id: currentContent.wsListId
+    })
+
+    if (!wsList?.list?.length) {
+      await databaseService.hisPracticeUsers.updateOne(
+        { _id: hisPracticeUser._id },
+        {
+          $set: {
+            'content.sentences': sentences,
+            'content.status': StatusLesson.IN_PROGRESS,
+            update_at: new Date()
+          }
+        }
+      )
+      return
+    }
+
+    const allPassed = wsList.list.every((originalSentence) => {
+      const historySentence = sentences.find(
+        (item) => item.sentence_original === originalSentence.content
+      )
+      return Boolean(historySentence && historySentence.passed)
+    })
+
+    const setFields: Record<string, unknown> = {
+      'content.sentences': sentences,
+      'content.status': allPassed
+        ? StatusLesson.COMPLETED
+        : StatusLesson.IN_PROGRESS,
+      update_at: new Date()
+    }
+
+    await databaseService.hisPracticeUsers.updateOne(
+      { _id: hisPracticeUser._id },
+      {
+        $set: setFields
+      }
+    )
   }
 
   async getWPList(find: {

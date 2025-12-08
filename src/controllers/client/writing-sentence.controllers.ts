@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
+import { StatusLesson } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import { WRITING_SENTENCE_MESSAGES } from '~/constants/message'
 import User from '~/models/schemas/users.schema'
@@ -73,6 +74,10 @@ export const getWSListController = async (req: Request, res: Response) => {
     search?: string
     sortKey?: string
     sortOrder?: 'asc' | 'desc'
+    history?: {
+      userId: ObjectId
+      status?: StatusLesson
+    }
   } = {}
 
   if (req.query.level) {
@@ -95,6 +100,17 @@ export const getWSListController = async (req: Request, res: Response) => {
   }
   if (req.query.sortOrder) {
     find.sortOrder = req.query.sortOrder as 'asc' | 'desc'
+  }
+
+  if (req.query.status) {
+    find.history = {
+      userId: user._id as ObjectId,
+      status: req.query.status as StatusLesson
+    }
+  } else {
+    find.history = {
+      userId: user._id as ObjectId
+    }
   }
 
   const data = await writingService.getWSList(find)
@@ -139,6 +155,14 @@ export const postPracticeWSController = async (req: Request, res: Response) => {
     sentence_vi,
     user_translation
   )
+
+  if (evaluateResult.passed) {
+    await writingService.updateHisWSUser(
+      user._id?.toString() as string,
+      ws._id?.toString() as string,
+      evaluateResult
+    )
+  }
 
   res.status(HttpStatus.OK).json({
     message: 'Đánh giá câu thành công',

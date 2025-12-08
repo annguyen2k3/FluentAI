@@ -32,7 +32,9 @@ import { ApiBreakpoint } from './api_breakpoint.js'
           } else if (data.status === 422) {
             const errors = data.errors
             for (const key in errors) {
-              const errorElement = form.querySelector(`.invalid-feedback[error="${key}"]`)
+              const errorElement = form.querySelector(
+                `.invalid-feedback[error="${key}"]`
+              )
               if (errorElement) {
                 const errorItem = errors[key]
                 errorElement.textContent = errorItem.msg
@@ -49,7 +51,9 @@ import { ApiBreakpoint } from './api_breakpoint.js'
   }
 })()
 ;(function () {
-  const toggles = document.querySelectorAll('[data-toggle="password-visibility"]')
+  const toggles = document.querySelectorAll(
+    '[data-toggle="password-visibility"]'
+  )
   if (!toggles.length) return
   toggles.forEach((btn) => {
     btn.addEventListener('click', function () {
@@ -120,7 +124,9 @@ import { ApiBreakpoint } from './api_breakpoint.js'
         } else if (data.status === 422) {
           const errors = data.errors
           for (const key in errors) {
-            const errorElement = form.querySelector(`.invalid-feedback[error="${key}"]`)
+            const errorElement = form.querySelector(
+              `.invalid-feedback[error="${key}"]`
+            )
             if (errorElement) {
               const errorItem = errors[key]
               errorElement.textContent = errorItem.msg
@@ -191,7 +197,9 @@ import { ApiBreakpoint } from './api_breakpoint.js'
 
     input.addEventListener('paste', function (e) {
       e.preventDefault()
-      const pastedData = (e.clipboardData || window.clipboardData).getData('text')
+      const pastedData = (e.clipboardData || window.clipboardData).getData(
+        'text'
+      )
       const digits = pastedData.replace(/\D/g, '').slice(0, 4)
 
       for (let i = 0; i < digits.length && index + i < inputs.length; i++) {
@@ -208,7 +216,8 @@ import { ApiBreakpoint } from './api_breakpoint.js'
     event.preventDefault()
     event.stopPropagation()
     if (!validateCode()) {
-      form.querySelector('.invalid-feedback[error="otp"]').style.display = 'block'
+      form.querySelector('.invalid-feedback[error="otp"]').style.display =
+        'block'
     } else {
       const otp = getFullCode()
       fetch(ApiBreakpoint.VERIFY_EMAIL, {
@@ -227,7 +236,9 @@ import { ApiBreakpoint } from './api_breakpoint.js'
           } else if (data.status === 422) {
             const errors = data.errors
             for (const key in errors) {
-              const errorElement = form.querySelector(`.invalid-feedback[error="${key}"]`)
+              const errorElement = form.querySelector(
+                `.invalid-feedback[error="${key}"]`
+              )
               if (errorElement) {
                 const errorItem = errors[key]
                 errorElement.textContent = errorItem.msg
@@ -299,7 +310,9 @@ import { ApiBreakpoint } from './api_breakpoint.js'
         } else if (data.status === 422) {
           const errors = data.errors
           for (const key in errors) {
-            const errorElement = formForgot_email.querySelector(`.invalid-feedback[error="${key}"]`)
+            const errorElement = formForgot_email.querySelector(
+              `.invalid-feedback[error="${key}"]`
+            )
             if (errorElement) {
               const errorItem = errors[key]
               errorElement.textContent = errorItem.msg
@@ -370,7 +383,9 @@ import { ApiBreakpoint } from './api_breakpoint.js'
 
     input.addEventListener('paste', function (e) {
       e.preventDefault()
-      const pastedData = (e.clipboardData || window.clipboardData).getData('text')
+      const pastedData = (e.clipboardData || window.clipboardData).getData(
+        'text'
+      )
       const digits = pastedData.replace(/\D/g, '').slice(0, 4)
 
       for (let i = 0; i < digits.length && index + i < inputs.length; i++) {
@@ -387,7 +402,8 @@ import { ApiBreakpoint } from './api_breakpoint.js'
     event.preventDefault()
     event.stopPropagation()
     if (!validateCode()) {
-      form.querySelector('.invalid-feedback[error="otp"]').style.display = 'block'
+      form.querySelector('.invalid-feedback[error="otp"]').style.display =
+        'block'
     } else {
       const otp = getFullCode()
       fetch(ApiBreakpoint.FORGOT_PASSWORD_OTP, {
@@ -406,7 +422,9 @@ import { ApiBreakpoint } from './api_breakpoint.js'
           } else if (data.status === 422) {
             const errors = data.errors
             for (const key in errors) {
-              const errorElement = form.querySelector(`.invalid-feedback[error="${key}"]`)
+              const errorElement = form.querySelector(
+                `.invalid-feedback[error="${key}"]`
+              )
               if (errorElement) {
                 const errorItem = errors[key]
                 errorElement.textContent = errorItem.msg
@@ -478,7 +496,9 @@ import { ApiBreakpoint } from './api_breakpoint.js'
         } else if (data.status === 422) {
           const errors = data.errors
           for (const key in errors) {
-            const errorElement = form.querySelector(`.invalid-feedback[error="${key}"]`)
+            const errorElement = form.querySelector(
+              `.invalid-feedback[error="${key}"]`
+            )
             if (errorElement) {
               const errorItem = errors[key]
               errorElement.textContent = errorItem.msg

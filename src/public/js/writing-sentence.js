@@ -203,6 +203,25 @@ if (wsListChoose) {
   const limit = 10
   let levelId = wsListChoose.getAttribute('level')
   let topicId = wsListChoose.getAttribute('topic') || ''
+  let statusId = ''
+
+  function escapeHTML(text = '') {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+  }
+
+  function mapStatusToBadge(status) {
+    if (!status) return { label: 'Mới', key: 'new' }
+    if (status === 'completed')
+      return { label: 'Đã hoàn thành', key: 'completed' }
+    if (status === 'in_progress')
+      return { label: 'Đang tiến hành', key: 'in-progress' }
+    return { label: 'Mới', key: 'new' }
+  }
 
   function renderPagination(pagination) {
     const paginationContainer = document.querySelector('.wp-choose__pagination')
@@ -234,7 +253,7 @@ if (wsListChoose) {
     if (pagination.hasPrevPage) {
       prevBtn.addEventListener('click', () => {
         currentPage = page - 1
-        loadWSList(levelId, topicId, currentPage, limit)
+        loadWSList(levelId, topicId, statusId, currentPage, limit)
       })
     }
     buttonsContainer.appendChild(prevBtn)
@@ -253,7 +272,7 @@ if (wsListChoose) {
       firstBtn.textContent = '1'
       firstBtn.addEventListener('click', () => {
         currentPage = 1
-        loadWSList(levelId, topicId, currentPage, limit)
+        loadWSList(levelId, topicId, statusId, currentPage, limit)
       })
       buttonsContainer.appendChild(firstBtn)
 
@@ -276,7 +295,7 @@ if (wsListChoose) {
       pageBtn.textContent = i
       pageBtn.addEventListener('click', () => {
         currentPage = i
-        loadWSList(levelId, topicId, currentPage, limit)
+        loadWSList(levelId, topicId, statusId, currentPage, limit)
       })
       buttonsContainer.appendChild(pageBtn)
     }
@@ -295,7 +314,7 @@ if (wsListChoose) {
       lastBtn.textContent = totalPages
       lastBtn.addEventListener('click', () => {
         currentPage = totalPages
-        loadWSList(levelId, topicId, currentPage, limit)
+        loadWSList(levelId, topicId, statusId, currentPage, limit)
       })
       buttonsContainer.appendChild(lastBtn)
     }
@@ -307,13 +326,13 @@ if (wsListChoose) {
     if (pagination.hasNextPage) {
       nextBtn.addEventListener('click', () => {
         currentPage = page + 1
-        loadWSList(levelId, topicId, currentPage, limit)
+        loadWSList(levelId, topicId, statusId, currentPage, limit)
       })
     }
     buttonsContainer.appendChild(nextBtn)
   }
 
-  function loadWSList(level, topic = '', page = 1, limit = 10) {
+  function loadWSList(level, topic = '', status = '', page = 1, limit = 10) {
     const requestUrl = new URL(ApiBreakpoint.GET_WS_LIST)
 
     if (level) {
@@ -322,14 +341,15 @@ if (wsListChoose) {
     if (topic) {
       requestUrl.searchParams.set('topic', topic)
     }
+    if (status) {
+      requestUrl.searchParams.set('status', status)
+    }
     if (page) {
       requestUrl.searchParams.set('page', page)
     }
     if (limit) {
       requestUrl.searchParams.set('limit', limit)
     }
-
-    console.log('requestUrl', requestUrl)
 
     const wsListCards = document.querySelector('div[ws-list-cards]')
     if (wsListCards) {
@@ -354,17 +374,24 @@ if (wsListChoose) {
             wsListCards.innerHTML = ''
             wsList.forEach((ws) => {
               const sentenceCount = ws.list ? ws.list.length : 0
+              const title = escapeHTML(ws.title || '')
+              const topicTitle = ws.topic?.title
+                ? escapeHTML(ws.topic.title)
+                : 'Chủ đề chung'
+              const status = mapStatusToBadge(ws.history?.content?.status)
+              const firstSentence =
+                ws.list && ws.list[0] ? escapeHTML(ws.list[0].content) : ''
+
               wsListCards.innerHTML += `
               <div class="col-12 col-lg-6">
                   <div class="wp-choose__card" id-ws=${ws._id.toString()} slug=${ws.slug}>
                       <div class="d-flex justify-content-between align-items-center mb-2">
-                          <h5 class="wp-choose__title m-0">${ws.title}</h5>
-                          <span class="wp-choose__badge" new>Mới</span>
+                          <h5 class="wp-choose__title m-0" title="${title}">${title}</h5>
+                          <span class="wp-choose__badge" data-status="${status.key}">${status.label}</span>
                       </div>
-                      <p class="wp-choose__excerpt">${ws.list && ws.list[0] ? ws.list[0].content : ''}</p>
+                      <p class="wp-choose__excerpt">${firstSentence}</p>
                       <div class="d-flex flex-wrap gap-3 align-items-center wp-choose__meta">
-                          <span><i class="far fa-clock me-1"></i>Chưa luyện tập</span>
-                          <span><i class="far fa-folder-open me-1"></i>${ws.topic.title}</span>
+                          <span><i class="far fa-folder-open me-1"></i>${topicTitle}</span>
                           <span><i class="far fa-list-alt me-1"></i>${sentenceCount} câu</span>
                       </div>
                       <div class="text-end">
@@ -402,14 +429,23 @@ if (wsListChoose) {
       })
   }
 
-  loadWSList(levelId, topicId, currentPage, limit)
+  loadWSList(levelId, topicId, statusId, currentPage, limit)
 
   const filterTopic = document.querySelector('select[filter-topic]')
   if (filterTopic) {
     filterTopic.addEventListener('change', function () {
       topicId = this.value || ''
       currentPage = 1
-      loadWSList(levelId, topicId, currentPage, limit)
+      loadWSList(levelId, topicId, statusId, currentPage, limit)
+    })
+  }
+
+  const filterStatus = document.querySelector('select[filter-status]')
+  if (filterStatus) {
+    filterStatus.addEventListener('change', function () {
+      statusId = this.value || ''
+      currentPage = 1
+      loadWSList(levelId, topicId, statusId, currentPage, limit)
     })
   }
 
