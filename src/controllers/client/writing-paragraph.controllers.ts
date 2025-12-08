@@ -127,6 +127,11 @@ export const renderPracticeWPController = async (
   const user = req.user as User
   const wp = req.wp as WPParagraph
 
+  const hisWPUser = await writingService.getHisWPUser(
+    user._id?.toString() as string,
+    wp._id?.toString() as string
+  )
+
   const initResult = await writingService.wpInitChat(
     user._id?.toString() as string,
     wp._id?.toString() as string,
@@ -139,7 +144,8 @@ export const renderPracticeWPController = async (
   res.render('client/pages/writing-paragraph/practice.pug', {
     pageTitle: 'Luyện tập đoạn văn',
     user: user,
-    wp: wp
+    wp: wp,
+    hisWPUser: hisWPUser
   })
 }
 
@@ -156,8 +162,13 @@ export const postPracticeWPController = async (req: Request, res: Response) => {
     user_translation
   )
 
-  console.log('Evaluate result:', evaluateResult)
-  console.log('--------------------------------')
+  if (evaluateResult.passed) {
+    await writingService.updateHisWPUser(
+      user._id?.toString() as string,
+      wp._id?.toString() as string,
+      evaluateResult
+    )
+  }
 
   res.status(HttpStatus.OK).json({
     message: 'Đánh giá câu thành công',
@@ -167,24 +178,51 @@ export const postPracticeWPController = async (req: Request, res: Response) => {
   })
 }
 
+// DELETE /writing-paragraph/practice/history/:slug
+export const deleteHistoryPracticeWPController = async (
+  req: Request,
+  res: Response
+) => {
+  const user = req.user as User
+  const slug = req.params.slug as string
+  const wp = await databaseService.wpParagraphs.findOne({ slug: slug })
+  if (!wp) {
+    return res.status(HttpStatus.NOT_FOUND).json({
+      message: 'Không tìm thấy bài học',
+      status: HttpStatus.NOT_FOUND
+    })
+  }
+  await writingService.deleteHisWPUser(
+    user._id?.toString() as string,
+    wp._id?.toString() as string
+  )
+  return res.status(HttpStatus.OK).json({
+    message: 'Xóa lịch sử luyện tập thành công',
+    status: HttpStatus.OK
+  })
+}
+
 // GET /writing-paragraph/practice/complete/:slug
 export const getCompleteWPController = async (req: Request, res: Response) => {
   const user = req.user as User
   const wp = req.wp as WPParagraph
+  await writingService.updateHisWPUser(
+    user._id?.toString() as string,
+    wp._id?.toString() as string,
+    undefined,
+    true
+  )
   try {
     const completeResult = await writingService.wpComplete(
       user._id!.toString(),
       wp._id!.toString()
     )
-    console.log('Complete result:', completeResult)
-    console.log('--------------------------------')
     return res.render('client/pages/writing-paragraph/complete.pug', {
       pageTitle: 'Đánh giá tổng quan',
       user,
       completeResult: completeResult
     })
   } catch (err) {
-    console.log('Error:', err)
     return res.render('client/pages/writing-paragraph/complete.pug', {
       pageTitle: 'Đánh giá tổng quan',
       user,

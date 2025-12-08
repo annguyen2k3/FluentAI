@@ -115,8 +115,6 @@ export const getWSListController = async (req: Request, res: Response) => {
 
   const data = await writingService.getWSList(find)
 
-  console.log('data', data)
-
   res.status(HttpStatus.OK).json({
     message: 'Danh sách bài học đã lấy thành công',
     status: HttpStatus.OK,

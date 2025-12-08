@@ -1,11 +1,13 @@
 extends ../../layouts/default.pug
 include ../../mixins/loading.pug
+include ../../mixins/modalConfirm.pug
 
 block head
     link(rel="stylesheet" href="/css/style.css")
 
 block main-content
-    div(class="practice-header mb-1" wp-data-practice=wp)
+    - const historyAttr = hisWPUser ? {'wp-data-history': hisWPUser} : {}
+    div(class="practice-header mb-1" wp-data-practice=wp)&attributes(historyAttr)
         h1(class="flex-fill mb-0 fs-3 fw-bold") #{wp.title}
         div(class="practice-header__info")
             div(class="practice-header__credits")
@@ -53,11 +55,17 @@ block main-content
                         | Câu tiếp theo
                         i(class="fas fa-arrow-right")
             
+            div(class="practice-reset mt-4 pt-3 border-top")
+                button(class="practice-sidebar__action-btn practice-sidebar__action-btn--reset" type="button" reset-history-btn)
+                    i(class="fas fa-redo-alt")
+                    |  Luyện tập lại từ đầu
+            
             div(class="practice-shortcuts mt-4 pt-3 border-top")
-                p(class="practice-shortcuts__title mb-2 text-muted small fw-semibold")
+                p(class="practice-shortcuts__title mb-2 text-muted small fw-semibold d-flex align-items-center" id="practice-shortcuts-toggle" style="cursor: pointer;")
                     i(class="fas fa-keyboard me-2")
                     | Phím tắt
-                div(class="practice-shortcuts__list d-flex flex-wrap gap-3")
+                    i(class="fas fa-chevron-down practice-shortcuts__arrow ms-2" id="practice-shortcuts-arrow")
+                div(class="practice-shortcuts__list d-flex flex-wrap gap-3 d-none" id="practice-shortcuts-list")
                     div(class="practice-shortcuts__item")
                         kbd(class="practice-shortcuts__key") Enter
                         span(class="practice-shortcuts__desc text-muted small") Nộp bài / Câu tiếp theo
@@ -114,5 +122,13 @@ block main-content
                                     span(class="hint-modal__example-text") - #{hint.sentence_example.en} <br> - #{hint.sentence_example.vi}
                                     
     +loadingOverlay('practice-complete-loading', 'Đang chuyển đến trang đánh giá tổng quan...')
+
+    +modalConfirmDanger(
+        'wp-reset-modal',
+        'Xác nhận xoá lịch sử luyện tập?',
+        'Xác nhận xoá lịch sử luyện tập của đoạn văn này và luyện tập lại từ đầu.',
+        'Đồng ý',
+        'Hủy'
+    )
 
     script(src="/js/writing-paragraph.js" type="module")

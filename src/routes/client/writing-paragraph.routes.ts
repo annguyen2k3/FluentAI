@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+  deleteHistoryPracticeWPController,
   getCompleteWPController,
   getPracticeCustomTopicWPController,
   getRandomWPController,
@@ -74,6 +75,16 @@ writingParagraphRoutes.post(
   requireAuth,
   renderWPPraticeValidator,
   wrapRequestHandler(postPracticeWPController)
+)
+
+// DELETE /writing-paragraph/practice/history/:slug
+// Description: Delete history practice writing paragraph
+// Method: DELETE
+// Params: {slug: string}
+writingParagraphRoutes.delete(
+  '/practice/history/:slug',
+  requireAuth,
+  wrapRequestHandler(deleteHistoryPracticeWPController)
 )
 
 // GET /writing-paragraph/practice/complete/:slug

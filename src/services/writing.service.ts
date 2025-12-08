@@ -34,6 +34,8 @@ import { HisWSUserSentenceType } from '~/models/schemas/his-ws-user.schema'
 import HisWSUser from '~/models/schemas/his-ws-user.schema'
 import HisUser from '~/models/schemas/his-practice-user.schema'
 import HisPracticeUser from '~/models/schemas/his-practice-user.schema'
+import { HisWPUserSentenceType } from '~/models/schemas/his-wp-user.schema'
+import HisWPUser from '~/models/schemas/his-wp-user.schema'
 config()
 
 function sk(userId: string, practiceId: string) {
@@ -462,6 +464,94 @@ class WritingService {
         hasPrevPage: page > 1
       }
     }
+  }
+
+  async updateHisWPUser(
+    userId: string,
+    practiceId: string,
+    sentence?: HisWPUserSentenceType,
+    isComplete?: Boolean
+  ) {
+    const userObjectId = new ObjectId(userId)
+    const practiceObjectId = new ObjectId(practiceId)
+
+    const hisPracticeUser = await databaseService.hisPracticeUsers.findOne({
+      userId: userObjectId,
+      type: HistoryUserType.PRACTICE_WRITING_PARAGRAPH,
+      'content.wpParagraphId': practiceObjectId
+    })
+
+    if (!hisPracticeUser) {
+      const newHisWPUser = new HisWPUser({
+        wpParagraphId: practiceObjectId,
+        status:
+          isComplete === true
+            ? StatusLesson.COMPLETED
+            : StatusLesson.IN_PROGRESS,
+        sentences: sentence ? [sentence] : []
+      })
+
+      const newHisPracticeUser = new HisPracticeUser({
+        userId: userObjectId,
+        type: HistoryUserType.PRACTICE_WRITING_PARAGRAPH,
+        content: newHisWPUser
+      })
+
+      await databaseService.hisPracticeUsers.insertOne(newHisPracticeUser)
+      return
+    }
+
+    const currentContent = hisPracticeUser.content as HisWPUser
+    const setFields: Record<string, unknown> = {
+      update_at: new Date()
+    }
+
+    if (sentence) {
+      const sentences = [...(currentContent.sentences || [])]
+
+      const existingIndex = sentences.findIndex(
+        (item) => item.sentence_original === sentence.sentence_original
+      )
+
+      if (existingIndex >= 0) {
+        sentences[existingIndex] = sentence
+      } else {
+        sentences.push(sentence)
+      }
+
+      setFields['content.sentences'] = sentences
+    }
+
+    if (isComplete === true) {
+      setFields['content.status'] = StatusLesson.COMPLETED
+    } else if (isComplete === false) {
+      setFields['content.status'] = StatusLesson.IN_PROGRESS
+    }
+
+    await databaseService.hisPracticeUsers.updateOne(
+      { _id: hisPracticeUser._id },
+      {
+        $set: setFields
+      }
+    )
+  }
+
+  async getHisWPUser(userId: string, practiceId: string) {
+    const hisPracticeUser = await databaseService.hisPracticeUsers.findOne({
+      userId: new ObjectId(userId),
+      type: HistoryUserType.PRACTICE_WRITING_PARAGRAPH,
+      'content.wpParagraphId': new ObjectId(practiceId)
+    })
+    return hisPracticeUser
+  }
+
+  async deleteHisWPUser(userId: string, practiceId: string) {
+    await databaseService.hisPracticeUsers.deleteOne({
+      userId: new ObjectId(userId),
+      type: HistoryUserType.PRACTICE_WRITING_PARAGRAPH,
+      'content.wpParagraphId': new ObjectId(practiceId)
+    })
+    return true
   }
 
   async createWPParagraph(wpParagraph: WPParagraph) {

@@ -546,33 +546,91 @@ if (wpPractice) {
   let currentIndex = 1
 
   const wpData = JSON.parse(wpPractice.getAttribute('wp-data-practice'))
+  const hisWPUserAttr = wpPractice.getAttribute('wp-data-history')
+  const hisWPUser = hisWPUserAttr ? JSON.parse(hisWPUserAttr) : null
+  wpPractice.removeAttribute('wp-data-practice')
+  if (hisWPUserAttr) {
+    wpPractice.removeAttribute('wp-data-history')
+  }
   const sentences = splitParagraphIntoSentences(wpData.content)
 
   sentencesDisplay.innerHTML = ''
-  sentences.forEach((sentence, index) => {
-    sentencesDisplay.innerHTML += `
-      <span index=${index + 1}>${sentence}</span>
-    `
-  })
+
+  let firstInProgressIndex = sentences.length + 1
+
+  if (
+    hisWPUser &&
+    hisWPUser.content &&
+    Array.isArray(hisWPUser.content.sentences)
+  ) {
+    const historySentences = hisWPUser.content.sentences
+    const historyMap = new Map()
+    historySentences.forEach((histSentence) => {
+      historyMap.set(histSentence.sentence_original, histSentence)
+    })
+
+    sentences.forEach((sentence, index) => {
+      const sentenceIndex = index + 1
+      const historySentence = historyMap.get(sentence)
+
+      if (historySentence) {
+        sentencesDisplay.innerHTML += `
+          <span class="sentence-complete" index=${sentenceIndex}>${historySentence.final_sentence || sentence}</span>
+        `
+      } else {
+        if (firstInProgressIndex > sentenceIndex) {
+          firstInProgressIndex = sentenceIndex
+          sentencesDisplay.innerHTML += `
+            <span class="sentence-inprogress" index=${sentenceIndex}>${sentence}</span>
+          `
+        } else {
+          sentencesDisplay.innerHTML += `
+            <span index=${sentenceIndex}>${sentence}</span>
+          `
+        }
+      }
+    })
+
+    if (firstInProgressIndex <= sentences.length) {
+      currentIndex = firstInProgressIndex
+    } else {
+      currentIndex = sentences.length + 1
+    }
+  } else {
+    sentences.forEach((sentence, index) => {
+      sentencesDisplay.innerHTML += `
+        <span index=${index + 1}>${sentence}</span>
+      `
+    })
+    firstInProgressIndex = 1
+    currentIndex = 1
+  }
 
   function renderSentence(index) {
-    for (let i = 1; i < index; i++) {
-      sentencesDisplay
-        .querySelector(`[index="${i}"]`)
-        .classList.remove('sentence-inprogress')
-      sentencesDisplay
-        .querySelector(`[index="${i}"]`)
-        .classList.add('sentence-complete')
-    }
-    sentencesDisplay
-      .querySelector(`[index="${index}"]`)
-      .classList.add('sentence-inprogress')
+    const allSentenceElements = sentencesDisplay.querySelectorAll('[index]')
+    allSentenceElements.forEach((el, idx) => {
+      const sentenceIdx = idx + 1
+      el.classList.remove('sentence-inprogress', 'sentence-complete')
+
+      if (sentenceIdx < index) {
+        el.classList.add('sentence-complete')
+      } else if (sentenceIdx === index) {
+        el.classList.add('sentence-inprogress')
+      }
+    })
+
     progressIndex.textContent = index
     progressTotal.textContent = sentences.length
     progressFill.style.width = `${(index / sentences.length) * 100}%`
   }
 
-  renderSentence(currentIndex)
+  if (firstInProgressIndex <= sentences.length) {
+    renderSentence(currentIndex)
+  } else {
+    progressIndex.textContent = sentences.length
+    progressTotal.textContent = sentences.length
+    progressFill.style.width = '100%'
+  }
 
   const buttonSubmit = document.querySelector('[button-submit]')
   const buttonNext = document.querySelector('[button-next]')
@@ -675,20 +733,20 @@ if (wpPractice) {
 
   if (buttonNext) {
     buttonNext.addEventListener('click', function () {
-      if (currentEvaluateResult && currentEvaluateResult.tokens) {
-        const translatedSentence = getSentenceTextFromTokens(
-          currentEvaluateResult.tokens
-        )
-        if (translatedSentence) {
-          const currentSentenceElement =
-            sentencesDisplay.querySelector(`.sentence-inprogress`)
-          if (currentSentenceElement) {
-            currentSentenceElement.textContent = translatedSentence
-          }
+      if (currentEvaluateResult && currentEvaluateResult.final_sentence) {
+        const currentSentenceElement =
+          sentencesDisplay.querySelector(`.sentence-inprogress`)
+        if (currentSentenceElement) {
+          currentSentenceElement.textContent =
+            currentEvaluateResult.final_sentence
+          currentSentenceElement.classList.remove('sentence-inprogress')
+          currentSentenceElement.classList.add('sentence-complete')
         }
       }
       currentIndex++
-      renderSentence(currentIndex)
+      if (currentIndex <= sentences.length) {
+        renderSentence(currentIndex)
+      }
       buttonNext.classList.add('d-none')
       buttonSubmit.classList.remove('d-none')
       currentEvaluateResult = null
@@ -848,6 +906,89 @@ if (wpPractice) {
       }
     }
   })
+
+  const shortcutsToggle = document.getElementById('practice-shortcuts-toggle')
+  const shortcutsList = document.getElementById('practice-shortcuts-list')
+  const shortcutsArrow = document.getElementById('practice-shortcuts-arrow')
+
+  if (shortcutsToggle && shortcutsList && shortcutsArrow) {
+    shortcutsToggle.addEventListener('click', function () {
+      const isHidden = shortcutsList.classList.contains('d-none')
+      if (isHidden) {
+        shortcutsList.classList.remove('d-none')
+        shortcutsArrow.classList.remove('fa-chevron-down')
+        shortcutsArrow.classList.add('fa-chevron-up')
+      } else {
+        shortcutsList.classList.add('d-none')
+        shortcutsArrow.classList.remove('fa-chevron-up')
+        shortcutsArrow.classList.add('fa-chevron-down')
+      }
+    })
+  }
+
+  const practiceSlug = wpData.slug
+  const resetHistoryBtn = document.querySelector('[reset-history-btn]')
+  const resetModalEl = document.getElementById('wp-reset-modal')
+  const resetCancelBtn = document.getElementById('wp-reset-modal-cancel')
+  const resetConfirmBtn = document.getElementById('wp-reset-modal-confirm')
+
+  const showResetModal = () => {
+    if (!resetModalEl) return
+    resetModalEl.classList.add('practice-reset-modal--visible')
+  }
+
+  const hideResetModal = () => {
+    if (!resetModalEl) return
+    resetModalEl.classList.remove('practice-reset-modal--visible')
+  }
+
+  if (resetCancelBtn) {
+    resetCancelBtn.addEventListener('click', hideResetModal)
+  }
+
+  if (resetModalEl) {
+    resetModalEl.addEventListener('click', function (event) {
+      if (event.target === resetModalEl) {
+        hideResetModal()
+      }
+    })
+  }
+
+  if (resetHistoryBtn) {
+    resetHistoryBtn.addEventListener('click', function () {
+      if (!practiceSlug) return
+      showResetModal()
+    })
+  }
+
+  if (resetConfirmBtn) {
+    resetConfirmBtn.addEventListener('click', async function () {
+      if (!practiceSlug) {
+        hideResetModal()
+        return
+      }
+      resetConfirmBtn.disabled = true
+      try {
+        const endpoint = ApiBreakpoint.DELETE_HISTORY_PRACTICE_WP.replace(
+          '{slug}',
+          encodeURIComponent(practiceSlug)
+        )
+        const res = await fetch(endpoint, { method: 'DELETE' })
+        if (!res.ok) throw new Error('Failed to delete history')
+        window.location.reload()
+      } catch (error) {
+        console.error('Xóa lịch sử thất bại:', error)
+        if (typeof window.alertError === 'function') {
+          window.alertError('Không thể xóa lịch sử. Vui lòng thử lại.')
+        } else {
+          alert('Không thể xóa lịch sử. Vui lòng thử lại.')
+        }
+      } finally {
+        resetConfirmBtn.disabled = false
+        hideResetModal()
+      }
+    })
+  }
 }
 
 function formatHighlight(text = '') {

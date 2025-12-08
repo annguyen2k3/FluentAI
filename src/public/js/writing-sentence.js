@@ -478,8 +478,6 @@ if (wsListChoose) {
       const topicRandom =
         document.querySelector('select[filter-topic]').value || ''
 
-      console.log('levelRandom', levelRandom)
-      console.log('topicRandom', topicRandom)
       const requestUrl = new URL(ApiBreakpoint.GET_RANDOM_WS)
       if (levelRandom) {
         requestUrl.searchParams.set('level', levelRandom)
