@@ -742,6 +742,9 @@ if (wpPractice) {
             }
             if (data.evaluateResult.passed) {
               currentEvaluateResult = data.evaluateResult
+              if (userTranslationInput) {
+                userTranslationInput.disabled = true
+              }
               if (currentIndex === sentences.length) {
                 const loadingOverlay = document.getElementById(
                   'practice-complete-loading'
@@ -799,6 +802,7 @@ if (wpPractice) {
       currentEvaluateResult = null
       if (userTranslationInput) {
         userTranslationInput.value = ''
+        userTranslationInput.disabled = false
       }
       if (feedbackDescription) {
         feedbackDescription.innerHTML = `

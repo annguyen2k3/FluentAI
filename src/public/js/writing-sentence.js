@@ -745,7 +745,10 @@ if (wsPractice) {
     renderSentence(currentIndex)
     buttonNext.classList.add('d-none')
     buttonSubmit.classList.remove('d-none')
-    document.querySelector('[user_translation]').value = ''
+    if (userTranslationInput) {
+      userTranslationInput.value = ''
+      userTranslationInput.disabled = false
+    }
     if (wsLoadingEl) {
       wsLoadingEl.style.display = 'none'
     }
@@ -814,6 +817,9 @@ if (wsPractice) {
             if (data.evaluateResult.passed) {
               saveClientHistory(data.evaluateResult)
               renderHistoryList()
+              if (userTranslationInput) {
+                userTranslationInput.disabled = true
+              }
               if (currentIndex === listSentences.length) {
                 const loadingOverlay = document.getElementById(
                   'practice-complete-loading'
