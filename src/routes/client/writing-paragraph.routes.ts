@@ -46,7 +46,7 @@ writingParagraphRoutes.get(
 // GET /writing-paragraph/list
 // Description: Get list of writing paragraphs
 // Method: GET
-// Query: {level: string, type: string, topic: string}
+// Query: level, topic, type, page, limit, search, sortKey, sortOrder, status
 writingParagraphRoutes.get(
   '/list',
   requireAuth,

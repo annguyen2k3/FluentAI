@@ -398,59 +398,131 @@ class WritingService {
     search?: string
     sortKey?: string
     sortOrder?: 'asc' | 'desc'
+    history?: {
+      userId: ObjectId
+      status?: StatusLesson
+    }
   }) {
-    const { page = 1, limit = 10, ...matchQuery } = find
+    const {
+      page = 1,
+      limit = 10,
+      sortKey = 'pos',
+      sortOrder = 'asc',
+      history,
+      ...matchQuery
+    } = find
     const skip = (page - 1) * limit
-    const matchStage: any = {}
+    const matchStage: Record<string, unknown> = {}
     if (matchQuery.level) matchStage.level = matchQuery.level
     if (matchQuery.topic) matchStage.topic = matchQuery.topic
     if (matchQuery.type) matchStage.type = matchQuery.type
     if (matchQuery.search)
       matchStage.title = { $regex: matchQuery.search, $options: 'i' }
 
-    const [data, total] = await Promise.all([
-      databaseService.wpParagraphs
-        .aggregate([
-          { $match: matchStage },
-          {
-            $sort: {
-              [matchQuery.sortKey as string]:
-                matchQuery.sortOrder === 'asc' ? 1 : -1
+    const basePipeline: Record<string, unknown>[] = [
+      { $match: matchStage },
+      {
+        $sort: {
+          [sortKey]: sortOrder === 'asc' ? 1 : -1
+        }
+      },
+      {
+        $lookup: {
+          from: 'levels',
+          localField: 'level',
+          foreignField: '_id',
+          as: 'level'
+        }
+      },
+      { $unwind: '$level' },
+      {
+        $lookup: {
+          from: 'topics',
+          localField: 'topic',
+          foreignField: '_id',
+          as: 'topic'
+        }
+      },
+      { $unwind: '$topic' },
+      {
+        $lookup: {
+          from: 'types',
+          localField: 'type',
+          foreignField: '_id',
+          as: 'type'
+        }
+      },
+      { $unwind: '$type' }
+    ]
+
+    if (history?.userId) {
+      basePipeline.push({
+        $lookup: {
+          from: 'his_practice_users',
+          let: { wpId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$userId', history.userId] },
+                    {
+                      $eq: ['$type', HistoryUserType.PRACTICE_WRITING_PARAGRAPH]
+                    },
+                    { $eq: ['$content.wpParagraphId', '$$wpId'] }
+                  ]
+                }
+              }
+            },
+            { $limit: 1 }
+          ],
+          as: 'history'
+        }
+      })
+
+      basePipeline.push({
+        $addFields: {
+          history: { $arrayElemAt: ['$history', 0] }
+        }
+      })
+
+      basePipeline.push({
+        $addFields: {
+          history: {
+            $cond: [{ $ifNull: ['$history', false] }, '$history', {}]
+          }
+        }
+      })
+
+      if (history.status) {
+        if (history.status === StatusLesson.NOT_STARTED) {
+          basePipeline.push({
+            $match: {
+              $or: [
+                { history: {} },
+                { 'history.content.status': { $exists: false } }
+              ]
             }
-          },
-          {
-            $lookup: {
-              from: 'levels',
-              localField: 'level',
-              foreignField: '_id',
-              as: 'level'
+          })
+        } else {
+          basePipeline.push({
+            $match: {
+              'history.content.status': history.status
             }
-          },
-          { $unwind: '$level' },
-          {
-            $lookup: {
-              from: 'topics',
-              localField: 'topic',
-              foreignField: '_id',
-              as: 'topic'
-            }
-          },
-          { $unwind: '$topic' },
-          {
-            $lookup: {
-              from: 'types',
-              localField: 'type',
-              foreignField: '_id',
-              as: 'type'
-            }
-          },
-          { $unwind: '$type' },
-          { $skip: skip },
-          { $limit: limit }
-        ])
-        .toArray(),
-      databaseService.wpParagraphs.countDocuments(matchStage)
+          })
+        }
+      }
+    }
+
+    const dataPipeline = [...basePipeline, { $skip: skip }, { $limit: limit }]
+    const countPipeline = [...basePipeline, { $count: 'total' }]
+
+    const [data, totalResult] = await Promise.all([
+      databaseService.wpParagraphs.aggregate(dataPipeline).toArray(),
+      databaseService.wpParagraphs.aggregate(countPipeline).toArray()
     ])
+
+    const total = totalResult[0]?.total || 0
 
     const totalPages = Math.ceil(total / limit)
     return {

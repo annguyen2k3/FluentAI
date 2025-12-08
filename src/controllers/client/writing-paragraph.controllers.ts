@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
+import { StatusLesson } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import { WRITING_PARAGRAPH_MESSAGES } from '~/constants/message'
 import Levels from '~/models/schemas/levels.schema'
@@ -91,6 +92,13 @@ export const getWPListController = async (req: Request, res: Response) => {
     type?: ObjectId
     page?: number
     limit?: number
+    search?: string
+    sortKey?: string
+    sortOrder?: 'asc' | 'desc'
+    history?: {
+      userId: ObjectId
+      status?: StatusLesson
+    }
   } = {}
 
   if (req.level) {
@@ -107,6 +115,26 @@ export const getWPListController = async (req: Request, res: Response) => {
   }
   if (req.query.limit) {
     find.limit = parseInt(req.query.limit as string)
+  }
+
+  if (req.query.search) {
+    find.search = req.query.search as string
+  }
+  if (req.query.sortKey) {
+    find.sortKey = req.query.sortKey as string
+  }
+  if (req.query.sortOrder) {
+    find.sortOrder = req.query.sortOrder as 'asc' | 'desc'
+  }
+  if (req.query.status) {
+    find.history = {
+      userId: user._id as ObjectId,
+      status: req.query.status as StatusLesson
+    }
+  } else {
+    find.history = {
+      userId: user._id as ObjectId
+    }
   }
 
   const data = await writingService.getWPList(find)

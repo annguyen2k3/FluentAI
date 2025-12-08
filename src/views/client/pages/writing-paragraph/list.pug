@@ -27,11 +27,11 @@ block main-content
                         option(id-topic=topic._id.toString() value=topic.slug.toString()) #{topic.title}
             div(class="col-12 col-md-3")
                 label(class="form-label fw-bold wp-choose__label") Trạng thái
-                select(class="form-select wp-choose__select" aria-label="Chọn trạng thái")
-                    option(selected) Tất cả
-                    option Mới
-                    option Đang tiến hành
-                    option Hoàn thành
+                select(class="form-select wp-choose__select" aria-label="Chọn trạng thái" filter-status)
+                    option(value="" selected) Tất cả
+                    option(value="not_started") Mới
+                    option(value="in_progress") Đang tiến hành
+                    option(value="completed") Hoàn thành
             div(class="col-12 col-md-3 d-flex align-items-end")
                 a(href="#" class="btn btn-warning w-100 wp-choose__random-btn" btn-random)
                     i(class="fa-solid fa-shuffle me-2")

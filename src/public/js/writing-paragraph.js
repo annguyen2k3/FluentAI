@@ -264,6 +264,25 @@ if (wpListChoose) {
   let levelSlug = wpListChoose.getAttribute('level')
   let typeSlug = wpListChoose.getAttribute('type')
   let topicSlug = ''
+  let statusId = ''
+
+  function escapeHTML(text = '') {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+  }
+
+  function mapStatusToBadge(status) {
+    if (!status) return { label: 'Mới', key: 'new' }
+    if (status === 'completed')
+      return { label: 'Đã hoàn thành', key: 'completed' }
+    if (status === 'in_progress')
+      return { label: 'Đang tiến hành', key: 'in-progress' }
+    return { label: 'Mới', key: 'new' }
+  }
 
   function renderPagination(pagination) {
     const paginationContainer = document.querySelector('.wp-choose__pagination')
@@ -295,7 +314,7 @@ if (wpListChoose) {
     if (pagination.hasPrevPage) {
       prevBtn.addEventListener('click', () => {
         currentPage = page - 1
-        loadWPList(levelSlug, typeSlug, topicSlug, currentPage, limit)
+        loadWPList(levelSlug, typeSlug, topicSlug, statusId, currentPage, limit)
       })
     }
     buttonsContainer.appendChild(prevBtn)
@@ -314,7 +333,7 @@ if (wpListChoose) {
       firstBtn.textContent = '1'
       firstBtn.addEventListener('click', () => {
         currentPage = 1
-        loadWPList(levelSlug, typeSlug, topicSlug, currentPage, limit)
+        loadWPList(levelSlug, typeSlug, topicSlug, statusId, currentPage, limit)
       })
       buttonsContainer.appendChild(firstBtn)
 
@@ -337,7 +356,7 @@ if (wpListChoose) {
       pageBtn.textContent = i
       pageBtn.addEventListener('click', () => {
         currentPage = i
-        loadWPList(levelSlug, typeSlug, topicSlug, currentPage, limit)
+        loadWPList(levelSlug, typeSlug, topicSlug, statusId, currentPage, limit)
       })
       buttonsContainer.appendChild(pageBtn)
     }
@@ -356,7 +375,7 @@ if (wpListChoose) {
       lastBtn.textContent = totalPages
       lastBtn.addEventListener('click', () => {
         currentPage = totalPages
-        loadWPList(levelSlug, typeSlug, topicSlug, currentPage, limit)
+        loadWPList(levelSlug, typeSlug, topicSlug, statusId, currentPage, limit)
       })
       buttonsContainer.appendChild(lastBtn)
     }
@@ -368,13 +387,20 @@ if (wpListChoose) {
     if (pagination.hasNextPage) {
       nextBtn.addEventListener('click', () => {
         currentPage = page + 1
-        loadWPList(levelSlug, typeSlug, topicSlug, currentPage, limit)
+        loadWPList(levelSlug, typeSlug, topicSlug, statusId, currentPage, limit)
       })
     }
     buttonsContainer.appendChild(nextBtn)
   }
 
-  function loadWPList(level, type, topic = '', page = 1, limit = 10) {
+  function loadWPList(
+    level,
+    type,
+    topic = '',
+    status = '',
+    page = 1,
+    limit = 10
+  ) {
     const requestUrl = new URL(ApiBreakpoint.GET_WP_LIST)
 
     if (level) {
@@ -385,6 +411,9 @@ if (wpListChoose) {
     }
     if (topic) {
       requestUrl.searchParams.set('topic', topic)
+    }
+    if (status) {
+      requestUrl.searchParams.set('status', status)
     }
     if (page) {
       requestUrl.searchParams.set('page', page)
@@ -415,17 +444,26 @@ if (wpListChoose) {
           if (wpList.length > 0) {
             wpListCards.innerHTML = ''
             wpList.forEach((wp) => {
+              const title = escapeHTML(wp.title || '')
+              const content = escapeHTML(wp.content || '')
+              const topicTitle = wp.topic?.title
+                ? escapeHTML(wp.topic.title)
+                : 'Chủ đề chung'
+              const historyStatus =
+                wp.history?.content?.status || wp.history?.status || ''
+              const statusValue = historyStatus || ''
+              const status = mapStatusToBadge(statusValue)
+
               wpListCards.innerHTML += `
               <div class="col-12 col-lg-6">
                   <div class="wp-choose__card" id-wp=${wp._id.toString()} slug=${wp.slug}>
                       <div class="d-flex justify-content-between align-items-center mb-2">
-                          <h5 class="wp-choose__title m-0">${wp.title}</h5>
-                          <span class="wp-choose__badge" new>Mới</span>
+                          <h5 class="wp-choose__title m-0" title="${title}">${title}</h5>
+                          <span class="wp-choose__badge" data-status="${status.key}">${status.label}</span>
                       </div>
-                      <p class="wp-choose__excerpt wp-choose__excerpt--clamp">${wp.content}</p>
+                      <p class="wp-choose__excerpt wp-choose__excerpt--clamp">${content}</p>
                       <div class="d-flex flex-wrap gap-3 align-items-center wp-choose__meta">
-                          <span><i class="far fa-clock me-1"></i>Chưa luyện tập</span>
-                          <span><i class="far fa-folder-open me-1"></i>${wp.topic.title}</span>
+                          <span><i class="far fa-folder-open me-1"></i>${topicTitle}</span>
                       </div>
                       <div class="text-end">
                           <a href="/writing-paragraph/practice/${wp.slug}" class="btn btn-primary wp-choose__btn">Bắt đầu</a>
@@ -462,7 +500,7 @@ if (wpListChoose) {
       })
   }
 
-  loadWPList(levelSlug, typeSlug, topicSlug, currentPage, limit)
+  loadWPList(levelSlug, typeSlug, topicSlug, statusId, currentPage, limit)
 
   const filterTopic = wpListChoose.querySelector('select[filter-topic]')
   if (filterTopic) {
@@ -470,7 +508,16 @@ if (wpListChoose) {
       const selectedOption = this.options[this.selectedIndex]
       topicSlug = this.value || ''
       currentPage = 1
-      loadWPList(levelSlug, typeSlug, topicSlug, currentPage, limit)
+      loadWPList(levelSlug, typeSlug, topicSlug, statusId, currentPage, limit)
+    })
+  }
+
+  const filterStatus = wpListChoose.querySelector('select[filter-status]')
+  if (filterStatus) {
+    filterStatus.addEventListener('change', function () {
+      statusId = this.value || ''
+      currentPage = 1
+      loadWPList(levelSlug, typeSlug, topicSlug, statusId, currentPage, limit)
     })
   }
 
