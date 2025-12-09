@@ -216,15 +216,23 @@ class ScoreService {
     limit?: number
     year?: number
     month?: number
-  }): Promise<
-    {
+  }): Promise<{
+    data: {
       rank: number
       userId: ObjectId
       username: string
       userAvatar: string
       totalScore: number
     }[]
-  > {
+    pagination: {
+      page: number
+      limit: number
+      total: number
+      totalPages: number
+      hasNextPage: boolean
+      hasPrevPage: boolean
+    }
+  }> {
     type RankingItem = {
       rank: number
       userId: ObjectId
@@ -243,54 +251,78 @@ class ScoreService {
       : new Date().getMonth() + 1
     const skip = (safePage - 1) * safeLimit
 
-    const ranking = (await databaseService.userScores
-      .aggregate([
-        { $match: { year: targetYear, month: targetMonth } },
-        { $unwind: '$scores' },
-        {
-          $group: {
-            _id: '$userId',
-            totalScore: { $sum: '$scores.score' }
-          }
-        },
-        { $sort: { totalScore: -1 } },
-        { $skip: skip },
-        { $limit: safeLimit },
-        {
-          $lookup: {
-            from: 'users',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'user'
-          }
-        },
-        {
-          $unwind: {
-            path: '$user',
-            preserveNullAndEmptyArrays: true
-          }
-        },
-        {
-          $project: {
-            _id: 0,
-            userId: '$_id',
-            username: { $ifNull: ['$user.username', 'Người dùng'] },
-            userAvatar: {
-              $ifNull: [
-                '$user.avatar',
-                'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'
-              ]
-            },
-            totalScore: { $ifNull: ['$totalScore', 0] }
-          }
+    const basePipeline = [
+      { $match: { year: targetYear, month: targetMonth } },
+      { $unwind: '$scores' },
+      {
+        $group: {
+          _id: '$userId',
+          totalScore: { $sum: '$scores.score' }
         }
-      ])
-      .toArray()) as RankingItem[]
+      },
+      { $sort: { totalScore: -1 } }
+    ]
 
-    return ranking.map((item, index) => ({
+    const dataPipeline = [
+      ...basePipeline,
+      { $skip: skip },
+      { $limit: safeLimit },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      {
+        $unwind: {
+          path: '$user',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          userId: '$_id',
+          username: { $ifNull: ['$user.username', 'Người dùng'] },
+          userAvatar: {
+            $ifNull: [
+              '$user.avatar',
+              'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'
+            ]
+          },
+          totalScore: { $ifNull: ['$totalScore', 0] }
+        }
+      }
+    ]
+
+    const countPipeline = [...basePipeline, { $count: 'total' }]
+
+    const [ranking, totalResult] = await Promise.all([
+      databaseService.userScores.aggregate(dataPipeline).toArray(),
+      databaseService.userScores.aggregate(countPipeline).toArray()
+    ])
+
+    const total = totalResult[0]?.total || 0
+    const totalPages = Math.ceil(total / safeLimit) || 1
+
+    const data = (ranking as RankingItem[]).map((item, index) => ({
       ...item,
       rank: skip + index + 1
     }))
+
+    return {
+      data,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages,
+        hasNextPage: safePage < totalPages,
+        hasPrevPage: safePage > 1
+      }
+    }
   }
 }
 

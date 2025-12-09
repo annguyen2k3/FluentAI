@@ -1,0 +1,119 @@
+extends ../layouts/default.pug
+
+block head
+    link(rel="stylesheet" href="/css/style.css")
+    link(rel="stylesheet" href="/css/ranking.css")
+
+block main-content
+    -
+        const now = new Date()
+        const nowYear = now.getFullYear()
+        const filterYears = Array.from({ length: 3 }).map((_, idx) => nowYear - idx)
+        const currentYear = targetYear || nowYear
+        const currentMonth = targetMonth || (now.getMonth() + 1)
+    .ranking-page
+        .container
+            .row.justify-content-center
+                .col-12.col-lg-10
+                    .ranking-header.mb-4
+                        h1.ranking-header__title
+                            i.fas.fa-trophy.me-3
+                            | Bảng xếp hạng tháng
+                        p.ranking-header__subtitle Theo dõi thứ hạng của các thành viên trong cộng đồng
+                    
+                    .ranking-filters.mb-3
+                        form(action="/ranking" method="get" class="ranking-filter d-flex align-items-center gap-2")
+                            select(name="month" class="form-select form-select-sm ranking-filter__select")
+                                each m in [1,2,3,4,5,6,7,8,9,10,11,12]
+                                    option(value=m selected=(m === currentMonth)) Tháng #{m}
+                            select(name="year" class="form-select form-select-sm ranking-filter__select")
+                                each y in filterYears
+                                    option(value=y selected=(y === currentYear)) Năm #{y}
+                            button(type="submit" class="btn btn-primary btn-sm ranking-filter__submit d-inline-flex align-items-center gap-2")
+                                i(class="fas fa-rotate")
+                                span Xem
+                    
+                    .ranking-card
+                        table.ranking-table
+                            thead.ranking-table__head
+                                tr
+                                    th.ranking-table__th.ranking-table__th--rank Rank
+                                    th.ranking-table__th.ranking-table__th--user User
+                                    th.ranking-table__th.ranking-table__th--score Score
+                            tbody.ranking-table__body
+                                each item, index in rankingList
+                                    tr.ranking-table__row
+                                        td.ranking-table__td.ranking-table__td--rank
+                                            if item.rank === 1
+                                                i.fas.fa-trophy.text-warning
+                                            else
+                                                | ##{item.rank}
+                                        td.ranking-table__td.ranking-table__td--user
+                                            .ranking-table__user
+                                                img.ranking-table__avatar(src=item.userAvatar || "https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png" alt="Avatar")
+                                                span.ranking-table__name= item.username || 'Người dùng'
+                                        td.ranking-table__td.ranking-table__td--score
+                                            span.ranking-table__points= item.totalScore.toLocaleString('vi-VN')
+                                            |  pts
+                                if user && userMonthlyScore && userMonthlyScore.rank
+                                    tr.ranking-table__row.ranking-table__row--current
+                                        td.ranking-table__td.ranking-table__td--rank
+                                            | ##{userMonthlyScore.rank}
+                                        td.ranking-table__td.ranking-table__td--user
+                                            .ranking-table__user
+                                                img.ranking-table__avatar(src=(user.avatar || "https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png") alt="Avatar")
+                                                span.ranking-table__name Bạn
+                                        td.ranking-table__td.ranking-table__td--score
+                                            span.ranking-table__points= (userMonthlyScore.totalScore || 0).toLocaleString('vi-VN')
+                                            |  pts
+                    
+                    if pagination && pagination.totalPages > 1
+                        -
+                            const queryParams = `year=${currentYear}&month=${currentMonth}`
+                        .ranking-pagination.mt-4
+                            .ranking-pagination__info
+                                span.ranking-pagination__text
+                                    | Trang #{pagination.page} / #{pagination.totalPages}
+                            .ranking-pagination__controls
+                                if pagination.hasPrevPage
+                                    a.ranking-pagination__btn(href=`/ranking?page=${pagination.page - 1}&${queryParams}`)
+                                        i.fas.fa-chevron-left
+                                else
+                                    span.ranking-pagination__btn.ranking-pagination__btn--disabled
+                                        i.fas.fa-chevron-left
+                                
+                                - const currentPage = pagination.page
+                                - const totalPages = pagination.totalPages
+                                - const maxVisible = 5
+                                - let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2))
+                                - let endPage = Math.min(totalPages, startPage + maxVisible - 1)
+                                - if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1)
+                                
+                                if startPage > 1
+                                    a.ranking-pagination__btn(href=`/ranking?page=1&${queryParams}`) 1
+                                    if startPage > 2
+                                        span.ranking-pagination__ellipsis ...
+                                
+                                - for (let i = startPage; i <= endPage; i++)
+                                    if i === currentPage
+                                        span.ranking-pagination__btn.ranking-pagination__btn--active= i
+                                    else
+                                        a.ranking-pagination__btn(href=`/ranking?page=${i}&${queryParams}`)= i
+                                
+                                if endPage < totalPages
+                                    if endPage < totalPages - 1
+                                        span.ranking-pagination__ellipsis ...
+                                    a.ranking-pagination__btn(href=`/ranking?page=${totalPages}&${queryParams}`)= totalPages
+                                
+                                if pagination.hasNextPage
+                                    a.ranking-pagination__btn(href=`/ranking?page=${pagination.page + 1}&${queryParams}`)
+                                        i.fas.fa-chevron-right
+                                else
+                                    span.ranking-pagination__btn.ranking-pagination__btn--disabled
+                                        i.fas.fa-chevron-right
+                    
+                    .ranking-footer.mt-4.text-center
+                        a.btn.btn-outline-primary(href="/")
+                            i.fas.fa-home.me-2
+                            | Quay về trang chủ
+

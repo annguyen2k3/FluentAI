@@ -8,6 +8,7 @@ import speakingShadowingRoutes from './speaking-shadowing.routes'
 import listeningVideoRoutes from './listening-video.routes'
 import User from '~/models/schemas/users.schema'
 import scoreService from '~/services/score.service'
+import { ObjectId } from 'mongodb'
 
 export default function (app: Express) {
   app.get('/', (req: Request, res: Response) => {
@@ -19,7 +20,11 @@ export default function (app: Express) {
   })
 
   app.get('/dashboard', requireAuth, async (req: Request, res: Response) => {
-    const rankingList = await scoreService.getListRanking({ page: 1, limit: 5 })
+    const rankingResult = await scoreService.getListRanking({
+      page: 1,
+      limit: 5
+    })
+    const rankingList = rankingResult.data
     const userMonthlyScore = await scoreService.getUserMonthlyScore(
       req.user._id
     )
@@ -29,6 +34,42 @@ export default function (app: Express) {
       user: req.user,
       rankingList,
       userMonthlyScore
+    })
+  })
+
+  app.get('/ranking', optionalAuth, async (req: Request, res: Response) => {
+    const user = req.user as User
+    const now = new Date()
+    const targetYear = Number(req.query.year) || now.getFullYear()
+    const targetMonth = Number(req.query.month) || now.getMonth() + 1
+    let userMonthlyScore = null
+
+    if (user) {
+      userMonthlyScore = await scoreService.getUserMonthlyScore(
+        user._id as ObjectId,
+        targetYear,
+        targetMonth
+      )
+    }
+
+    const page = Number(req.query.page) || 1
+    const limit = Number(req.query.limit) || 10
+    const rankingResult = await scoreService.getListRanking({
+      page,
+      limit,
+      year: targetYear,
+      month: targetMonth
+    })
+    const rankingList = rankingResult.data
+    const pagination = rankingResult.pagination
+    res.render('client/pages/ranking.pug', {
+      pageTitle: 'FluentAI - Xếp hạng',
+      user,
+      rankingList,
+      pagination,
+      userMonthlyScore,
+      targetYear,
+      targetMonth
     })
   })
 
