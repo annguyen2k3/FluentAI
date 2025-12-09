@@ -70,3 +70,11 @@ export enum HistoryUserType {
   PRACTICE_SPEAKING_SHADOWING = 'practice_speaking_shadowing',
   PRACTICE_LISTENING_VIDEO = 'practice_listening_video'
 }
+
+export enum UserScoreType {
+  WRITING_SENTENCE = 'writing_sentence',
+  WRITING_PARAGRAPH = 'writing_paragraph',
+  SPEAKING_SENTENCE = 'speaking_sentence',
+  SPEAKING_SHADOWING = 'speaking_shadowing',
+  LISTENING_VIDEO = 'listening_video'
+}

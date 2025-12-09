@@ -15,6 +15,8 @@ import HisSSUser from '~/models/schemas/his-ss-user.schema'
 import SVShadowing from '~/models/schemas/sv-shadowing.schema'
 import HisPracticeUser from '~/models/schemas/his-practice-user.schema'
 import ListeningVideo from '~/models/schemas/lv-video.schemas'
+import SystemScore from '~/models/schemas/system-score.schema'
+import UserScore from '~/models/schemas/user-score.schema'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.cp2tnzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -123,6 +125,14 @@ class DatabaseService {
 
   get listeningVideos(): Collection<ListeningVideo> {
     return this.db.collection('lv_videos')
+  }
+
+  get systemScores(): Collection<SystemScore> {
+    return this.db.collection('system_scores')
+  }
+
+  get userScores(): Collection<UserScore> {
+    return this.db.collection('user_scores')
   }
 }
 

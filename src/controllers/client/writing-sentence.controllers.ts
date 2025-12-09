@@ -1,11 +1,12 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
-import { StatusLesson } from '~/constants/enum'
+import { StatusLesson, UserScoreType } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import { WRITING_SENTENCE_MESSAGES } from '~/constants/message'
 import User from '~/models/schemas/users.schema'
 import WSList from '~/models/schemas/ws-list.schema'
 import { databaseService } from '~/services/database.service'
+import scoreService from '~/services/score.serrvice'
 import writingService from '~/services/writing.service'
 
 // GET /writing-sentence/setup
@@ -141,11 +142,20 @@ export const getPracticeWSController = async (req: Request, res: Response) => {
     ws._id?.toString() as string
   )
 
+  const userScore = await scoreService.getUserMonthlyScore(user._id as ObjectId)
+  const scorePractice = await scoreService.getScoreForPracticeType(
+    UserScoreType.WRITING_SENTENCE
+  )
+
   res.render('client/pages/writing-sentence/practice.pug', {
     pageTitle: 'Luyện tập câu',
     user: user,
     ws,
-    hisWSUser
+    hisWSUser,
+    scoreInfo: {
+      totalScore: userScore.totalScore,
+      scorePractice: scorePractice
+    }
   })
 }
 
@@ -167,6 +177,13 @@ export const postPracticeWSController = async (req: Request, res: Response) => {
       user._id?.toString() as string,
       ws._id?.toString() as string,
       evaluateResult
+    )
+
+    await scoreService.addScore(
+      user._id as ObjectId,
+      UserScoreType.WRITING_SENTENCE,
+      ws._id as ObjectId,
+      ws.title
     )
   }
 
@@ -288,10 +305,19 @@ export const getPracticeCustomTopicWSController = async (
     return res.redirect('/writing-sentence/setup')
   }
 
+  const userScore = await scoreService.getUserMonthlyScore(user._id as ObjectId)
+  const scorePractice = await scoreService.getScoreForPracticeType(
+    UserScoreType.WRITING_SENTENCE
+  )
+
   res.render('client/pages/writing-sentence/practice.pug', {
     pageTitle: 'Luyện tập chủ đề',
     user: user,
-    ws: wsListPreview as WSList
+    ws: wsListPreview as WSList,
+    scoreInfo: {
+      totalScore: userScore.totalScore,
+      scorePractice: scorePractice
+    }
   })
 }
 

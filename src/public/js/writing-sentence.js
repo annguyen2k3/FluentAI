@@ -510,11 +510,13 @@ const wsPractice = document.querySelector('[ws-data-practice]')
 if (wsPractice) {
   const wsDataEl = document.getElementById('ws-data')
   const hisWSDataEl = document.getElementById('his-ws-data')
+  const scoreInfoEl = document.getElementById('score-info-data')
 
   const rawWS = wsDataEl ? wsDataEl.textContent : '{}'
   const rawHisWS = hisWSDataEl ? hisWSDataEl.textContent : '{}'
+  const rawScoreInfo = scoreInfoEl ? scoreInfoEl.textContent : '{}'
 
-  let wsData, hisWSData
+  let wsData, hisWSData, scoreInfo
   try {
     wsData = JSON.parse(rawWS)
   } catch (error) {
@@ -525,6 +527,12 @@ if (wsPractice) {
     hisWSData = JSON.parse(rawHisWS)
   } catch (error) {
     hisWSData = {}
+  }
+
+  try {
+    scoreInfo = JSON.parse(rawScoreInfo)
+  } catch (error) {
+    scoreInfo = { totalScore: 0, scorePractice: 0 }
   }
 
   const practiceSlug = wsData?.slug || ''
@@ -542,8 +550,62 @@ if (wsPractice) {
   const buttonSubmit = document.querySelector('[button-submit]')
   const buttonNext = document.querySelector('[button-next]')
   const userTranslationInput = document.querySelector('[user_translation]')
+  const pointsValueEl = document.querySelector('.practice-header__points-value')
+  const pointsAddEl = document.querySelector('.practice-header__points-add')
 
   const listSentences = wsData.list || []
+
+  let currentTotalScore = scoreInfo.totalScore || 0
+  const scorePerPractice = scoreInfo.scorePractice || 0
+
+  function animateScoreAdd() {
+    if (!pointsValueEl || !pointsAddEl) return
+
+    const newScore = currentTotalScore + scorePerPractice
+    pointsAddEl.textContent = `+${scorePerPractice}`
+    pointsAddEl.classList.remove('d-none')
+    pointsAddEl.style.animation = 'none'
+
+    setTimeout(() => {
+      pointsAddEl.style.animation = 'scoreAddAnimation 0.8s ease-out forwards'
+    }, 10)
+
+    let startScore = currentTotalScore
+    const endScore = newScore
+    const duration = 600
+    const startTime = Date.now()
+
+    function updateScore() {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+
+      const easeOutCubic = 1 - Math.pow(1 - progress, 3)
+      const currentScore = Math.floor(
+        startScore + (endScore - startScore) * easeOutCubic
+      )
+
+      if (pointsValueEl) {
+        pointsValueEl.textContent = `${currentScore} điểm`
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(updateScore)
+      } else {
+        currentTotalScore = endScore
+        if (pointsValueEl) {
+          pointsValueEl.textContent = `${currentTotalScore} điểm`
+        }
+
+        setTimeout(() => {
+          if (pointsAddEl) {
+            pointsAddEl.classList.add('d-none')
+          }
+        }, 800)
+      }
+    }
+
+    requestAnimationFrame(updateScore)
+  }
 
   function getMergedHistorySentences() {
     const base = hisWSData?.content?.sentences || []
@@ -817,6 +879,9 @@ if (wsPractice) {
             if (data.evaluateResult.passed) {
               saveClientHistory(data.evaluateResult)
               renderHistoryList()
+
+              animateScoreAdd()
+
               if (userTranslationInput) {
                 userTranslationInput.disabled = true
               }

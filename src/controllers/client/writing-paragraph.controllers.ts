@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
-import { StatusLesson } from '~/constants/enum'
+import { StatusLesson, UserScoreType } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import { WRITING_PARAGRAPH_MESSAGES } from '~/constants/message'
 import Levels from '~/models/schemas/levels.schema'
@@ -10,6 +10,7 @@ import User from '~/models/schemas/users.schema'
 import WPParagraph from '~/models/schemas/wp-paragraph.schema'
 import WSList from '~/models/schemas/ws-list.schema'
 import { databaseService } from '~/services/database.service'
+import scoreService from '~/services/score.serrvice'
 import writingService from '~/services/writing.service'
 
 // GET /writing-paragraph/setup
@@ -169,11 +170,20 @@ export const renderPracticeWPController = async (
     return res.redirect('/writing-paragraph/setup')
   }
 
+  const userScore = await scoreService.getUserMonthlyScore(user._id as ObjectId)
+  const scorePractice = await scoreService.getScoreForPracticeType(
+    UserScoreType.WRITING_PARAGRAPH
+  )
+
   res.render('client/pages/writing-paragraph/practice.pug', {
     pageTitle: 'Luyện tập đoạn văn',
     user: user,
     wp: wp,
-    hisWPUser: hisWPUser
+    hisWPUser: hisWPUser,
+    scoreInfo: {
+      totalScore: userScore.totalScore,
+      scorePractice: scorePractice
+    }
   })
 }
 
@@ -195,6 +205,13 @@ export const postPracticeWPController = async (req: Request, res: Response) => {
       user._id?.toString() as string,
       wp._id?.toString() as string,
       evaluateResult
+    )
+
+    await scoreService.addScore(
+      user._id as ObjectId,
+      UserScoreType.WRITING_PARAGRAPH,
+      wp._id as ObjectId,
+      wp.title
     )
   }
 
@@ -320,12 +337,20 @@ export const getPracticeCustomTopicWPController = async (
   if (!initResult.init_success) {
     return res.redirect('/writing-paragraph/setup')
   }
-  console.log('Init result:', initResult)
-  console.log('--------------------------------')
+
+  const userScore = await scoreService.getUserMonthlyScore(user._id as ObjectId)
+  const scorePractice = await scoreService.getScoreForPracticeType(
+    UserScoreType.WRITING_PARAGRAPH
+  )
+
   res.render('client/pages/writing-paragraph/practice.pug', {
     pageTitle: 'Luyện tập chủ đề',
     user: user,
-    wp: wpPreview
+    wp: wpPreview,
+    scoreInfo: {
+      totalScore: userScore.totalScore,
+      scorePractice: scorePractice
+    }
   })
 }
 

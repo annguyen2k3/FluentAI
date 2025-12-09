@@ -8,6 +8,7 @@ import bodyParser from 'body-parser'
 import { defaultErrorHandler } from './middlewares/errors.middleware'
 import cookieParser from 'cookie-parser'
 import { initFolder } from './utils/file'
+import scoreService from '~/services/score.serrvice'
 
 dotenv.config()
 
@@ -15,7 +16,11 @@ const app = express()
 const port = process.env.PORT || 3000
 
 initFolder()
-databaseService.connect()
+databaseService.connect().then(async () => {
+  // Load cache khi server start
+  await scoreService.loadCache()
+  console.log('Score config cache loaded')
+})
 
 // Serving static files
 app.use(express.static(`${__dirname}/public`))

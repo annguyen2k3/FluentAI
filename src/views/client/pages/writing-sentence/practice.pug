@@ -15,7 +15,8 @@ block main-content
             div(class="practice-header__divider")
             div(class="practice-header__points")
                 i(class="fas fa-star practice-header__icon")
-                span 80 điểm
+                span(class="practice-header__points-value") #{scoreInfo ? scoreInfo.totalScore : 0} điểm
+                span(class="practice-header__points-add d-none") +#{scoreInfo ? scoreInfo.scorePractice : 0}
             div(class="practice-header__divider")
             div(class="practice-header__progress")
                 span Tiến độ: <span progress-index>1</span>/#{ws.list.length} câu
@@ -156,5 +157,6 @@ block main-content
 
     script#ws-data(type="application/json") !{JSON.stringify(ws || {})}
     script#his-ws-data(type="application/json") !{JSON.stringify(hisWSUser || {})}
+    script#score-info-data(type="application/json") !{JSON.stringify(scoreInfo || { totalScore: 0, scorePractice: 0 })}
 
     script(src="/js/writing-sentence.js" type="module")
