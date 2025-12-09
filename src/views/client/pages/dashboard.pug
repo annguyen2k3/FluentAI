@@ -180,41 +180,46 @@ block main-content
                     h3(class="ranking-card__title")
                         i(class="fas fa-trophy ranking-card__icon")
                         |  XẾP HẠNG THÁNG
+                    -
+                        const topRanking = Array.isArray(rankingList)
+                            ? rankingList.slice(0, 5)
+                            : []
+                        const medalClasses = {
+                            1: 'ranking-item--first',
+                            2: 'ranking-item--second',
+                            3: 'ranking-item--third'
+                        }
+                        const medalIcons = {
+                            1: 'fa-solid fa-medal text-warning',
+                            2: 'fa-solid fa-medal text-secondary',
+                            3: 'fa-solid fa-medal ranking-item__medal--bronze'
+                        }
+                        const currentRank = monthly.rank
+                        const currentAvatar = (user && user.avatar) || 'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'
+                        const currentScore = monthly.totalScore || 0
                     div(class="ranking-card__content")
                         div(class="ranking-list")
-                            div(class="ranking-item ranking-item--first")
-                                span(class="ranking-item__position")
-                                    i(class="fa-solid fa-medal text-warning")
-                                img(src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTB2dj-B66E69sCgb-EZae-xo5yhQJ4Jr1L-w&s" alt="Avatar" class="ranking-item__avatar")
-                                span(class="ranking-item__name") An Nguyễn
-                                span(class="ranking-item__points") 300 điểm
-                            div(class="ranking-item")
-                                span(class="ranking-item__position")
-                                    i(class="fa-solid fa-medal text-secondary")
-                                img(src="data:image/jpeg;base64,..." alt="Avatar" class="ranking-item__avatar")
-                                span(class="ranking-item__name") Chichi
-                                span(class="ranking-item__points") 290 điểm
-                            div(class="ranking-item")
-                                span(class="ranking-item__position")
-                                    i(class="fa-solid fa-medal ranking-item__medal--bronze")
-                                img(src="data:image/jpeg;base64,..." alt="Avatar" class="ranking-item__avatar")
-                                span(class="ranking-item__name") Chichi
-                                span(class="ranking-item__points") 290 điểm
-                            div(class="ranking-item")
-                                span(class="ranking-item__position") #4
-                                img(src="data:image/jpeg;base64,..." alt="Avatar" class="ranking-item__avatar")
-                                span(class="ranking-item__name") Chichi
-                                span(class="ranking-item__points") 290 điểm
-                            div(class="ranking-item")
-                                span(class="ranking-item__position") #5
-                                img(src="data:image/jpeg;base64,..." alt="Avatar" class="ranking-item__avatar")
-                                span(class="ranking-item__name") Chichi
-                                span(class="ranking-item__points") 290 điểm
-                            div(class="ranking-item ranking-item--current")
-                                span(class="ranking-item__position") #1774
-                                img(src="https://via.placeholder.com/24x24/ff0000/ffffff?text=AN" alt="Avatar" class="ranking-item__avatar")
-                                span(class="ranking-item__name") Bạn
-                                span(class="ranking-item__points") 50 điểm
+                            if topRanking.length
+                                each item in topRanking
+                                    - const position = Number(item.rank) || 0
+                                    - const itemClass = medalClasses[position] ? `ranking-item ${medalClasses[position]}` : 'ranking-item'
+                                    div(class=itemClass)
+                                        span(class="ranking-item__position")
+                                            if medalIcons[position]
+                                                i(class=medalIcons[position])
+                                            else
+                                                | ##{position || '--'}
+                                        img(src=item.userAvatar || 'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png' alt="Avatar" class="ranking-item__avatar")
+                                        span(class="ranking-item__name") #{item.username || 'Người dùng'}
+                                        span(class="ranking-item__points") #{item.totalScore || 0} điểm
+                            if currentRank
+                                div(class="ranking-item ranking-item--current")
+                                    span(class="ranking-item__position") ##{currentRank}
+                                    img(src=currentAvatar alt="Avatar" class="ranking-item__avatar")
+                                    span(class="ranking-item__name") Bạn
+                                    span(class="ranking-item__points") #{currentScore} điểm
+                            else
+                                p(class="text-muted mb-0") Chưa có dữ liệu xếp hạng.
                         div(class="ranking-card__footer")
-                            a(href="#" class="ranking-card__see-more") Xem thêm →
+                            a(href="/users/history" class="ranking-card__see-more") Xem thêm →
     

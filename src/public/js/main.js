@@ -101,23 +101,17 @@
     })
   }
 
-  // Ranking item interactions
+  // Ranking item interactions (disabled detail popup)
   const rankingItems = document.querySelectorAll('.ranking-item')
   rankingItems.forEach((item) => {
-    item.addEventListener('click', function () {
-      const name = this.querySelector('.ranking-item__name').textContent
-      if (name !== '-') {
-        alert(`Xem thông tin chi tiết của ${name}`)
-      }
-    })
+    item.style.cursor = 'default'
   })
 
   // Ranking see more functionality
   const rankingSeeMore = document.querySelector('.ranking-card__see-more')
   if (rankingSeeMore) {
     rankingSeeMore.addEventListener('click', function (e) {
-      e.preventDefault()
-      alert('Tính năng xem thêm bảng xếp hạng sẽ được tích hợp sau.')
+      // allow navigation if it is a link; no alert
     })
   }
 
