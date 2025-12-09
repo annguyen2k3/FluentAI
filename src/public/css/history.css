@@ -147,13 +147,18 @@
 }
 
 .history-summary__icon--success {
-  background: #e0f5ea;
-  color: #0f9d58;
+  background: #fef3c7;
+  color: #d97706;
 }
 
 .history-summary__icon--info {
-  background: #e6f7ff;
-  color: #0a6fb7;
+  background: #fff3e6;
+  color: #f97316;
+}
+
+.history-summary__icon--green {
+  background: #e0f5ea;
+  color: #0f9d58;
 }
 
 .history-summary__label {

@@ -159,8 +159,8 @@ block main-content
                         span.history-card__meta
                             i(class="fas fa-bullseye text-primary me-2")
                             | Điểm tháng #{targetMonth}
-                    .row.g-3
-                        .col-12.col-md-6.col-xxl-3
+                    .row.g-3.row-cols-1.row-cols-md-2.row-cols-lg-3.row-cols-xxl-5
+                        .col
                             .history-summary__card
                                 .history-summary__icon.history-summary__icon--primary
                                     i(class="fas fa-sun")
@@ -168,15 +168,15 @@ block main-content
                                     p.history-summary__label Ngày hoạt động
                                     p.history-summary__value #{totalDaysActive}
                                     p.history-summary__hint #{daysInMonth - totalDaysActive} ngày trống
-                        .col-12.col-md-6.col-xxl-3
+                        .col
                             .history-summary__card
-                                .history-summary__icon.history-summary__icon--secondary
+                                .history-summary__icon.history-summary__icon--green
                                     i(class="fas fa-star")
                                 div
                                     p.history-summary__label Tổng điểm
                                     p.history-summary__value #{totalScore}
                                     p.history-summary__hint Trung bình #{averageActiveScore} điểm/ngày hoạt động
-                        .col-12.col-md-6.col-xxl-3
+                        .col
                             .history-summary__card
                                 .history-summary__icon.history-summary__icon--success
                                     i(class="fas fa-medal")
@@ -188,7 +188,7 @@ block main-content
                                     else
                                         p.history-summary__value 0
                                         p.history-summary__hint Chưa có dữ liệu
-                        .col-12.col-md-6.col-xxl-3
+                        .col
                             .history-summary__card
                                 .history-summary__icon.history-summary__icon--info
                                     i(class="fas fa-fire")
@@ -196,6 +196,14 @@ block main-content
                                     p.history-summary__label Chuỗi ngày
                                     p.history-summary__value #{longestStreak}
                                     p.history-summary__hint Chuỗi hiện tại #{currentStreak || 0} ngày
+                        .col
+                            .history-summary__card
+                                .history-summary__icon.history-summary__icon--success
+                                    i(class="fas fa-trophy")
+                                div
+                                    p.history-summary__label Thứ hạng tháng
+                                    p.history-summary__value #{monthly.rank || '-'}
+                                    p.history-summary__hint Bảng tháng #{targetMonth}/#{targetYear}
                 .history-card.mt-4
                     .history-card__title.d-flex.align-items-center.justify-content-between.mb-3
                         span Lịch hoạt động

@@ -512,6 +512,16 @@ if (wsPractice) {
   const hisWSDataEl = document.getElementById('his-ws-data')
   const scoreInfoEl = document.getElementById('score-info-data')
 
+  function clearWSLocalHistory() {
+    try {
+      Object.keys(localStorage || {}).forEach((key) => {
+        if (key.startsWith('ws-history-')) {
+          localStorage.removeItem(key)
+        }
+      })
+    } catch (error) {}
+  }
+
   const rawWS = wsDataEl ? wsDataEl.textContent : '{}'
   const rawHisWS = hisWSDataEl ? hisWSDataEl.textContent : '{}'
   const rawScoreInfo = scoreInfoEl ? scoreInfoEl.textContent : '{}'
@@ -534,6 +544,8 @@ if (wsPractice) {
   } catch (error) {
     scoreInfo = { totalScore: 0, scorePractice: 0 }
   }
+
+  clearWSLocalHistory()
 
   const practiceSlug = wsData?.slug || ''
   const practiceHistoryKey = `ws-history-${wsData.slug || wsData._id || 'default'}`

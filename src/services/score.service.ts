@@ -165,11 +165,42 @@ class ScoreService {
       return total + dayTotal
     }, 0)
 
+    const rankAggregation = await databaseService.userScores
+      .aggregate([
+        {
+          $match: {
+            year: targetYear,
+            month: targetMonth
+          }
+        },
+        { $unwind: '$scores' },
+        {
+          $group: {
+            _id: '$userId',
+            totalScore: { $sum: '$scores.score' }
+          }
+        },
+        {
+          $match: {
+            totalScore: { $gt: totalScore }
+          }
+        },
+        { $count: 'greaterCount' }
+      ])
+      .toArray()
+
+    const greaterCount =
+      rankAggregation && rankAggregation.length
+        ? rankAggregation[0].greaterCount
+        : 0
+    const rank = greaterCount + 1
+
     return {
       userId,
       year: targetYear,
       month: targetMonth,
       totalScore,
+      rank,
       days: userScores.length,
       details: userScores
     }
