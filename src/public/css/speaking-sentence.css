@@ -866,6 +866,58 @@
   color: #fbbf24;
 }
 
+.practice-header__points {
+  position: relative;
+}
+
+.practice-header__points-value {
+  transition: transform 0.3s ease;
+}
+
+.practice-header__points-add {
+  position: absolute;
+  top: -30px;
+  right: 0;
+  color: #10b981;
+  font-weight: 700;
+  font-size: 1.1rem;
+  pointer-events: none;
+  z-index: 10;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes scoreAddAnimation {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px) scale(1);
+  }
+}
+
+.practice-header__points-value.score-update {
+  animation: scorePulse 0.5s ease;
+}
+
+@keyframes scorePulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+    color: #10b981;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .practice-header__divider {
   width: 1px;
   height: 24px;

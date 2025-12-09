@@ -16,7 +16,8 @@ block main-content
             .practice-header__divider
             .practice-header__points
                 i.fas.fa-star.practice-header__icon
-                span 0 điểm
+                span.practice-header__points-value #{scoreInfo ? scoreInfo.totalScore : 0} điểm
+                span.practice-header__points-add.d-none +#{scoreInfo ? scoreInfo.scorePractice : 0}
             .practice-header__divider
             .practice-header__progress
                 span
@@ -145,12 +146,15 @@ block main-content
                 button#practice-reset-confirm.btn.btn-danger(type="button") Đồng ý
 
 block scripts
+    script#score-info-data(type="application/json") !{JSON.stringify(scoreInfo || { totalScore: 0, scorePractice: 0 })}
+
     script(type="module").
         import { ApiBreakpoint } from '/js/api_breakpoint.js'
 
         document.addEventListener('DOMContentLoaded', function () {
             const SESSION_STORAGE_KEY = 'preview-ss-data';
             const HISTORY_STORAGE_KEY = 'preview-ss-history';
+            const scoreInfoEl = document.getElementById('score-info-data');
 
             const sidebar = document.getElementById('sentence-sidebar');
             const toggleBtn = document.getElementById('sidebar-toggle');
@@ -193,6 +197,7 @@ block scripts
 
             let dataSS = null;
             let dataHisSS = [];
+            let scoreInfo = { totalScore: 0, scorePractice: 0 };
 
             const loadDataFromSession = () => {
                 try {
@@ -220,6 +225,14 @@ block scripts
 
                     if (practiceTitleEl && dataSS.title) {
                         practiceTitleEl.textContent = dataSS.title || 'Luyện nói câu - Chủ đề tùy chỉnh';
+                    }
+
+                    if (scoreInfoEl) {
+                        try {
+                            scoreInfo = JSON.parse(scoreInfoEl.textContent || '{}') || scoreInfo;
+                        } catch (error) {
+                            scoreInfo = { totalScore: 0, scorePractice: 0 };
+                        }
                     }
 
                     return true;
@@ -250,6 +263,58 @@ block scripts
                     });
                 }
                 return;
+            }
+
+            const pointsValueEl = document.querySelector('.practice-header__points-value');
+            const pointsAddEl = document.querySelector('.practice-header__points-add');
+            let currentTotalScore = scoreInfo.totalScore || 0;
+            const scorePerPractice = scoreInfo.scorePractice || 0;
+
+            function animateScoreAdd() {
+                if (!pointsValueEl || !pointsAddEl || !scorePerPractice) return;
+
+                const newScore = currentTotalScore + scorePerPractice;
+                pointsAddEl.textContent = `+${scorePerPractice}`;
+                pointsAddEl.classList.remove('d-none');
+                pointsAddEl.style.animation = 'none';
+
+                setTimeout(() => {
+                    pointsAddEl.style.animation = 'scoreAddAnimation 0.8s ease-out forwards';
+                }, 10);
+
+                let startScore = currentTotalScore;
+                const endScore = newScore;
+                const duration = 600;
+                const startTime = Date.now();
+
+                function updateScore() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                    const currentScore = Math.floor(startScore + (endScore - startScore) * easeOutCubic);
+
+                    if (pointsValueEl) {
+                        pointsValueEl.textContent = `${currentScore} điểm`;
+                    }
+
+                    if (progress < 1) {
+                        requestAnimationFrame(updateScore);
+                    } else {
+                        currentTotalScore = endScore;
+                        if (pointsValueEl) {
+                            pointsValueEl.textContent = `${currentTotalScore} điểm`;
+                        }
+
+                        setTimeout(() => {
+                            if (pointsAddEl) {
+                                pointsAddEl.classList.add('d-none');
+                            }
+                        }, 800);
+                    }
+                }
+
+                requestAnimationFrame(updateScore);
             }
 
             if (dataSS && Array.isArray(dataSS.list)) {
@@ -1377,6 +1442,9 @@ block scripts
                             console.log('Nhận được evaluate từ server:', payload.evaluate);
                             renderAISuggestions(payload.evaluate);
                             updateHisSSUser(payload.evaluate);
+                            if (payload.evaluate.passed) {
+                                animateScoreAdd();
+                            }
                         } else {
                             console.warn('Không nhận được dữ liệu đánh giá từ server. Payload:', payload);
                             if (typeof window.alertError === 'function') {

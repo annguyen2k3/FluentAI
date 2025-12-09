@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import fs from 'node:fs/promises'
 import { ObjectId } from 'mongodb'
-import { StatusLesson } from '~/constants/enum'
+import { StatusLesson, UserScoreType } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import SSList from '~/models/schemas/ss-list.schema'
 import User from '~/models/schemas/users.schema'
@@ -10,6 +10,7 @@ import speakingServices from '~/services/speaking.service'
 import { handleUploadAudio } from '~/utils/file'
 import { speechToText, textToSpeech } from '~/utils/handle-speech'
 import { HisSSUserSentenceType } from '~/models/schemas/his-ss-user.schema'
+import scoreService from '~/services/score.serrvice'
 
 // GET /speaking-sentence/
 export const renderSSListController = async (req: Request, res: Response) => {
@@ -109,11 +110,20 @@ export const renderSSPracticeController = async (
     ssListId: ss._id
   })
 
+  const userScore = await scoreService.getUserMonthlyScore(user._id as ObjectId)
+  const scorePractice = await scoreService.getScoreForPracticeType(
+    UserScoreType.SPEAKING_SENTENCE
+  )
+
   res.render('client/pages/speaking-sentence/practice.pug', {
     pageTitle: 'Luyện tập câu phát âm',
     user,
     ss,
-    hisSS
+    hisSS,
+    scoreInfo: {
+      totalScore: userScore.totalScore,
+      scorePractice: scorePractice
+    }
   })
 }
 
@@ -198,6 +208,15 @@ export const evaluateSSController = async (req: Request, res: Response) => {
         ss._id?.toString() as string,
         evaluate
       )
+
+      if (evaluate.passed) {
+        await scoreService.addScore(
+          user._id as ObjectId,
+          UserScoreType.SPEAKING_SENTENCE,
+          ss._id as ObjectId,
+          ss.title
+        )
+      }
     }
 
     res.status(HttpStatus.OK).json({
@@ -254,9 +273,19 @@ export const renderSSPracticeCustomTopicController = async (
   res: Response
 ) => {
   const user = req.user as User
+
+  const userScore = await scoreService.getUserMonthlyScore(user._id as ObjectId)
+  const scorePractice = await scoreService.getScoreForPracticeType(
+    UserScoreType.SPEAKING_SENTENCE
+  )
+
   res.render('client/pages/speaking-sentence/practice-custom-topic.pug', {
     pageTitle: 'Luyện tập câu phát âm - Chủ đề tùy chỉnh',
-    user: user
+    user: user,
+    scoreInfo: {
+      totalScore: userScore.totalScore,
+      scorePractice: scorePractice
+    }
   })
 }
 
@@ -266,6 +295,7 @@ export const evaluateSSCustomTopicController = async (
   res: Response
 ) => {
   try {
+    const user = req.user as User
     const { fields, file } = await handleUploadAudio(req)
     const enSentenceField = fields.enSentence
     const enSentence = Array.isArray(enSentenceField)
@@ -295,6 +325,14 @@ export const evaluateSSCustomTopicController = async (
       sttResult.transcript
     )) as HisSSUserSentenceType
 
+    if (evaluate.passed) {
+      await scoreService.addScore(
+        user._id as ObjectId,
+        UserScoreType.SPEAKING_SENTENCE,
+        null as any,
+        'Chủ đề tùy chỉnh'
+      )
+    }
     res.status(HttpStatus.OK).json({
       message: 'Đánh giá câu phát âm thành công',
       status: HttpStatus.OK,

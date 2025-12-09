@@ -21,7 +21,8 @@ block main-content
             .practice-header__divider
             .practice-header__points
                 i.fas.fa-star.practice-header__icon
-                span 80 điểm
+                span.practice-header__points-value #{scoreInfo ? scoreInfo.totalScore : 0} điểm
+                span.practice-header__points-add.d-none +#{scoreInfo ? scoreInfo.scorePractice : 0}
             .practice-header__divider
             .practice-header__progress
                 span
@@ -150,6 +151,7 @@ block main-content
 
     script#ss-data(type="application/json") !{JSON.stringify(ss || {})}
     script#his-ss-data(type="application/json") !{JSON.stringify(hisSS || {})}
+    script#score-info-data(type="application/json") !{JSON.stringify(scoreInfo || { totalScore: 0, scorePractice: 0 })}
 
 block scripts
     script(type="module").
@@ -159,6 +161,7 @@ block scripts
             const sidebar = document.getElementById('sentence-sidebar');
             const ssDataEl = document.getElementById('ss-data');
             const hisDataEl = document.getElementById('his-ss-data');
+            const scoreInfoEl = document.getElementById('score-info-data');
             const sidebarListEl = document.getElementById('practice-sidebar-list');
             const practiceTextEl = document.getElementById('practice-sentence-text');
             const practicePhoneticEl = document.getElementById('practice-sentence-phonetic');
@@ -197,8 +200,9 @@ block scripts
 
             const rawSS = ssDataEl ? ssDataEl.textContent : '{}';
             const rawHisSS = hisDataEl ? hisDataEl.textContent : '{}';
+            const rawScoreInfo = scoreInfoEl ? scoreInfoEl.textContent : '{}';
 
-            let dataSS, dataHisSS;
+            let dataSS, dataHisSS, scoreInfo;
             try {
                 dataSS = JSON.parse(rawSS);
             } catch (error) {
@@ -209,6 +213,64 @@ block scripts
                 dataHisSS = JSON.parse(rawHisSS);
             } catch (error) {
                 dataHisSS = {};
+            }
+
+            try {
+                scoreInfo = JSON.parse(rawScoreInfo);
+            } catch (error) {
+                scoreInfo = { totalScore: 0, scorePractice: 0 };
+            }
+
+            const pointsValueEl = document.querySelector('.practice-header__points-value');
+            const pointsAddEl = document.querySelector('.practice-header__points-add');
+            let currentTotalScore = scoreInfo.totalScore || 0;
+            const scorePerPractice = scoreInfo.scorePractice || 0;
+
+            function animateScoreAdd() {
+                if (!pointsValueEl || !pointsAddEl || !scorePerPractice) return;
+
+                const newScore = currentTotalScore + scorePerPractice;
+                pointsAddEl.textContent = `+${scorePerPractice}`;
+                pointsAddEl.classList.remove('d-none');
+                pointsAddEl.style.animation = 'none';
+
+                setTimeout(() => {
+                    pointsAddEl.style.animation = 'scoreAddAnimation 0.8s ease-out forwards';
+                }, 10);
+
+                let startScore = currentTotalScore;
+                const endScore = newScore;
+                const duration = 600;
+                const startTime = Date.now();
+
+                function updateScore() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                    const currentScore = Math.floor(startScore + (endScore - startScore) * easeOutCubic);
+
+                    if (pointsValueEl) {
+                        pointsValueEl.textContent = `${currentScore} điểm`;
+                    }
+
+                    if (progress < 1) {
+                        requestAnimationFrame(updateScore);
+                    } else {
+                        currentTotalScore = endScore;
+                        if (pointsValueEl) {
+                            pointsValueEl.textContent = `${currentTotalScore} điểm`;
+                        }
+
+                        setTimeout(() => {
+                            if (pointsAddEl) {
+                                pointsAddEl.classList.add('d-none');
+                            }
+                        }, 800);
+                    }
+                }
+
+                requestAnimationFrame(updateScore);
             }
 
             if (dataSS && Array.isArray(dataSS.list)) {
@@ -1284,6 +1346,9 @@ block scripts
                         if (payload && payload.evaluate) {
                             renderAISuggestions(payload.evaluate);
                             updateHisSSUser(payload.evaluate);
+                            if (payload.evaluate.passed) {
+                                animateScoreAdd();
+                            }
                         }
                     } catch (error) {
                         console.error('Không thể gửi đánh giá speaking:', error);
