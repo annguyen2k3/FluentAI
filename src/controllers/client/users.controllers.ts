@@ -21,6 +21,7 @@ import { databaseService } from '~/services/database.service'
 import { omit } from 'lodash'
 import mediasService from '~/services/medias.service'
 import { deleteFileFromS3 } from '~/utils/s3'
+import scoreService from '~/services/score.service'
 
 // GET /users/login
 export const getLoginController = (req: Request, res: Response) => {
@@ -336,5 +337,29 @@ export const updateAvatarProfileController = async (
     message: USER_MESSAGES.UPDATE_AVATAR_SUCCESS,
     status: HttpStatus.OK,
     avatar_url: result[0].url
+  })
+}
+
+// GET /users/history
+export const getHistoryController = async (req: Request, res: Response) => {
+  const user = req.user as User
+  const now = new Date()
+  const yearQuery = Number(req.query.year)
+  const monthQuery = Number(req.query.month)
+  const targetYear = Number.isFinite(yearQuery) ? yearQuery : now.getFullYear()
+  const targetMonth = Number.isFinite(monthQuery)
+    ? monthQuery
+    : now.getMonth() + 1
+
+  const userMonthlyScore = await scoreService.getUserMonthlyScore(
+    user._id as ObjectId,
+    targetYear,
+    targetMonth
+  )
+
+  res.render('client/pages/users/history.pug', {
+    pageTitle: 'FluentAI - Lịch sử luyện tập',
+    user: user,
+    userMonthlyScore: userMonthlyScore
   })
 }
