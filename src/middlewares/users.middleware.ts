@@ -358,18 +358,6 @@ export const optionalAuth = async (
 export const updateProfileValidator = validate(
   checkSchema(
     {
-      userId: {
-        custom: {
-          options: async (value, { req }) => {
-            const user = await databaseService.users.findOne({
-              _id: new ObjectId(value)
-            })
-            if (!user) {
-              throw new Error(USER_MESSAGES.USER_NOT_FOUND)
-            }
-          }
-        }
-      },
       username: {
         isLength: {
           options: {
@@ -389,24 +377,6 @@ export const updateProfileValidator = validate(
             }
             if (!USERNAME_REGEX.test(value)) {
               throw new Error(USER_MESSAGES.USERNAME_INVALID)
-            }
-            return true
-          }
-        }
-      },
-      email: {
-        isEmail: {
-          errorMessage: USER_MESSAGES.EMAIL_INVALID
-        },
-        trim: true,
-        custom: {
-          options: async (value, { req }) => {
-            const isExists = await userService.checkEmailExists(
-              value,
-              req.user?._id.toString()
-            )
-            if (isExists) {
-              throw new Error(USER_MESSAGES.EMAIL_EXISTS)
             }
             return true
           }

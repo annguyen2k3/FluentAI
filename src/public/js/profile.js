@@ -1,5 +1,9 @@
 import { ApiBreakpoint } from './api_breakpoint.js'
-import { formatISOStringToDate, formatISOStringToDateInputValue, formatISOStringToDateTime } from './helper.js'
+import {
+  formatISOStringToDate,
+  formatISOStringToDateInputValue,
+  formatISOStringToDateTime
+} from './helper.js'
 
 // Profile page functionality
 ;(function () {
@@ -78,24 +82,40 @@ import { formatISOStringToDate, formatISOStringToDateInputValue, formatISOString
   function loadData() {
     if (viewUsername) viewUsername.textContent = user.username
     if (viewEmail) viewEmail.textContent = user.email
-    if (viewDateOfBirth) viewDateOfBirth.textContent = formatISOStringToDate(user.date_of_birth)
+    if (viewDateOfBirth)
+      viewDateOfBirth.textContent = formatISOStringToDate(user.date_of_birth)
     if (viewPhoneNumber) viewPhoneNumber.textContent = user.phone_number
-    if (viewGender) viewGender.textContent = user.gender === 'male' ? 'Nam' : user.gender === 'female' ? 'Nữ' : 'Khác'
-    if (viewUpdatedAt) viewUpdatedAt.textContent = formatISOStringToDateTime(user.update_at)
+    if (viewGender)
+      viewGender.textContent =
+        user.gender === 'male'
+          ? 'Nam'
+          : user.gender === 'female'
+            ? 'Nữ'
+            : 'Khác'
+    if (viewUpdatedAt)
+      viewUpdatedAt.textContent = formatISOStringToDateTime(user.update_at)
 
     if (editUsername) editUsername.value = user.username
     if (editEmail) editEmail.value = user.email
-    if (editDateOfBirth) editDateOfBirth.value = formatISOStringToDateInputValue(user.date_of_birth)
+    if (editDateOfBirth)
+      editDateOfBirth.value = formatISOStringToDateInputValue(
+        user.date_of_birth
+      )
     if (editPhoneNumber) editPhoneNumber.value = user.phone_number
     if (editGender) {
-      const selected = editGender.querySelector(`option[value="${user.gender}"]`)
+      const selected = editGender.querySelector(
+        `option[value="${user.gender}"]`
+      )
       if (selected) {
         selected.setAttribute('selected', 'true')
       }
     } else {
-      editGender.querySelector('option[value=""]').setAttribute('selected', 'true')
+      editGender
+        .querySelector('option[value=""]')
+        .setAttribute('selected', 'true')
     }
-    if (editUpdatedAt) editUpdatedAt.textContent = formatISOStringToDateTime(user.update_at)
+    if (editUpdatedAt)
+      editUpdatedAt.textContent = formatISOStringToDateTime(user.update_at)
   }
 
   loadData()
@@ -157,9 +177,12 @@ import { formatISOStringToDate, formatISOStringToDateInputValue, formatISOString
             loadData()
             exitEditMode()
           } else if (data.status === 422) {
+            console.log(data)
             const errors = data.errors
             for (const key in errors) {
-              const errorElement = profileForm.querySelector(`.invalid-feedback[error="${key}"]`)
+              const errorElement = profileForm.querySelector(
+                `.invalid-feedback[error="${key}"]`
+              )
               if (errorElement) {
                 const errorItem = errors[key]
                 errorElement.textContent = errorItem.msg
@@ -209,7 +232,9 @@ import { formatISOStringToDate, formatISOStringToDateInputValue, formatISOString
 
       const oldPassword = document.getElementById('oldPassword').value.trim()
       const newPassword = document.getElementById('newPassword').value.trim()
-      const confirmPassword = document.getElementById('confirmPassword').value.trim()
+      const confirmPassword = document
+        .getElementById('confirmPassword')
+        .value.trim()
 
       fetch(ApiBreakpoint.CHANGE_PASSWORD, {
         method: 'PUT',
@@ -226,7 +251,9 @@ import { formatISOStringToDate, formatISOStringToDateInputValue, formatISOString
           } else if (data.status === 422) {
             const errors = data.errors
             for (const key in errors) {
-              const errorElement = passwordForm.querySelector(`.invalid-feedback[error="${key}"]`)
+              const errorElement = passwordForm.querySelector(
+                `.invalid-feedback[error="${key}"]`
+              )
               if (errorElement) {
                 const errorItem = errors[key]
                 errorElement.textContent = errorItem.msg
