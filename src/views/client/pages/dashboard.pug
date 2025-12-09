@@ -6,50 +6,53 @@ block head
 block main-content
     div(class="main-content")
         div(class="row")
-            div(class="col-12 col-lg-9")
+            div(class="col-12 col-lg-8")
                 // Hero Section
                 section(class="hero")
                     div(class="hero__banner")
-                        div(class="hero__overlay")
-                            h1(class="hero__title") Thông thạo tiếng Anh, sử dụng trôi chảy
-                            p(class="hero__description")
-                                | Rèn luyện các kỹ năng nền tảng: viết, nghe và phát âm qua các
-                                |  tính năng luyện tập với sự hỗ trợ bởi AI
+
                 // Outstanding Features Section
                 section(class="features")
                     h2(class="features__title") CHỨC NĂNG NỔI BẬT
-                    div(class="row")
-                        div(class="col-md-6 col-lg-3 mb-4")
+                    div(class="row g-3")
+                        div(class="col-12 col-md-4")
                             div(class="feature-card")
                                 span(class="feature-card__badge") Hỗ trợ AI
-                                div(class="feature-card__icon feature-card__icon--green")
-                                    i(class="fas fa-pencil-alt")
-                                h3(class="feature-card__title") Luyện viết câu
-                                p(class="feature-card__description")
-                                    | Phân tích và đánh giá bài viết của bạn với công nghệ AI tiên tiến, giúp cải thiện ngữ pháp và từ vựng.
-                        div(class="col-md-6 col-lg-3 mb-4")
-                            div(class="feature-card")
-                                div(class="feature-card__icon feature-card__icon--red")
-                                    i(class="fas fa-headphones")
-                                h3(class="feature-card__title") Luyện nghe
-                                p(class="feature-card__description")
-                                    | Luyện nghe với audio có transcript và nhiều cấp độ khác nhau, phù hợp với trình độ của bạn.
-                        div(class="col-md-6 col-lg-3 mb-4")
+                                div(class="feature-card__body d-flex align-items-start gap-3")
+                                    div(class="feature-card__icon feature-card__icon--green")
+                                        i(class="fas fa-pencil-alt")
+                                    div(class="feature-card__text")
+                                        h3(class="feature-card__title") Luyện viết câu
+                                        p(class="feature-card__description")
+                                            | Phân tích và đánh giá bài viết của bạn với công nghệ AI tiên tiến, giúp cải thiện ngữ pháp và từ vựng.
+                                div(class="feature-card__actions")
+                                    a(class="btn btn-outline-primary feature-card__btn" href="/writing-sentence/setup") Luyện viết câu
+                                    a(class="btn btn-outline-primary feature-card__btn" href="/writing-paragraph/setup") Luyện viết đoạn văn
+                        div(class="col-12 col-md-4")
                             div(class="feature-card")
                                 span(class="feature-card__badge") Hỗ trợ AI
-                                div(class="feature-card__icon feature-card__icon--purple")
-                                    i(class="fas fa-microphone")
-                                h3(class="feature-card__title") Luyện phát âm
-                                p(class="feature-card__description")
-                                    | Đánh giá phát âm chính xác với AI, giúp bạn cải thiện khả năng nói tiếng Anh một cách hiệu quả.
-                        div(class="col-md-6 col-lg-3 mb-4")
+                                div(class="feature-card__body d-flex align-items-start gap-3")
+                                    div(class="feature-card__icon feature-card__icon--purple")
+                                        i(class="fas fa-microphone")
+                                    div(class="feature-card__text")
+                                        h3(class="feature-card__title") Luyện phát âm
+                                        p(class="feature-card__description")
+                                            | Đánh giá phát âm chính xác với AI, giúp bạn cải thiện khả năng nói tiếng Anh một cách hiệu quả.
+                                div(class="feature-card__actions")
+                                    a(class="btn btn-outline-primary feature-card__btn" href="/speaking-sentence") Luyện phát âm câu
+                                    a(class="btn btn-outline-primary feature-card__btn" href="/speaking-shadowing") Shadowing theo video
+                        div(class="col-12 col-md-4")
                             div(class="feature-card")
-                                span(class="feature-card__badge") Hỗ trợ AI
-                                div(class="feature-card__icon feature-card__icon--yellow")
-                                    i(class="fas fa-font")
-                                h3(class="feature-card__title") Từ điển của bạn
-                                p(class="feature-card__description")
-                                    | Ôn tập từ vựng với giải thích chi tiết từ AI, giúp bạn ghi nhớ và sử dụng từ vựng hiệu quả.
+                                div(class="feature-card__body d-flex align-items-start gap-3")
+                                    div(class="feature-card__icon feature-card__icon--red")
+                                        i(class="fas fa-headphones")
+                                    div(class="feature-card__text")
+                                        h3(class="feature-card__title") Luyện nghe
+                                        p(class="feature-card__description")
+                                            | Luyện nghe với audio có transcript và nhiều cấp độ khác nhau, phù hợp với trình độ của bạn.
+                                div(class="feature-card__actions")
+                                    a(class="btn btn-outline-primary feature-card__btn" href="/listening-video") Chọn video luyện nghe
+                        
                 // Favorite Articles Section
                 section(class="articles")
                     h2(class="articles__title") BÀI VIẾT YÊU THÍCH
@@ -59,22 +62,118 @@ block main-content
                         div(class="article-item")
                             h3(class="article-item__title") Từ vựng cho dân IT đi làm thực chiến
 
-            div(class="col-12 col-lg-3")
+            div(class="col-12 col-lg-4")
                 // Stats Card
                 div(class="stats-card")
+                    -
+                        const monthly = userMonthlyScore || {}
+                        const targetYear = Number(monthly.year) || new Date().getFullYear()
+                        const targetMonth = Number(monthly.month) || new Date().getMonth() + 1
+                        const details = Array.isArray(monthly.details) ? monthly.details : []
+                        const dayScores = {}
+                        const activeDays = new Set()
+                        let totalDaysActive = 0
+                        const today = new Date()
+                        const todayYear = today.getFullYear()
+                        const todayMonth = today.getMonth() + 1
+                        const todayDate = today.getDate()
+
+                        details.forEach((d) => {
+                            const dayKey = Number(d.day)
+                            if (Number.isNaN(dayKey)) return
+
+                            const scoresArr = Array.isArray(d.scores) ? d.scores : []
+                            const scoreSum = scoresArr.reduce((sum, s) => sum + (s.score || 0), 0)
+                            const hasActivity = scoresArr.length > 0
+
+                            if (!dayScores[dayKey]) {
+                                dayScores[dayKey] = {
+                                    score: 0,
+                                    items: []
+                                }
+                            }
+                            dayScores[dayKey].score += scoreSum
+                            dayScores[dayKey].items = dayScores[dayKey].items.concat(scoresArr)
+
+                            if (hasActivity) {
+                                activeDays.add(dayKey)
+                            }
+                        })
+                        totalDaysActive = activeDays.size
+
+                        const totalScore = monthly.totalScore || 0
+                        const daysInMonth = new Date(targetYear, targetMonth, 0).getDate()
+                        const firstDayIndex = new Date(targetYear, targetMonth - 1, 1).getDay()
+                        const calendarDays = [
+                            ...Array.from({ length: firstDayIndex }).map(() => null),
+                            ...Array.from({ length: daysInMonth }).map((_, idx) => idx + 1)
+                        ]
+
+                        const activityLog = []
+                        details.forEach((d) => {
+                            (d.scores || []).forEach((s) => {
+                                activityLog.push({
+                                    title: s.title || 'Hoạt động',
+                                    score: s.score || 0,
+                                    day: d.day,
+                                    type: s.type,
+                                    created: s.create_at ? new Date(s.create_at) : null
+                                })
+                            })
+                        })
+                        activityLog.sort((a, b) => {
+                            const timeA = a.created ? a.created.getTime() : 0
+                            const timeB = b.created ? b.created.getTime() : 0
+                            return timeB - timeA
+                        })
+                        const typePrefixes = {
+                            writing_sentence: 'Luyện viết câu: ',
+                            writing_paragraph: 'Luyện viết đoạn văn: ',
+                            speaking_sentence: 'Luyện phát âm: ',
+                            speaking_shadowing: 'Shadowing: ',
+                            listening_video: 'Luyện nghe: '
+                        }
+                        const dedupActivities = []
+                        activityLog.forEach((item) => {
+                            const prefix = typePrefixes[item.type] || ''
+                            const displayTitle = `${prefix}${item.title || 'Hoạt động'}`
+                            const prev = dedupActivities[dedupActivities.length - 1]
+                            if (prev && prev.displayTitle === displayTitle) return
+                            dedupActivities.push({ ...item, displayTitle })
+                        })
+                        const recentActivities = dedupActivities.slice(0, 3)
                     h3(class="stats-card__title") Biểu đồ chăm chỉ của bạn
-                    div(class="stats-card__content")
-                        div(class="stats-card__stats")
-                            div(class="stat-item")
-                                span(class="stat-item__label") Số ngày hoạt động
-                                span(class="stat-item__number") 5
-                            div(class="stat-item")
-                                span(class="stat-item__label") Số điểm tích góp
-                                span(class="stat-item__number") 3000
-                        div(class="calendar")
-                            h4(class="calendar__title") Tháng 10
-                            div(class="calendar__grid")
-                                // Calendar days will be generated by JavaScript
+                    div(class="stats-card__grid")
+                        div(class="stats-summary")
+                            div(class="stats-summary__item")
+                                span(class="stats-summary__label") Số ngày hoạt động
+                                span(class="stats-summary__value") #{totalDaysActive}
+                            div(class="stats-summary__item")
+                                span(class="stats-summary__label") Số điểm tích góp
+                                span(class="stats-summary__value") #{totalScore}
+                        div(class="calendar calendar--compact")
+                            div(class="calendar__header")
+                                h4(class="calendar__title mb-0") Tháng #{targetMonth}
+                            div(class="calendar__grid calendar__grid--compact")
+                                each day in calendarDays
+                                    if day
+                                        - const isActive = activeDays.has(day)
+                                        - const isToday = targetYear === todayYear && targetMonth === todayMonth && day === todayDate
+                                        - const scoreValue = isActive && dayScores[day] ? dayScores[day].score : 0
+                                        - const dayClasses = ['calendar__day', isActive ? 'calendar__day--active' : 'calendar__day--empty', isToday ? 'calendar__day--today' : ''].filter(Boolean).join(' ')
+                                        div(class=dayClasses, title=isActive ? `${scoreValue} điểm` : 'Chưa luyện')
+                                            span= day
+                                    else
+                                        div(class="calendar__day calendar__day--placeholder")
+                    if recentActivities.length
+                        ul(class="activity-list")
+                            each item in recentActivities
+                                li(class="activity-list__item")
+                                    p(class="activity-list__title activity-list__title--muted")= item.displayTitle
+                    else
+                        p(class="text-muted mt-3 mb-0") Chưa có hoạt động trong tháng này.
+                    div(class="stats-card__footer stats-card__footer--link")
+                        a(href="/history" class="stats-card__see-more") Xem lịch sử chi tiết →
 
                 // Monthly Ranking
                 div(class="ranking-card")
@@ -118,3 +217,4 @@ block main-content
                                 span(class="ranking-item__points") 50 điểm
                         div(class="ranking-card__footer")
                             a(href="#" class="ranking-card__see-more") Xem thêm →
+    

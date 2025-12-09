@@ -10,7 +10,7 @@ import speakingServices from '~/services/speaking.service'
 import { handleUploadAudio } from '~/utils/file'
 import { speechToText, textToSpeech } from '~/utils/handle-speech'
 import { HisSSUserSentenceType } from '~/models/schemas/his-ss-user.schema'
-import scoreService from '~/services/score.serrvice'
+import scoreService from '~/services/score.service'
 
 // GET /speaking-sentence/
 export const renderSSListController = async (req: Request, res: Response) => {

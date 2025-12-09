@@ -1,55 +1,5 @@
 // Home page functionality
 ;(function () {
-  // Generate calendar
-  function generateCalendar() {
-    const calendarGrid = document.querySelector('.calendar__grid')
-    if (!calendarGrid) return
-
-    const today = new Date()
-    const currentMonth = today.getMonth()
-    const currentYear = today.getFullYear()
-    const firstDay = new Date(currentYear, currentMonth, 1)
-    const lastDay = new Date(currentYear, currentMonth + 1, 0)
-    const daysInMonth = lastDay.getDate()
-    const startingDay = firstDay.getDay()
-
-    // Clear existing content
-    calendarGrid.innerHTML = ''
-
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < startingDay; i++) {
-      const emptyDay = document.createElement('div')
-      emptyDay.className = 'calendar__day'
-      calendarGrid.appendChild(emptyDay)
-    }
-
-    // Add days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dayElement = document.createElement('div')
-      dayElement.className = 'calendar__day'
-      dayElement.textContent = day
-
-      // Mark today
-      if (day === today.getDate()) {
-        dayElement.classList.add('calendar__day--active')
-      }
-
-      // Randomly mark some days as missed (for demo)
-      if (Math.random() < 0.3 && day < today.getDate()) {
-        dayElement.classList.add('calendar__day--missed')
-      }
-
-      calendarGrid.appendChild(dayElement)
-    }
-  }
-
-  // Initialize calendar when page loads
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', generateCalendar)
-  } else {
-    generateCalendar()
-  }
-
   // Sidebar navigation functionality
   const sidebarLinks = document.querySelectorAll('.sidebar__link')
   const sidebarSublinks = document.querySelectorAll('.sidebar__sublink')

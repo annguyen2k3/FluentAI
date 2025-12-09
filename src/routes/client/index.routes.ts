@@ -7,6 +7,7 @@ import speakingSentenceRoutes from './speaking-sentence.routes'
 import speakingShadowingRoutes from './speaking-shadowing.routes'
 import listeningVideoRoutes from './listening-video.routes'
 import User from '~/models/schemas/users.schema'
+import scoreService from '~/services/score.service'
 
 export default function (app: Express) {
   app.get('/', (req: Request, res: Response) => {
@@ -17,10 +18,17 @@ export default function (app: Express) {
     return res.redirect('/introduction')
   })
 
-  app.get('/dashboard', requireAuth, (req: Request, res: Response) => {
+  app.get('/dashboard', requireAuth, async (req: Request, res: Response) => {
+    const rankingList = await scoreService.getListRanking({ page: 1, limit: 5 })
+    const userMonthlyScore = await scoreService.getUserMonthlyScore(
+      req.user._id
+    )
+
     res.render('client/pages/dashboard.pug', {
       pageTitle: 'FluentAI - Dashboard',
-      user: req.user
+      user: req.user,
+      rankingList,
+      userMonthlyScore
     })
   })
 

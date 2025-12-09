@@ -6,7 +6,7 @@ import { WRITING_SENTENCE_MESSAGES } from '~/constants/message'
 import User from '~/models/schemas/users.schema'
 import WSList from '~/models/schemas/ws-list.schema'
 import { databaseService } from '~/services/database.service'
-import scoreService from '~/services/score.serrvice'
+import scoreService from '~/services/score.service'
 import writingService from '~/services/writing.service'
 
 // GET /writing-sentence/setup

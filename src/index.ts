@@ -8,7 +8,7 @@ import bodyParser from 'body-parser'
 import { defaultErrorHandler } from './middlewares/errors.middleware'
 import cookieParser from 'cookie-parser'
 import { initFolder } from './utils/file'
-import scoreService from '~/services/score.serrvice'
+import scoreService from '~/services/score.service'
 
 dotenv.config()
 
