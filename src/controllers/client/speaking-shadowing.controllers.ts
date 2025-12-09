@@ -1,11 +1,12 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
 import fs from 'node:fs/promises'
-import { HistoryUserType, StatusLesson } from '~/constants/enum'
+import { HistoryUserType, StatusLesson, UserScoreType } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import { HisSVUserSentenceType } from '~/models/schemas/his-sv-user.schema'
 import User from '~/models/schemas/users.schema'
 import { databaseService } from '~/services/database.service'
+import scoreService from '~/services/score.serrvice'
 import speakingServices from '~/services/speaking.service'
 import { handleUploadAudio } from '~/utils/file'
 import { speechToText } from '~/utils/handle-speech'
@@ -109,11 +110,20 @@ export const renderSVPracticeController = async (
     'content.svShadowingId': sv._id
   })
 
+  const userScore = await scoreService.getUserMonthlyScore(user._id as ObjectId)
+  const scorePractice = await scoreService.getScoreForPracticeType(
+    UserScoreType.SPEAKING_SHADOWING
+  )
+
   res.render('client/pages/speaking-shadowing/practice.pug', {
     pageTitle: 'Luyện tập Shadowing',
     user,
     sv,
-    hisSV: hisSVDoc ? hisSVDoc.content : null
+    hisSV: hisSVDoc ? hisSVDoc.content : null,
+    scoreInfo: {
+      totalScore: userScore.totalScore,
+      scorePractice: scorePractice
+    }
   })
 }
 
@@ -161,6 +171,15 @@ export const evaluateSVController = async (req: Request, res: Response) => {
         sv._id?.toString() as string,
         evaluate
       )
+
+      if (evaluate.passed) {
+        await scoreService.addScore(
+          user._id as ObjectId,
+          UserScoreType.SPEAKING_SHADOWING,
+          sv._id as ObjectId,
+          sv.title
+        )
+      }
     }
 
     res.status(HttpStatus.OK).json({
