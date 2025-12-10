@@ -11,7 +11,7 @@ block main-content
         div(class="practice-header__info")
             div(class="practice-header__credits")
                 i(class="fas fa-coins practice-header__icon")
-                span 71 xu
+                span #{user.wallet.balance_credit || 0} xu
             div(class="practice-header__divider")
             div(class="practice-header__points")
                 i(class="fas fa-star practice-header__icon")
@@ -43,8 +43,8 @@ block main-content
                         button(class="practice-actions__btn practice-actions__btn--hint")
                             i(class="fas fa-lightbulb")
                             | Gợi ý
-                        button(class="practice-actions__btn practice-actions__btn--submit" button-submit)
-                            | Nộp bài 1 
+                        button(class="practice-actions__btn practice-actions__btn--submit" button-submit cost-practice=practiceCost)
+                            | Nộp bài #{practiceCost}
                             i(class="fa-brands fa-bitcoin" style="color: #FFD43B;")
                         button(class="practice-actions__btn practice-actions__btn--submit d-none" button-next)
                             | Câu tiếp theo

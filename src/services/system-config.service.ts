@@ -4,6 +4,7 @@ import { databaseService } from './database.service'
 
 class SystemConfigService {
   private pricingConfigCache: SystemConfig | null = null
+  private practiceCostConfigCache: SystemConfig | null = null
   private isCacheLoaded: boolean = false
 
   async getPricingCredit(
@@ -23,22 +24,44 @@ class SystemConfigService {
     return config
   }
 
-  async loadCache(): Promise<SystemConfig | null> {
-    return await this.getPricingCredit(true)
+  async getPracticeCost(
+    forceRefresh: boolean = false
+  ): Promise<SystemConfig | null> {
+    if (!forceRefresh && this.isCacheLoaded && this.practiceCostConfigCache) {
+      return this.practiceCostConfigCache
+    }
+
+    const config = await databaseService.systemConfigs.findOne<SystemConfig>({
+      type: ConfigSystemType.COST_USAGE
+    })
+
+    this.practiceCostConfigCache = config
+    this.isCacheLoaded = true
+
+    return config
   }
 
-  async refreshCache(): Promise<SystemConfig | null> {
+  async loadCache(): Promise<void> {
+    await Promise.all([this.getPricingCredit(true), this.getPracticeCost(true)])
+  }
+
+  async refreshCache(): Promise<void> {
     this.invalidateCache()
-    return await this.loadCache()
+    await this.loadCache()
   }
 
   invalidateCache(): void {
     this.pricingConfigCache = null
+    this.practiceCostConfigCache = null
     this.isCacheLoaded = false
   }
 
   getCachedPricingCredit(): SystemConfig | null {
     return this.pricingConfigCache
+  }
+
+  getCachedPracticeCost(): SystemConfig | null {
+    return this.practiceCostConfigCache
   }
 }
 

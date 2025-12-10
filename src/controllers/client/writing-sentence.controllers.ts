@@ -1,11 +1,12 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
-import { StatusLesson, UserScoreType } from '~/constants/enum'
+import { CreditUsageType, StatusLesson, UserScoreType } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import { WRITING_SENTENCE_MESSAGES } from '~/constants/message'
 import User from '~/models/schemas/users.schema'
 import WSList from '~/models/schemas/ws-list.schema'
 import { databaseService } from '~/services/database.service'
+import otherService from '~/services/other.service'
 import scoreService from '~/services/score.service'
 import writingService from '~/services/writing.service'
 
@@ -147,6 +148,10 @@ export const getPracticeWSController = async (req: Request, res: Response) => {
     UserScoreType.WRITING_SENTENCE
   )
 
+  const practiceCost = await otherService.getPracticeCost(
+    CreditUsageType.writing_sentence_evaluate
+  )
+
   res.render('client/pages/writing-sentence/practice.pug', {
     pageTitle: 'Luyện tập câu',
     user: user,
@@ -155,15 +160,27 @@ export const getPracticeWSController = async (req: Request, res: Response) => {
     scoreInfo: {
       totalScore: userScore.totalScore,
       scorePractice: scorePractice
-    }
+    },
+    practiceCost: practiceCost || 0
   })
 }
 
 // POST /writing-sentence/practice/:slug
 export const postPracticeWSController = async (req: Request, res: Response) => {
-  const user = req.user as User
+  const user = req.user as any
   const ws = req.ws as WSList
   const { sentence_vi, user_translation } = req.body
+
+  const practiceCostResult = await otherService.handlePracticeCost({
+    wallet_id: user.wallet._id?.toString() as string,
+    type: CreditUsageType.writing_sentence_evaluate
+  })
+  if (!practiceCostResult.success) {
+    return res.status(HttpStatus.BAD_REQUEST).json({
+      message: practiceCostResult.message,
+      status: HttpStatus.BAD_REQUEST
+    })
+  }
 
   const evaluateResult = await writingService.wsEvaluate(
     user._id?.toString() as string,
@@ -297,6 +314,10 @@ export const getPracticeCustomTopicWSController = async (
     return res.redirect('/writing-sentence/setup')
   }
 
+  const practiceCost = await otherService.getPracticeCost(
+    CreditUsageType.writing_sentence_evaluate
+  )
+
   const initResult = await writingService.wsInitChat(
     user._id?.toString() as string,
     (wsListPreview._id?.toString() as string) || ''
@@ -317,7 +338,8 @@ export const getPracticeCustomTopicWSController = async (
     scoreInfo: {
       totalScore: userScore.totalScore,
       scorePractice: scorePractice
-    }
+    },
+    practiceCost: practiceCost || 0
   })
 }
 

@@ -86,5 +86,13 @@ export enum TransactionStatus {
 }
 
 export enum ConfigSystemType {
-  PRICING_CREDIT = 'pricing_credit'
+  PRICING_CREDIT = 'pricing_credit',
+  COST_USAGE = 'cost_usage'
+}
+
+export enum CreditUsageType {
+  writing_sentence_evaluate = 'writing_sentence_evaluate',
+  writing_paragraph_evaluate = 'writing_paragraph_evaluate',
+  speaking_sentence_evaluate = 'speaking_sentence_evaluate',
+  speaking_shadowing_evaluate = 'speaking_shadowing_evaluate'
 }

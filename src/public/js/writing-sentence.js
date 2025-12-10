@@ -564,11 +564,19 @@ if (wsPractice) {
   const userTranslationInput = document.querySelector('[user_translation]')
   const pointsValueEl = document.querySelector('.practice-header__points-value')
   const pointsAddEl = document.querySelector('.practice-header__points-add')
+  const creditsEl = document.querySelector('.practice-header__credits span')
 
   const listSentences = wsData.list || []
 
   let currentTotalScore = scoreInfo.totalScore || 0
   const scorePerPractice = scoreInfo.scorePractice || 0
+
+  let currentBalanceCredit = 0
+  if (creditsEl) {
+    const creditText = creditsEl.textContent || '0 xu'
+    const match = creditText.match(/(\d+)/)
+    currentBalanceCredit = match ? parseInt(match[1], 10) : 0
+  }
 
   function animateScoreAdd() {
     if (!pointsValueEl || !pointsAddEl) return
@@ -617,6 +625,56 @@ if (wsPractice) {
     }
 
     requestAnimationFrame(updateScore)
+  }
+
+  function animateCreditDeduct(cost) {
+    if (!creditsEl) return
+
+    const newBalance = Math.max(0, currentBalanceCredit - cost)
+
+    const deductEl = document.createElement('span')
+    deductEl.className = 'practice-header__credits-deduct'
+    deductEl.textContent = `-${cost}`
+    deductEl.style.cssText =
+      'position: absolute; color: #dc3545; font-weight: 700; font-size: 0.9rem; animation: creditDeductAnimation 1s ease-out forwards; pointer-events: none; z-index: 10;'
+    creditsEl.parentElement.style.position = 'relative'
+    creditsEl.parentElement.appendChild(deductEl)
+
+    let startBalance = currentBalanceCredit
+    const endBalance = newBalance
+    const duration = 600
+    const startTime = Date.now()
+
+    function updateCredit() {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+
+      const easeOutCubic = 1 - Math.pow(1 - progress, 3)
+      const currentCredit = Math.floor(
+        startBalance + (endBalance - startBalance) * easeOutCubic
+      )
+
+      if (creditsEl) {
+        creditsEl.textContent = `${currentCredit} xu`
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(updateCredit)
+      } else {
+        currentBalanceCredit = endBalance
+        if (creditsEl) {
+          creditsEl.textContent = `${currentBalanceCredit} xu`
+        }
+
+        setTimeout(() => {
+          if (deductEl && deductEl.parentElement) {
+            deductEl.parentElement.removeChild(deductEl)
+          }
+        }, 1000)
+      }
+    }
+
+    requestAnimationFrame(updateCredit)
   }
 
   function getMergedHistorySentences() {
@@ -888,6 +946,15 @@ if (wsPractice) {
             if (userTranslationInput) {
               userTranslationInput.value = ''
             }
+
+            const practiceCost = parseInt(
+              buttonSubmit.getAttribute('cost-practice') || '0',
+              10
+            )
+            if (practiceCost > 0) {
+              animateCreditDeduct(practiceCost)
+            }
+
             if (data.evaluateResult.passed) {
               saveClientHistory(data.evaluateResult)
               renderHistoryList()
