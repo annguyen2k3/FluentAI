@@ -1,11 +1,17 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
 import fs from 'node:fs/promises'
-import { HistoryUserType, StatusLesson, UserScoreType } from '~/constants/enum'
+import {
+  CreditUsageType,
+  HistoryUserType,
+  StatusLesson,
+  UserScoreType
+} from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import { HisSVUserSentenceType } from '~/models/schemas/his-sv-user.schema'
 import User from '~/models/schemas/users.schema'
 import { databaseService } from '~/services/database.service'
+import otherService from '~/services/other.service'
 import scoreService from '~/services/score.service'
 import speakingServices from '~/services/speaking.service'
 import { handleUploadAudio } from '~/utils/file'
@@ -115,6 +121,12 @@ export const renderSVPracticeController = async (
     UserScoreType.SPEAKING_SHADOWING
   )
 
+  const practiceCost = await otherService.getPracticeCost(
+    CreditUsageType.speaking_shadowing_evaluate
+  )
+
+  console.log(practiceCost)
+
   res.render('client/pages/speaking-shadowing/practice.pug', {
     pageTitle: 'Luyện tập Shadowing',
     user,
@@ -123,18 +135,31 @@ export const renderSVPracticeController = async (
     scoreInfo: {
       totalScore: userScore.totalScore,
       scorePractice: scorePractice
-    }
+    },
+    practiceCost: practiceCost || 0
   })
 }
 
 // POST /speaking-sentence/practice/evaluate
 export const evaluateSVController = async (req: Request, res: Response) => {
-  const user = req.user as User
+  const user = req.user as any
   const slug = req.params.slug as string
   const sv = await databaseService.svShadowings.findOne({ slug: slug })
   if (!sv) {
     return res.redirect('/speaking-shadowing')
   }
+
+  const practiceCostResult = await otherService.handlePracticeCost({
+    wallet_id: user.wallet._id?.toString() as string,
+    type: CreditUsageType.speaking_shadowing_evaluate
+  })
+  if (!practiceCostResult.success) {
+    return res.status(HttpStatus.BAD_REQUEST).json({
+      message: practiceCostResult.message,
+      status: HttpStatus.BAD_REQUEST
+    })
+  }
+
   try {
     const { fields, file } = await handleUploadAudio(req)
     const enSentenceField = fields.enSentence

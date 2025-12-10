@@ -74,15 +74,31 @@ class OtherService {
   }
 
   async getPracticeCost(type: CreditUsageType): Promise<number> {
-    const practiceCostConfig = systemConfigService.getCachedPracticeCost()
+    let practiceCostConfig = systemConfigService.getCachedPracticeCost()
     if (!practiceCostConfig) {
+      practiceCostConfig = await systemConfigService.getPracticeCost(false)
+    }
+    if (!practiceCostConfig) {
+      console.log('[getPracticeCost] No practice cost config found')
       return 0
     }
     const cost = practiceCostConfig.config as PracticeCostType
+    if (!cost || !cost.parameters) {
+      console.log('[getPracticeCost] Invalid config structure:', cost)
+      return 0
+    }
     const costParameter = cost.parameters.find(
       (p: { type: CreditUsageType; cost: number }) => p.type === type
     )
-    return costParameter?.cost || 0
+    if (!costParameter) {
+      console.log('[getPracticeCost] No parameter found for type:', type)
+      console.log(
+        '[getPracticeCost] Available parameters:',
+        cost.parameters.map((p) => ({ type: p.type, cost: p.cost }))
+      )
+      return 0
+    }
+    return costParameter.cost || 0
   }
 }
 
