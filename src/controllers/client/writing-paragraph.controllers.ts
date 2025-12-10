@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
-import { StatusLesson, UserScoreType } from '~/constants/enum'
+import { CreditUsageType, StatusLesson, UserScoreType } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import { WRITING_PARAGRAPH_MESSAGES } from '~/constants/message'
 import Levels from '~/models/schemas/levels.schema'
@@ -10,6 +10,7 @@ import User from '~/models/schemas/users.schema'
 import WPParagraph from '~/models/schemas/wp-paragraph.schema'
 import WSList from '~/models/schemas/ws-list.schema'
 import { databaseService } from '~/services/database.service'
+import otherService from '~/services/other.service'
 import scoreService from '~/services/score.service'
 import writingService from '~/services/writing.service'
 
@@ -175,6 +176,10 @@ export const renderPracticeWPController = async (
     UserScoreType.WRITING_PARAGRAPH
   )
 
+  const practiceCost = await otherService.getPracticeCost(
+    CreditUsageType.writing_paragraph_evaluate
+  )
+
   res.render('client/pages/writing-paragraph/practice.pug', {
     pageTitle: 'Luyện tập đoạn văn',
     user: user,
@@ -183,15 +188,27 @@ export const renderPracticeWPController = async (
     scoreInfo: {
       totalScore: userScore.totalScore,
       scorePractice: scorePractice
-    }
+    },
+    practiceCost: practiceCost || 0
   })
 }
 
 // POST /writing-paragraph/practice/:slug
 export const postPracticeWPController = async (req: Request, res: Response) => {
-  const user = req.user as User
+  const user = req.user as any
   const wp = req.wp as WPParagraph
   const { sentence_vi, user_translation } = req.body
+
+  const practiceCostResult = await otherService.handlePracticeCost({
+    wallet_id: user.wallet._id?.toString() as string,
+    type: CreditUsageType.writing_paragraph_evaluate
+  })
+  if (!practiceCostResult.success) {
+    return res.status(HttpStatus.BAD_REQUEST).json({
+      message: practiceCostResult.message,
+      status: HttpStatus.BAD_REQUEST
+    })
+  }
 
   const evaluateResult = await writingService.wpEvaluate(
     user._id?.toString() as string,
@@ -343,6 +360,10 @@ export const getPracticeCustomTopicWPController = async (
     UserScoreType.WRITING_PARAGRAPH
   )
 
+  const practiceCost = await otherService.getPracticeCost(
+    CreditUsageType.writing_paragraph_evaluate
+  )
+
   res.render('client/pages/writing-paragraph/practice.pug', {
     pageTitle: 'Luyện tập chủ đề',
     user: user,
@@ -350,7 +371,8 @@ export const getPracticeCustomTopicWPController = async (
     scoreInfo: {
       totalScore: userScore.totalScore,
       scorePractice: scorePractice
-    }
+    },
+    practiceCost: practiceCost || 0
   })
 }
 
