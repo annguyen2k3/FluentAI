@@ -1,11 +1,12 @@
 import { Request, Response } from 'express'
 import fs from 'node:fs/promises'
 import { ObjectId } from 'mongodb'
-import { StatusLesson, UserScoreType } from '~/constants/enum'
+import { CreditUsageType, StatusLesson, UserScoreType } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import SSList from '~/models/schemas/ss-list.schema'
 import User from '~/models/schemas/users.schema'
 import { databaseService } from '~/services/database.service'
+import otherService from '~/services/other.service'
 import speakingServices from '~/services/speaking.service'
 import { handleUploadAudio } from '~/utils/file'
 import { speechToText, textToSpeech } from '~/utils/handle-speech'
@@ -115,6 +116,10 @@ export const renderSSPracticeController = async (
     UserScoreType.SPEAKING_SENTENCE
   )
 
+  const practiceCost = await otherService.getPracticeCost(
+    CreditUsageType.speaking_sentence_evaluate
+  )
+
   res.render('client/pages/speaking-sentence/practice.pug', {
     pageTitle: 'Luyện tập câu phát âm',
     user,
@@ -123,7 +128,8 @@ export const renderSSPracticeController = async (
     scoreInfo: {
       totalScore: userScore.totalScore,
       scorePractice: scorePractice
-    }
+    },
+    practiceCost: practiceCost || 0
   })
 }
 
@@ -166,12 +172,24 @@ export const generateSSAudioController = async (
 
 // POST /speaking-sentence/practice/evaluate
 export const evaluateSSController = async (req: Request, res: Response) => {
-  const user = req.user as User
+  const user = req.user as any
   const slug = req.params.slug as string
   const ss = await databaseService.ssLists.findOne({ slug: slug })
   if (!ss) {
     return res.redirect('/speaking-sentence')
   }
+
+  const practiceCostResult = await otherService.handlePracticeCost({
+    wallet_id: user.wallet._id?.toString() as string,
+    type: CreditUsageType.speaking_sentence_evaluate
+  })
+  if (!practiceCostResult.success) {
+    return res.status(HttpStatus.BAD_REQUEST).json({
+      message: practiceCostResult.message,
+      status: HttpStatus.BAD_REQUEST
+    })
+  }
+
   try {
     const { fields, file } = await handleUploadAudio(req)
     const enSentenceField = fields.enSentence
@@ -279,13 +297,18 @@ export const renderSSPracticeCustomTopicController = async (
     UserScoreType.SPEAKING_SENTENCE
   )
 
+  const practiceCost = await otherService.getPracticeCost(
+    CreditUsageType.speaking_sentence_evaluate
+  )
+
   res.render('client/pages/speaking-sentence/practice-custom-topic.pug', {
     pageTitle: 'Luyện tập câu phát âm - Chủ đề tùy chỉnh',
     user: user,
     scoreInfo: {
       totalScore: userScore.totalScore,
       scorePractice: scorePractice
-    }
+    },
+    practiceCost: practiceCost || 0
   })
 }
 
@@ -294,8 +317,20 @@ export const evaluateSSCustomTopicController = async (
   req: Request,
   res: Response
 ) => {
+  const user = req.user as any
+
+  const practiceCostResult = await otherService.handlePracticeCost({
+    wallet_id: user.wallet._id?.toString() as string,
+    type: CreditUsageType.speaking_sentence_evaluate
+  })
+  if (!practiceCostResult.success) {
+    return res.status(HttpStatus.BAD_REQUEST).json({
+      message: practiceCostResult.message,
+      status: HttpStatus.BAD_REQUEST
+    })
+  }
+
   try {
-    const user = req.user as User
     const { fields, file } = await handleUploadAudio(req)
     const enSentenceField = fields.enSentence
     const enSentence = Array.isArray(enSentenceField)
