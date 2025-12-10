@@ -78,3 +78,13 @@ export enum UserScoreType {
   SPEAKING_SHADOWING = 'speaking_shadowing',
   LISTENING_VIDEO = 'listening_video'
 }
+
+export enum TransactionStatus {
+  PENDING = 'pending',
+  SUCCESS = 'success',
+  FAILED = 'failed'
+}
+
+export enum ConfigSystemType {
+  PRICING_CREDIT = 'pricing_credit'
+}

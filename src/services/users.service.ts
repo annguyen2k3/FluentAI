@@ -3,6 +3,7 @@ import { databaseService } from './database.service'
 import {
   GenderType,
   TokenType,
+  TransactionStatus,
   UserStatus,
   VerifyEmailType
 } from '~/constants/enum'
@@ -266,7 +267,38 @@ class UserService {
   }
 
   async getUserById(user_id: string) {
-    return await databaseService.users.findOne({ _id: new ObjectId(user_id) })
+    const users = await databaseService.users
+      .aggregate([
+        { $match: { _id: new ObjectId(user_id) } },
+        {
+          $lookup: {
+            from: 'wallets',
+            localField: 'wallet',
+            foreignField: '_id',
+            as: 'wallet'
+          }
+        },
+        { $unwind: { path: '$wallet', preserveNullAndEmptyArrays: true } },
+        {
+          $addFields: {
+            wallet: {
+              _id: '$wallet._id',
+              balance_credit: '$wallet.balance_credit'
+            }
+          }
+        },
+        {
+          $project: {
+            password: 0,
+            'wallet.history_transactions': 0,
+            'wallet.update_at': 0
+          }
+        },
+        { $limit: 1 }
+      ])
+      .toArray()
+
+    return users[0] || null
   }
 
   async checkUsernameExists(username: string, user_id?: string) {
@@ -395,6 +427,38 @@ class UserService {
         user_id: new ObjectId(userId)
       })
     ])
+  }
+
+  async getDetailWallet(wallet_id: string) {
+    const now = new Date()
+    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000)
+
+    await databaseService.wallets.updateOne(
+      {
+        _id: new ObjectId(wallet_id),
+        'history_transactions.status': TransactionStatus.PENDING,
+        'history_transactions.create_at': { $lt: twoHoursAgo }
+      },
+      {
+        $set: {
+          'history_transactions.$[elem].status': TransactionStatus.FAILED,
+          'history_transactions.$[elem].update_at': now,
+          'history_transactions.$[elem].link_payment': null
+        }
+      },
+      {
+        arrayFilters: [
+          {
+            'elem.status': TransactionStatus.PENDING,
+            'elem.create_at': { $lt: twoHoursAgo }
+          }
+        ]
+      }
+    )
+
+    return await databaseService.wallets.findOne({
+      _id: new ObjectId(wallet_id)
+    })
   }
 
   async unlockUser(userId: string) {

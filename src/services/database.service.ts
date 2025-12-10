@@ -17,6 +17,9 @@ import HisPracticeUser from '~/models/schemas/his-practice-user.schema'
 import ListeningVideo from '~/models/schemas/lv-video.schemas'
 import SystemScore from '~/models/schemas/system-score.schema'
 import UserScore from '~/models/schemas/user-score.schema'
+import Wallet from '~/models/schemas/wallet.schema'
+import PricingCredit from '~/models/schemas/system-config'
+import SystemConfig from '~/models/schemas/system-config'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.cp2tnzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -133,6 +136,14 @@ class DatabaseService {
 
   get userScores(): Collection<UserScore> {
     return this.db.collection('user_scores')
+  }
+
+  get wallets(): Collection<Wallet> {
+    return this.db.collection('wallets')
+  }
+
+  get systemConfigs(): Collection<SystemConfig> {
+    return this.db.collection('system_configs')
   }
 }
 

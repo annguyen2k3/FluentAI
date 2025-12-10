@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb'
 import { GenderType, UserStatus } from '~/constants/enum'
+import Wallet from './wallet.schema'
 
 interface UserType {
   _id?: ObjectId
@@ -13,6 +14,7 @@ interface UserType {
   date_of_birth?: Date
   phone_number?: string
   gender?: GenderType
+  wallet?: ObjectId
 }
 
 export default class User {
@@ -27,10 +29,14 @@ export default class User {
   date_of_birth?: Date
   phone_number?: string
   gender?: GenderType
+  wallet?: ObjectId
 
   constructor(user: UserType) {
     const id = user._id || new ObjectId()
     const date = new Date()
+    const wallet = new Wallet({ _id: new ObjectId() })
+    wallet.createWallet()
+
     this._id = id
     this.username = user.username || 'user_' + date.getTime()
     this.email = user.email
@@ -44,5 +50,6 @@ export default class User {
     this.date_of_birth = user.date_of_birth || undefined
     this.phone_number = user.phone_number || ''
     this.gender = user.gender || undefined
+    this.wallet = wallet._id
   }
 }

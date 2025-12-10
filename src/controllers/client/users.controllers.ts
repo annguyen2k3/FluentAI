@@ -22,6 +22,7 @@ import { omit } from 'lodash'
 import mediasService from '~/services/medias.service'
 import { deleteFileFromS3 } from '~/utils/s3'
 import scoreService from '~/services/score.service'
+import systemConfigService from '~/services/system-config.service'
 
 // GET /users/login
 export const getLoginController = (req: Request, res: Response) => {
@@ -361,5 +362,22 @@ export const getHistoryController = async (req: Request, res: Response) => {
     pageTitle: 'FluentAI - Lịch sử luyện tập',
     user: user,
     userMonthlyScore: userMonthlyScore
+  })
+}
+
+// GET /users/wallet
+export const renderWalletPageController = async (
+  req: Request,
+  res: Response
+) => {
+  const user = req.user as User
+  const walletInfo = user.wallet as any
+  const wallet = await userService.getDetailWallet(walletInfo?._id as string)
+  const pricingCredit = await systemConfigService.getCachedPricingCredit()
+  res.render('client/pages/users/wallet.pug', {
+    pageTitle: 'FluentAI - Ví của tôi',
+    user: user,
+    wallet: wallet,
+    pricingCredit: pricingCredit
   })
 }

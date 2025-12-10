@@ -49,9 +49,9 @@ header(class="header")
                                         p(class="avatar-modal__email") #{user.email}
                                         div(class="avatar-modal__assets")
                                             span(class="avatar-modal__assets-text")
-                                                | Tài sản: 120
+                                                | Tài sản: #{user.wallet.balance_credit || 0}
                                                 i(class="fa-brands fa-bitcoin fs-6" style="color: #FFD43B;")
-                                            button(class="avatar-modal__topup-btn") + Nạp thêm
+                                            a(href="/users/wallet" class="avatar-modal__topup-btn text-decoration-none") + Nạp thêm
                                 div(class="avatar-modal__divider")
                                 div(class="avatar-modal__menu")
                                     a(href="/users/profile" class="avatar-modal__item")

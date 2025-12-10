@@ -9,6 +9,7 @@ import listeningVideoRoutes from './listening-video.routes'
 import User from '~/models/schemas/users.schema'
 import scoreService from '~/services/score.service'
 import { ObjectId } from 'mongodb'
+import paymentRoutes from './payment.routes'
 
 export default function (app: Express) {
   app.get('/', (req: Request, res: Response) => {
@@ -100,4 +101,6 @@ export default function (app: Express) {
       user
     })
   })
+
+  app.use('/payment', paymentRoutes)
 }

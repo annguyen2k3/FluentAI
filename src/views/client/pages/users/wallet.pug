@@ -1,0 +1,440 @@
+extends ../../layouts/default.pug
+
+block head
+    link(rel="stylesheet" href="/css/style.css")
+    style.
+        .wallet-page {
+            background-color: #f7faff;
+        }
+        .wallet-card {
+            background: #ffffff;
+            border: 1px solid #e3edf7;
+            border-radius: 14px;
+            padding: 20px 22px;
+            height: 100%;
+            animation: walletFadeUp 0.4s ease forwards;
+        }
+        .wallet-card__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .wallet-card__title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a4d8f;
+        }
+        .wallet-card__meta {
+            font-size: 14px;
+            color: #5f718a;
+        }
+        .wallet-balance {
+            background: #f0f6ff;
+            border: 1px solid #d5e5ff;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .wallet-balance__info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .wallet-balance__icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: #e7f0ff;
+            border: 1px solid #d5e5ff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f6ad7;
+            font-size: 18px;
+        }
+        .wallet-balance__label {
+            margin: 0;
+            font-size: 14px;
+            color: #5f718a;
+        }
+        .wallet-balance__value {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+            color: #0f3f86;
+            letter-spacing: -0.5px;
+        }
+        .wallet-balance__hint {
+            font-size: 14px;
+            color: #5f718a;
+            margin: 0;
+        }
+        .wallet-packages {
+            display: grid;
+            gap: 10px;
+        }
+        .wallet-package {
+            border: 1px solid #e3edf7;
+            border-radius: 12px;
+            padding: 12px 14px;
+            transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+            background: #ffffff;
+        }
+        .wallet-package:hover {
+            transform: translateY(-2px);
+            border-color: #c6dbff;
+            background: #f8fbff;
+        }
+        .wallet-package__label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            margin: 0;
+            cursor: pointer;
+        }
+        .wallet-package__value {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 2px;
+            min-width: 110px;
+        }
+        .wallet-package__label > .wallet-package__info {
+            flex: 1 1 auto;
+        }
+        .wallet-package__info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .wallet-package__icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: #e7f0ff;
+            border: 1px solid #d5e5ff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f6ad7;
+            font-size: 16px;
+        }
+        .wallet-package__title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f3f86;
+        }
+        .wallet-package__desc {
+            margin: 0;
+            font-size: 13px;
+            color: #5f718a;
+        }
+        .wallet-package__value {
+            text-align: right;
+        }
+        .wallet-package__price {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: #1f6ad7;
+        }
+        .wallet-package__credit {
+            margin: 0;
+            font-size: 13px;
+            color: #5f718a;
+        }
+        .wallet-package__input + label {
+            width: 100%;
+        }
+        .wallet-package__input:checked + label .wallet-package {
+            border-color: #1f6ad7;
+            background: #f3f7ff;
+        }
+        .wallet-actions {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .wallet-actions__button {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid #1f6ad7;
+            background: #1f6ad7;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 12px;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+        .wallet-actions__button:hover {
+            filter: brightness(1.04);
+            background: linear-gradient(90deg, #1f6ad7 0%, #1f5bbb 100%);
+            transform: translateY(-1px);
+        }
+        .wallet-actions__button:focus {
+            outline: none;
+            box-shadow: none;
+        }
+        .wallet-actions__note {
+            margin: 0;
+            font-size: 13px;
+            color: #5f718a;
+            text-align: center;
+        }
+        .wallet-history {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 550px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 4px;
+        }
+        .wallet-history::-webkit-scrollbar {
+            width: 6px;
+        }
+        .wallet-history::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        .wallet-history::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .wallet-history::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .wallet-history__item {
+            border: 1px solid #e3edf7;
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px 12px;
+            background: #ffffff;
+        }
+        .wallet-history__actions {
+            grid-column: 1 / -1;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e3edf7;
+        }
+        .wallet-history__continue-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid #1f6ad7;
+            background: #1f6ad7;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: filter 0.2s ease, transform 0.2s ease;
+        }
+        .wallet-history__continue-btn:hover {
+            filter: brightness(1.04);
+            transform: translateY(-1px);
+            color: #ffffff;
+        }
+        .wallet-history__title {
+            margin: 0;
+            font-weight: 600;
+            color: #0f3f86;
+            font-size: 15px;
+        }
+        .wallet-history__desc {
+            margin: 0;
+            color: #5f718a;
+            font-size: 13px;
+        }
+        .wallet-history__meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 13px;
+            color: #5f718a;
+        }
+        .wallet-status {
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid transparent;
+        }
+        .wallet-status--success {
+            color: #0c714c;
+            border-color: #c6f2de;
+            background: #eefbf4;
+        }
+        .wallet-status--pending {
+            color: #996300;
+            border-color: #ffe7b8;
+            background: #fff8e6;
+        }
+        .wallet-status--failed {
+            color: #9a1d1d;
+            border-color: #f8d4d4;
+            background: #fff0f0;
+        }
+        .wallet-amount {
+            text-align: right;
+            align-self: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .wallet-amount--positive {
+            color: #0c714c;
+        }
+        .wallet-amount--negative {
+            color: #9a1d1d;
+        }
+        .wallet-empty {
+            text-align: center;
+            padding: 18px;
+            color: #5f718a;
+            border: 1px dashed #d5e5ff;
+            border-radius: 12px;
+        }
+        @keyframes walletFadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+block main-content
+    -
+        const packages = pricingCredit?.config?.parameters || []
+        const rawTransactions = Array.isArray(wallet?.history_transactions) ? wallet.history_transactions : []
+        const transactions = rawTransactions.sort((a, b) => {
+            const aTime = a.update_at ? new Date(a.update_at).getTime() : (a.create_at ? new Date(a.create_at).getTime() : 0)
+            const bTime = b.update_at ? new Date(b.update_at).getTime() : (b.create_at ? new Date(b.create_at).getTime() : 0)
+            return bTime - aTime
+        })
+        const statusMeta = {
+            pending: { label: 'Đang xử lý', className: 'wallet-status--pending', icon: 'fa-rotate' },
+            success: { label: 'Thành công', className: 'wallet-status--success', icon: 'fa-circle-check' },
+            failed: { label: 'Thất bại', className: 'wallet-status--failed', icon: 'fa-triangle-exclamation' }
+        }
+        const balanceValue = wallet?.balance_credit || 0
+    .wallet-page
+        .container
+            .row.g-4
+                .col-12.col-lg-5
+                    .wallet-card
+                        .wallet-card__header
+                            h1.wallet-card__title Ví credit
+                        .wallet-balance
+                            .wallet-balance__info
+                                span.wallet-balance__icon
+                                    i(class="fas fa-wallet")
+                                div.d-flex.align-items-center.gap-2
+                                    p.wallet-balance__label Số dư hiện tại
+                                    p.wallet-balance__value.ms-5 #{balanceValue} credit
+                                    i(class="fas fa-coins me-1 text-warning")
+                        div
+                            p.wallet-card__meta.mb-2 Chọn gói credit
+                            .wallet-packages
+                                each pack, idx in packages
+                                    - const inputId = `wallet-pack-${idx}`
+                                    input.wallet-package__input(type="radio" name="walletPackage" id=inputId value=pack._id data-credit=pack.credit hidden checked=idx === 0)
+                                    label(for=inputId)
+                                        .wallet-package
+                                            p.wallet-package__label
+                                                .d-flex.align-items-center.gap-2.justify-content-between
+                                                    .wallet-package__info
+                                                        span.wallet-package__icon
+                                                            i(class="fas fa-coins")
+                                                        div
+                                                            p.wallet-package__title #{pack.credit} credit
+                                                            p.wallet-package__desc Niêm yết #{pack.price.toLocaleString('vi-VN')} VND
+                                                    .wallet-package__value
+                                                        p.wallet-package__price Thành tiền: #{(pack.price - pack.discount).toLocaleString('vi-VN')} đ
+                                                        if pack.discount > 0
+                                                            p.wallet-package__credit Giảm giá #{pack.discount.toLocaleString('vi-VN')} đ
+                        .wallet-actions
+                            button.wallet-actions__button(type="button" id="walletPayButton") Thanh toán
+                            p.wallet-actions__note Chọn gói và nhấn Thanh toán để tiếp tục
+                .col-12.col-lg-7
+                    .wallet-card
+                        .wallet-card__header
+                            h2.wallet-card__title Lịch sử giao dịch
+                            span.wallet-card__meta #{transactions.length} giao dịch
+                        if transactions.length
+                            .wallet-history
+                                each item in transactions
+                                    - const statusInfo = statusMeta[item.status] || statusMeta.pending
+                                    - const createdAt = item.create_at ? new Date(item.create_at).toLocaleString('vi-VN') : 'Chưa rõ'
+                                    - const updatedAt = item.update_at ? new Date(item.update_at).toLocaleString('vi-VN') : null
+                                    - const priceValue = item.price ? Number(item.price) : 0
+                                    - const creditValue = item.credit ? Number(item.credit) : 0
+                                    - const amountClass = item.status === 'failed' ? 'wallet-amount wallet-amount--negative' : 'wallet-amount wallet-amount--positive'
+                                    .wallet-history__item
+                                        div
+                                            p.wallet-history__title #{item.title || 'Giao dịch'}
+                                            p.wallet-history__desc #{item.description || 'Không có mô tả'}
+                                            if creditValue > 0
+                                                p.wallet-history__desc(style="margin-top: 4px;")
+                                                    i(class="fas fa-coins me-1 text-primary")
+                                                    | #{creditValue.toLocaleString('vi-VN')} credit
+                                            .wallet-history__meta
+                                                span
+                                                    i(class=`fas ${statusInfo.icon} me-1 text-primary`)
+                                                    span(class=`wallet-status ${statusInfo.className}`)= statusInfo.label
+                                                span
+                                                    i(class="fas fa-calendar-plus me-1 text-muted")
+                                                    | Tạo: #{createdAt}
+                                                if updatedAt
+                                                    span
+                                                        i(class="fas fa-calendar-check me-1 text-muted")
+                                                        | Cập nhật: #{updatedAt}
+                                            if item.status === 'pending' && item.link_payment
+                                                .wallet-history__actions
+                                                    a.wallet-history__continue-btn(href=item.link_payment target="_blank" rel="noopener")
+                                                        i(class="fas fa-external-link-alt")
+                                                        | Tiếp tục thanh toán
+                                        span(class=amountClass)= `${(priceValue).toLocaleString('vi-VN')} đ`
+                        else
+                            .wallet-empty
+                                i(class="fas fa-receipt me-2")
+                                | Chưa có giao dịch nào.
+
+block scripts
+    script(type="module").
+        import { ApiBreakpoint } from '/js/api_breakpoint.js'
+        const paymentCodButton = document.getElementById('walletPayButton')
+        paymentCodButton.addEventListener('click', () => {
+            const packageId = document.querySelector('input[name="walletPackage"]:checked').value
+            fetch(ApiBreakpoint.POST_PAYMENT_COD, {
+                method: 'POST',
+                body: JSON.stringify({ packageId }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 201 && data.payUrl) {
+                        window.location.href = data.payUrl
+                    } else {
+                        window.alert(data.message || 'Không thể tạo URL thanh toán')
+                    }
+                })
+                .catch(() => {
+                    window.alert('Có lỗi xảy ra, vui lòng thử lại')
+                })
+        })

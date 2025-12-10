@@ -19,7 +19,8 @@ import {
   changePasswordController,
   logoutController,
   updateAvatarProfileController,
-  getHistoryController
+  getHistoryController,
+  renderWalletPageController
 } from '~/controllers/client/users.controllers'
 import {
   changePasswordValidator,
@@ -196,6 +197,15 @@ userRoutes.get(
   '/history',
   requireAuth,
   wrapRequestHandler(getHistoryController)
+)
+
+// GET /users/wallet
+// Method: GET
+// Description: Render wallet page
+userRoutes.get(
+  '/wallet',
+  requireAuth,
+  wrapRequestHandler(renderWalletPageController)
 )
 
 export default userRoutes

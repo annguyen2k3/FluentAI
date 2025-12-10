@@ -9,6 +9,7 @@ import { defaultErrorHandler } from './middlewares/errors.middleware'
 import cookieParser from 'cookie-parser'
 import { initFolder } from './utils/file'
 import scoreService from '~/services/score.service'
+import systemConfigService from './services/system-config.service'
 
 dotenv.config()
 
@@ -17,9 +18,12 @@ const port = process.env.PORT || 3000
 
 initFolder()
 databaseService.connect().then(async () => {
-  // Load cache khi server start
-  await scoreService.loadCache()
-  console.log('Score config cache loaded')
+  Promise.all([scoreService.loadCache(), systemConfigService.loadCache()]).then(
+    () => {
+      console.log('Score config cache loaded')
+      console.log('System config cache loaded')
+    }
+  )
 })
 
 // Serving static files
