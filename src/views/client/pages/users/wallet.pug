@@ -431,10 +431,10 @@ block scripts
                     if (data.status === 201 && data.payUrl) {
                         window.location.href = data.payUrl
                     } else {
-                        window.alert(data.message || 'Không thể tạo URL thanh toán')
+                        alertError(data.message || 'Không thể tạo URL thanh toán')
                     }
                 })
                 .catch(() => {
-                    window.alert('Có lỗi xảy ra, vui lòng thử lại')
+                    alertError('Có lỗi xảy ra, vui lòng thử lại')
                 })
         })

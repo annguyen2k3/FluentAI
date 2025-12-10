@@ -1,0 +1,21 @@
+mixin alertSuccess(title, message)
+    div(class="alert-notification alert-notification--success")
+        i(class="fas fa-check-circle alert-notification__icon")
+        div(class="alert-notification__content")
+            if title
+                strong(class="d-block mb-1")= title
+            if message
+                span= message
+        button(type="button" class="alert-notification__close" aria-label="Đóng")
+            i(class="fas fa-times")
+
+mixin alertError(title, message)
+    div(class="alert-notification alert-notification--error")
+        i(class="fas fa-exclamation-circle alert-notification__icon")
+        div(class="alert-notification__content")
+            if title
+                strong(class="d-block mb-1")= title
+            if message
+                span= message
+        button(type="button" class="alert-notification__close" aria-label="Đóng")
+            i(class="fas fa-times")

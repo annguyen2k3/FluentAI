@@ -249,7 +249,7 @@
 })()
 
 // Alert notification functions
-window.alertSuccess = function (message, time = 3000) {
+window.alertSuccess = function (message, time = 5000) {
   const alertContainer = document.createElement('div')
   alertContainer.className = 'alert-notification alert-notification--success'
   alertContainer.innerHTML = `
@@ -312,6 +312,28 @@ window.alertError = function (message, time = 5000) {
 
   return alertContainer
 }
+
+// Initialize alert notifications from server-side rendered mixins
+;(function () {
+  const alertNotifications = document.querySelectorAll('.alert-notification')
+  alertNotifications.forEach((alert) => {
+    const closeBtn = alert.querySelector('.alert-notification__close')
+    const closeAlert = () => {
+      alert.classList.add('alert-notification--hide')
+      setTimeout(() => {
+        if (alert.parentNode) {
+          alert.parentNode.removeChild(alert)
+        }
+      }, 300)
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeAlert)
+    }
+
+    setTimeout(closeAlert, 5000)
+  })
+})()
 ;(function () {
   const dictionaryToggle = document.getElementById('dictionaryWidgetToggle')
   const dictionaryContainer = document.getElementById(
