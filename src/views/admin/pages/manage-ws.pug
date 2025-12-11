@@ -26,14 +26,20 @@ block main-content
               |  Thêm nội dung mới
         div(class="card-body")
           div(class="writing-sentence__filters row g-3 mb-3 align-items-end")
-            div(class="col-lg-3 col-md-4 col-sm-6")
+            div(class="col-lg-2 col-md-4 col-sm-6")
               label(for="filterTopic" class="form-label mb-1") Lọc theo chủ đề
               select(id="filterTopic" class="form-select writing-sentence__filter-control")
                 option(value="") Tất cả chủ đề
-            div(class="col-lg-3 col-md-4 col-sm-6")
+            div(class="col-lg-2 col-md-4 col-sm-6")
               label(for="filterLevel" class="form-label mb-1") Lọc theo cấp độ
               select(id="filterLevel" class="form-select writing-sentence__filter-control")
                 option(value="") Tất cả cấp độ
+            div(class="col-lg-2 col-md-4 col-sm-6")
+              label(for="filterIsActive" class="form-label mb-1") Trạng thái hoạt động
+              select(id="filterIsActive" class="form-select writing-sentence__filter-control")
+                option(value="") Tất cả trạng thái
+                option(value="true") Đang hoạt động
+                option(value="false") Ngưng hoạt động
             div(class="col-lg-2 col-md-4 col-sm-6")
               label(for="filterLimit" class="form-label mb-1") Số mục mỗi trang
               select(id="filterLimit" class="form-select writing-sentence__filter-control")
@@ -120,6 +126,12 @@ block main-content
                 div(class="form-group")
                   label(for="writingSentencePos" class="form-label") Vị trí 
                   input(type="number" class="form-control" id="writingSentencePos" name="pos" value="1" min="1")
+              div(class="col-md-3")
+                div(class="form-group")
+                  label(for="writingSentenceIsActive" class="form-label") Trạng thái hoạt động
+                  select(class="form-control" id="writingSentenceIsActive" name="isActive")
+                    option(value="true") Đang hoạt động
+                    option(value="false") Ngưng hoạt động
             div(class="form-group")
               label(class="form-label") Danh sách câu 
                 span(class="text-danger") *
@@ -173,6 +185,7 @@ block scripts
       limit: 6,
       topic: '',
       level: '',
+      isActive: '',
       search: '',
       sortKey: 'pos',
       sortOrder: 'asc'
@@ -187,6 +200,7 @@ block scripts
       paginationNext: null,
       filterTopic: null,
       filterLevel: null,
+      filterIsActive: null,
       filterLimit: null,
       filterSearch: null,
       filterSortKey: null,
@@ -202,6 +216,7 @@ block scripts
       elements.paginationNext = document.getElementById('writingPaginationNext')
       elements.filterTopic = document.getElementById('filterTopic')
       elements.filterLevel = document.getElementById('filterLevel')
+      elements.filterIsActive = document.getElementById('filterIsActive')
       elements.filterLimit = document.getElementById('filterLimit')
       elements.filterSearch = document.getElementById('filterSearch')
       elements.filterSortKey = document.getElementById('filterSortKey')
@@ -215,6 +230,7 @@ block scripts
       params.set('limit', state.limit.toString())
       if (state.topic) params.set('topic', state.topic)
       if (state.level) params.set('level', state.level)
+      if (state.isActive !== '') params.set('isActive', state.isActive)
       if (state.search) params.set('search', state.search)
       if (state.sortKey) params.set('sortKey', state.sortKey)
       if (state.sortOrder) params.set('sortOrder', state.sortOrder)
@@ -283,20 +299,20 @@ block scripts
           <div class="col-md-6 mb-4">
             <div class="card writing-sentence__card position-relative">
               <div class="card-body">
-                <div class="writing-sentence__timestamps text-muted small">
+                <div class="writing-sentence__timestamps text-muted small mb-2">
                   ⌚ <span title="Ngày tạo">${createDate}</span> · ⟳ <span title="Ngày cập nhật">${updateDate}</span>
                 </div>
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <div>
-                    <h5 class="card-title mb-1">${item.title}</h5>
+                <div class="d-flex justify-content-between align-items-start mb-3 gap-2 position-relative">
+                  <div class="flex-grow-1 pe-4" style="min-width: 0;">
+                    <h5 class="card-title mb-1 writing-sentence__title" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.4; min-height: 2.8em; max-height: 2.8em;" title="${item.title}">${item.title}</h5>
                     <div class="writing-sentence__meta">
                       <span class="badge badge-primary me-2">${topicTitle}</span>
                       <span class="badge badge-info me-2">${levelTitle}</span>
-                      <span class="badge badge-secondary">${listCount} câu</span>
+                      <span class="badge badge-secondary me-2">${listCount} câu</span>
+                      <span class="badge ${item.isActive !== false ? 'badge-success' : 'badge-danger'}">${item.isActive !== false ? 'Đang hoạt động' : 'Ngưng hoạt động'}</span>
                     </div>
                   </div>
-                  <div class="writing-sentence__actions">
+                  <div class="writing-sentence__actions flex-shrink-0" style="white-space: nowrap;">
                     <button class="btn btn-sm btn-info" onclick="editWritingSentence('${item._id}')" title="Chỉnh sửa">
                       <i class="fas fa-edit"></i>
                     </button>
@@ -427,6 +443,7 @@ block scripts
         applyBtn.addEventListener('click', () => {
           state.topic = elements.filterTopic?.value || ''
           state.level = elements.filterLevel?.value || ''
+          state.isActive = elements.filterIsActive?.value || ''
           state.search = elements.filterSearch?.value.trim() || ''
           state.sortKey = elements.filterSortKey?.value || 'pos'
           state.sortOrder = elements.filterSortOrder?.value || 'asc'
@@ -439,6 +456,7 @@ block scripts
         resetBtn.addEventListener('click', () => {
           state.topic = ''
           state.level = ''
+          state.isActive = ''
           state.limit = 6
           state.search = ''
           state.sortKey = 'pos'
@@ -446,6 +464,7 @@ block scripts
           state.page = 1
           if (elements.filterTopic) elements.filterTopic.value = ''
           if (elements.filterLevel) elements.filterLevel.value = ''
+          if (elements.filterIsActive) elements.filterIsActive.value = ''
           if (elements.filterLimit) elements.filterLimit.value = '6'
           if (elements.filterSearch) elements.filterSearch.value = ''
           if (elements.filterSortKey) elements.filterSortKey.value = 'pos'
@@ -590,6 +609,7 @@ block scripts
     function openAddModal() {
       document.getElementById('writingSentenceForm').reset()
       document.getElementById('writingSentenceId').value = ''
+      document.getElementById('writingSentenceIsActive').value = 'true'
       document.getElementById('writingSentenceModalLabel').textContent = 'Thêm nội dung viết câu mới'
       document.getElementById('sentencesList').innerHTML = ''
       sentenceCounter = 0
@@ -610,6 +630,7 @@ block scripts
       document.getElementById('writingSentenceLevel').value = levelId || ''
       document.getElementById('writingSentenceSlug').value = isCopy ? '' : item.slug || ''
       document.getElementById('writingSentencePos').value = item.pos || 1
+      document.getElementById('writingSentenceIsActive').value = isCopy ? 'true' : (item.isActive !== false ? 'true' : 'false')
       document.getElementById('writingSentenceModalLabel').textContent = isCopy
         ? 'Sao chép nội dung viết câu'
         : 'Chỉnh sửa nội dung viết câu'
@@ -770,6 +791,7 @@ block scripts
       const level = document.getElementById('writingSentenceLevel').value
       let slug = document.getElementById('writingSentenceSlug').value.trim()
       const pos = parseInt(document.getElementById('writingSentencePos').value) || 1
+      const isActive = document.getElementById('writingSentenceIsActive').value === 'true'
 
       const sentences = []
       const sentenceItems = document.querySelectorAll('.writing-sentence__item')
@@ -820,6 +842,7 @@ block scripts
         level,
         slug,
         pos,
+        isActive,
         list: sentences
       }
 

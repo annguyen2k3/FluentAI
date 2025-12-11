@@ -42,6 +42,7 @@ export const getListWsController = async (req: Request, res: Response) => {
   const limit = Number(req.query.limit) || 10
   const levelParam = req.query.level as string | undefined
   const topicParam = req.query.topic as string | undefined
+  const isActiveParam = req.query.isActive as string | undefined
   const searchParam = req.query.search as string | undefined
   const sortKeyParam = req.query.sortKey as string | undefined
   const sortOrderParam = req.query.sortOrder as 'asc' | 'desc' | undefined
@@ -60,12 +61,17 @@ export const getListWsController = async (req: Request, res: Response) => {
     topicParam && ObjectId.isValid(topicParam)
       ? new ObjectId(topicParam)
       : undefined
+  const isActive =
+    isActiveParam !== undefined && isActiveParam !== ''
+      ? isActiveParam === 'true'
+      : undefined
 
   const data = await writingService.getWSList({
     page,
     limit,
     level,
     topic,
+    isActive,
     search,
     sortKey,
     sortOrder
@@ -79,14 +85,16 @@ export const getListWsController = async (req: Request, res: Response) => {
 
 // POST /admin/ws/create
 export const createWSListController = async (req: Request, res: Response) => {
-  const { title, topic, level, list, pos, slug } = req.body
+  const { title, topic, level, list, pos, slug, isActive } = req.body
   const wsList = new WSList({
     title,
     topic: new ObjectId(topic),
     level: new ObjectId(level),
     list,
     pos: Number(pos),
-    slug
+    slug,
+    isActive:
+      isActive !== undefined ? isActive === true || isActive === 'true' : true
   })
   await writingService.createWSList(wsList)
   res.status(HttpStatus.CREATED).json({
@@ -98,7 +106,7 @@ export const createWSListController = async (req: Request, res: Response) => {
 
 // PUT /admin/ws/update
 export const updateWSListController = async (req: Request, res: Response) => {
-  const { id, title, topic, level, list, pos, slug } = req.body
+  const { id, title, topic, level, list, pos, slug, isActive } = req.body
   const wsList = new WSList({
     _id: new ObjectId(id),
     title,
@@ -107,6 +115,8 @@ export const updateWSListController = async (req: Request, res: Response) => {
     list,
     pos: Number(pos),
     slug,
+    isActive:
+      isActive !== undefined ? isActive === true || isActive === 'true' : true,
     update_at: new Date()
   })
   await writingService.updateWSList(wsList)

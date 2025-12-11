@@ -70,6 +70,7 @@ class WritingService {
   async getWSList(find: {
     level?: ObjectId
     topic?: ObjectId
+    isActive?: boolean
     page?: number
     limit?: number
     search?: string
@@ -92,6 +93,8 @@ class WritingService {
     const matchStage: Record<string, unknown> = {}
     if (matchQuery.level) matchStage.level = matchQuery.level
     if (matchQuery.topic) matchStage.topic = matchQuery.topic
+    if (matchQuery.isActive !== undefined)
+      matchStage.isActive = matchQuery.isActive
     if (matchQuery.search)
       matchStage.title = { $regex: matchQuery.search, $options: 'i' }
 

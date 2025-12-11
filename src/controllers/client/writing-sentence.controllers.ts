@@ -76,6 +76,7 @@ export const getWSListController = async (req: Request, res: Response) => {
     search?: string
     sortKey?: string
     sortOrder?: 'asc' | 'desc'
+    isActive?: boolean
     history?: {
       userId: ObjectId
       status?: StatusLesson
@@ -114,7 +115,7 @@ export const getWSListController = async (req: Request, res: Response) => {
       userId: user._id as ObjectId
     }
   }
-
+  find.isActive = true
   const data = await writingService.getWSList(find)
 
   res.status(HttpStatus.OK).json({
