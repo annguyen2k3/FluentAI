@@ -3,6 +3,7 @@ import { StatusLesson, HistoryUserType } from '~/constants/enum'
 import { databaseService } from './database.service'
 import HisLVUser from '~/models/schemas/his-lv.schema'
 import HisPracticeUser from '~/models/schemas/his-practice-user.schema'
+import ListeningVideo from '~/models/schemas/lv-video.schemas'
 
 class ListeningService {
   async getLVList(find: {
@@ -209,6 +210,95 @@ class ListeningService {
     await databaseService.hisPracticeUsers.updateOne(
       { _id: history._id },
       { $set: { 'content.status': status, update_at: new Date() } }
+    )
+  }
+
+  async getLVListForAdmin(find: {
+    level?: ObjectId
+    topic?: ObjectId
+    isActive?: boolean
+    page?: number
+    limit?: number
+    search?: string
+    sortKey?: string
+    sortOrder?: 'asc' | 'desc'
+  }) {
+    const {
+      page = 1,
+      limit = 10,
+      sortKey = 'pos',
+      sortOrder = 'asc',
+      isActive,
+      ...matchQuery
+    } = find
+
+    const skip = (page - 1) * limit
+    const matchStage: Record<string, unknown> = {}
+
+    if (matchQuery.level) matchStage.level = matchQuery.level
+    if (matchQuery.topic) matchStage.topics = matchQuery.topic
+    if (matchQuery.search)
+      matchStage.title = { $regex: matchQuery.search, $options: 'i' }
+    if (typeof isActive === 'boolean') matchStage.isActive = isActive
+
+    const basePipeline: Record<string, unknown>[] = [
+      { $match: matchStage },
+      {
+        $sort: {
+          [sortKey]: sortOrder === 'asc' ? 1 : -1
+        }
+      },
+      {
+        $lookup: {
+          from: 'levels',
+          localField: 'level',
+          foreignField: '_id',
+          as: 'level'
+        }
+      },
+      { $unwind: '$level' },
+      {
+        $lookup: {
+          from: 'topics',
+          localField: 'topics',
+          foreignField: '_id',
+          as: 'topic'
+        }
+      }
+    ]
+
+    const dataPipeline = [...basePipeline, { $skip: skip }, { $limit: limit }]
+    const countPipeline = [...basePipeline, { $count: 'total' }]
+
+    const [data, totalResult] = await Promise.all([
+      databaseService.listeningVideos.aggregate(dataPipeline).toArray(),
+      databaseService.listeningVideos.aggregate(countPipeline).toArray()
+    ])
+
+    const total = totalResult[0]?.total || 0
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
+    }
+  }
+
+  async createLV(listeningVideo: ListeningVideo) {
+    await databaseService.listeningVideos.insertOne(listeningVideo)
+  }
+
+  async updateLV(listeningVideo: ListeningVideo) {
+    await databaseService.listeningVideos.updateOne(
+      { _id: listeningVideo._id },
+      { $set: listeningVideo }
     )
   }
 }
