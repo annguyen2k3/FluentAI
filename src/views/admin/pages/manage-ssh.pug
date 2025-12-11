@@ -1,0 +1,988 @@
+extends ../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Quản lý nội dung
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Luyện phát âm (Shadowing)
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card")
+        div(class="card-header")
+          div(class="d-flex align-items-center justify-content-between")
+            h4(class="card-title") Danh sách bài nghe Shadowing
+            button(class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#shadowingModal" onclick="openAddModal()")
+              i(class="fas fa-plus")
+              |  Thêm bài mới
+        div(class="card-body")
+          div(class="shadowing__filters row g-3 mb-3 align-items-end")
+            div(class="col-lg-2 col-md-4 col-sm-6")
+              label(for="filterTopic" class="form-label mb-1") Lọc theo chủ đề
+              select(id="filterTopic" class="form-select shadowing__filter-control")
+                option(value="") Tất cả chủ đề
+            div(class="col-lg-2 col-md-4 col-sm-6")
+              label(for="filterLevel" class="form-label mb-1") Lọc theo cấp độ
+              select(id="filterLevel" class="form-select shadowing__filter-control")
+                option(value="") Tất cả cấp độ
+            div(class="col-lg-2 col-md-4 col-sm-6")
+              label(for="filterIsActive" class="form-label mb-1") Trạng thái hoạt động
+              select(id="filterIsActive" class="form-select shadowing__filter-control")
+                option(value="") Tất cả trạng thái
+                option(value="true") Đang hoạt động
+                option(value="false") Ngưng hoạt động
+            div(class="col-lg-2 col-md-4 col-sm-6")
+              label(for="filterLimit" class="form-label mb-1") Số mục mỗi trang
+              select(id="filterLimit" class="form-select shadowing__filter-control")
+                option(value="6") 6 mục
+                option(value="12") 12 mục
+                option(value="24") 24 mục
+            div(class="col-lg-4 col-md-8 col-sm-12")
+              label(for="filterSearch" class="form-label mb-1") Tìm kiếm theo tiêu đề
+              input(type="text" id="filterSearch" class="form-control shadowing__filter-control" placeholder="Nhập từ khóa tiêu đề")
+          div(class="shadowing__filters row g-3 mb-4 shadowing__filters--advanced")
+            div(class="col-lg-3 col-md-4 col-sm-6")
+              label(for="filterSortKey" class="form-label mb-1") Sắp xếp theo
+              select(id="filterSortKey" class="form-select shadowing__filter-control")
+                option(value="pos") Vị trí
+                option(value="create_at") Ngày tạo
+                option(value="update_at") Ngày cập nhật
+            div(class="col-lg-3 col-md-4 col-sm-6")
+              label(for="filterSortOrder" class="form-label mb-1") Thứ tự
+              select(id="filterSortOrder" class="form-select shadowing__filter-control")
+                option(value="asc") Tăng dần
+                option(value="desc") Giảm dần
+            div(class="col-lg-3 col-md-4 col-sm-6 d-flex align-items-end justify-content-center shadowing__result-badge")
+              span(id="filterResultCount" class="badge bg-light text-dark px-3 py-2 w-100 text-center") 0 nội dung
+            div(class="col-lg-3 col-md-4 col-sm-12 d-flex align-items-end justify-content-end shadowing__filter-actions")
+              button(type="button" class="btn btn-outline-secondary me-2" id="filterResetBtn")
+                i(class="fas fa-undo me-1")
+                |  Đặt lại
+              button(type="button" class="btn btn-primary" id="filterApplyBtn")
+                i(class="fas fa-filter me-1")
+                |  Áp dụng
+          div(id="shadowingLoading" class="shadowing__loading text-center py-5 d-none")
+            div(class="spinner-border text-primary" role="status")
+              span(class="visually-hidden") Đang tải
+            p(class="text-muted mt-3") Đang tải dữ liệu, vui lòng chờ...
+          div(id="shadowingEmpty" class="shadowing__empty text-center py-5 d-none")
+            i(class="far fa-folder-open fa-3x text-muted mb-3")
+            p(class="text-muted mb-0") Không tìm thấy nội dung nào
+          div(class="row" id="shadowingList")
+          div(class="shadowing__pagination d-flex justify-content-between align-items-center mt-4")
+            span(id="shadowingPaginationInfo" class="text-muted") Đang tải dữ liệu...
+            div(class="d-flex gap-2")
+              button(type="button" class="btn btn-outline-secondary shadowing__pagination-btn" id="shadowingPaginationPrev")
+                i(class="fas fa-chevron-left me-1")
+                |  Trước
+              button(type="button" class="btn btn-outline-secondary shadowing__pagination-btn" id="shadowingPaginationNext")
+                | Sau
+                i(class="fas fa-chevron-right ms-1")
+
+  div(class="modal fade" id="shadowingModal" tabindex="-1" role="dialog" aria-labelledby="shadowingModalLabel" aria-hidden="true")
+    div(class="modal-dialog modal-xl" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="shadowingModalLabel") Thêm bài nghe Shadowing mới
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          form(id="shadowingForm")
+            input(type="hidden" id="shadowingId" name="id")
+            div(class="row")
+              div(class="col-md-6")
+                div(class="form-group")
+                  label(for="shadowingTitle" class="form-label") Tiêu đề 
+                    span(class="text-danger") *
+                  input(type="text" class="form-control" id="shadowingTitle" name="title" required placeholder="Ví dụ: Chào hỏi cơ bản")
+              div(class="col-md-3")
+                div(class="form-group")
+                  label(for="shadowingTopic" class="form-label") Chủ đề 
+                    span(class="text-danger") *
+                  select(class="form-control" id="shadowingTopic" name="topic" required)
+                    option(value="") Chọn chủ đề
+              div(class="col-md-3")
+                div(class="form-group")
+                  label(for="shadowingLevel" class="form-label") Cấp độ 
+                    span(class="text-danger") *
+                  select(class="form-control" id="shadowingLevel" name="level" required)
+                    option(value="") Chọn cấp độ
+            div(class="row")
+              div(class="col-md-6")
+                div(class="form-group")
+                  label(for="shadowingSlug" class="form-label") Slug
+                  input(type="text" class="form-control" id="shadowingSlug" name="slug" placeholder="Ví dụ: chao-hoi-co-ban")
+                  small(class="form-text text-muted") Slug sẽ được tự động tạo từ tiêu đề nếu để trống
+              div(class="col-md-3")
+                div(class="form-group")
+                  label(for="shadowingPos" class="form-label") Vị trí 
+                  input(type="number" class="form-control" id="shadowingPos" name="pos" value="1" min="1")
+              div(class="col-md-3")
+                div(class="form-group")
+                  label(for="shadowingIsActive" class="form-label") Trạng thái hoạt động
+                  select(class="form-control" id="shadowingIsActive" name="isActive")
+                    option(value="true") Đang hoạt động
+                    option(value="false") Ngưng hoạt động
+            div(class="row")
+              div(class="col-md-6")
+                div(class="form-group")
+                  label(for="shadowingVideoUrl" class="form-label") URL Video 
+                    span(class="text-danger") *
+                  input(type="text" class="form-control" id="shadowingVideoUrl" name="videoUrl" required placeholder="Nhập URL video YouTube" oninput="updateVideoPreview(); autoGenerateThumbnailFromVideo();")
+                  small(class="form-text text-muted") Ví dụ: https://www.youtube.com/watch?v=VIDEO_ID
+                  div(id="videoPreviewContainer" class="mt-3 shadowing__video-preview" style="display: none;")
+                    div(class="ratio ratio-16x9")
+                      iframe(id="videoPreview" class="shadowing__video-iframe" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen)
+              div(class="col-md-6")
+                div(class="form-group")
+                  label(for="shadowingThumbnailUrl" class="form-label") URL Thumbnail
+                  input(type="text" class="form-control" id="shadowingThumbnailUrl" name="thumbnailUrl" placeholder="URL thumbnail (tự động tạo từ YouTube nếu để trống)" oninput="updateThumbnailPreview()")
+                  div(id="thumbnailPreviewContainer" class="mt-3 shadowing__thumbnail-preview" style="display: none;")
+                    img(id="thumbnailPreview" class="img-fluid rounded shadowing__thumbnail-img" alt="Thumbnail preview" style="max-height: 200px; width: 100%; object-fit: contain;")
+            div(class="form-group")
+              label(class="form-label") Transcript 
+                span(class="text-danger") *
+              div(id="transcriptList" class="shadowing__transcript-list")
+              button(type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addTranscriptItem()")
+                i(class="fas fa-plus")
+                |  Thêm câu transcript
+
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-primary" onclick="saveShadowing()") Lưu
+
+  div(class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true")
+    div(class="modal-dialog" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="confirmModalLabel") Xác nhận
+          button(type="button" class="close" data-bs-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          p(id="confirmMessage") Bạn có chắc chắn muốn thực hiện hành động này?
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Hủy
+          button(type="button" class="btn btn-danger" id="confirmAction") Xác nhận
+
+block scripts
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    const prefixAdmin = '#{prefixAdmin}'
+    const topicsData = !{JSON.stringify(topics || [])}
+    const levelsData = !{JSON.stringify(levels || [])}
+
+    const topicTitles = {}
+    topicsData.forEach(topic => {
+      topicTitles[topic._id] = topic.title
+    })
+
+    const levelTitles = {}
+    levelsData.forEach(level => {
+      levelTitles[level._id] = level.title
+    })
+
+    let shadowingData = []
+    let pagination = { page: 1, limit: 6, total: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false }
+    let transcriptCounter = 0
+
+    const state = {
+      page: 1,
+      limit: 6,
+      topic: '',
+      level: '',
+      isActive: '',
+      search: '',
+      sortKey: 'pos',
+      sortOrder: 'asc'
+    }
+
+    const elements = {
+      list: null,
+      loading: null,
+      empty: null,
+      paginationInfo: null,
+      paginationPrev: null,
+      paginationNext: null,
+      filterTopic: null,
+      filterLevel: null,
+      filterIsActive: null,
+      filterLimit: null,
+      filterSearch: null,
+      filterSortKey: null,
+      filterSortOrder: null
+    }
+
+    function cacheElements() {
+      elements.list = document.getElementById('shadowingList')
+      elements.loading = document.getElementById('shadowingLoading')
+      elements.empty = document.getElementById('shadowingEmpty')
+      elements.paginationInfo = document.getElementById('shadowingPaginationInfo')
+      elements.paginationPrev = document.getElementById('shadowingPaginationPrev')
+      elements.paginationNext = document.getElementById('shadowingPaginationNext')
+      elements.filterTopic = document.getElementById('filterTopic')
+      elements.filterLevel = document.getElementById('filterLevel')
+      elements.filterIsActive = document.getElementById('filterIsActive')
+      elements.filterLimit = document.getElementById('filterLimit')
+      elements.filterSearch = document.getElementById('filterSearch')
+      elements.filterSortKey = document.getElementById('filterSortKey')
+      elements.filterSortOrder = document.getElementById('filterSortOrder')
+    }
+
+    async function fetchShadowing() {
+      toggleLoading(true)
+      const params = new URLSearchParams()
+      params.set('page', state.page.toString())
+      params.set('limit', state.limit.toString())
+      if (state.topic) params.set('topic', state.topic)
+      if (state.level) params.set('level', state.level)
+      if (state.isActive !== '') params.set('isActive', state.isActive)
+      if (state.search) params.set('search', state.search)
+      if (state.sortKey) params.set('sortKey', state.sortKey)
+      if (state.sortOrder) params.set('sortOrder', state.sortOrder)
+
+      try {
+        const response = await fetch(`${AdminApiBreakpoint.GET_SV_LIST}?${params.toString()}`, {
+          credentials: 'same-origin'
+        })
+        const payload = await response.json()
+        if (!response.ok) {
+          throw payload
+        }
+        shadowingData = payload.data || []
+        const totalItems = payload.pagination?.total || shadowingData.length || 0
+        const resultCountEl = document.getElementById('filterResultCount')
+        if (resultCountEl) {
+          resultCountEl.textContent = `${totalItems} nội dung`
+        }
+        pagination = {
+          page: payload.pagination?.page || state.page,
+          limit: payload.pagination?.limit || state.limit,
+          total: payload.pagination?.total || 0,
+          totalPages: payload.pagination?.totalPages || 0,
+          hasNextPage: payload.pagination?.hasNextPage || false,
+          hasPrevPage: payload.pagination?.hasPrevPage || false
+        }
+        renderShadowing()
+        updatePaginationUI()
+      } catch (error) {
+        const message = error?.message || 'Không thể tải danh sách nội dung'
+        showNotification('error', message)
+        shadowingData = []
+        renderShadowing()
+        updatePaginationUI()
+      } finally {
+        toggleLoading(false)
+      }
+    }
+
+    function renderShadowing() {
+      const container = elements.list || document.getElementById('shadowingList')
+      if (!container) return
+      if (!elements.list) elements.list = container
+      container.innerHTML = ''
+
+      if (!shadowingData.length) {
+        container.classList.add('d-none')
+        toggleEmpty(true)
+        return
+      }
+
+      container.classList.remove('d-none')
+      toggleEmpty(false)
+
+      shadowingData.forEach(item => {
+        const topicId = typeof item.topic === 'string' ? item.topic : item.topic?._id
+        const levelId = typeof item.level === 'string' ? item.level : item.level?._id
+        const topicTitle = item.topic?.title || topicTitles[topicId] || 'N/A'
+        const levelTitle = item.level?.title || levelTitles[levelId] || 'N/A'
+        const transcriptCount = item.transcript ? item.transcript.length : 0
+
+        const createDate = item.create_at ? new Date(item.create_at).toLocaleString('vi-VN') : 'N/A'
+        const updateDate = item.update_at ? new Date(item.update_at).toLocaleString('vi-VN') : 'N/A'
+
+        const thumbnailUrl = item.thumbnailUrl || ''
+
+        const card = `
+          <div class="col-md-6 mb-4">
+            <div class="card shadowing__card position-relative">
+              ${thumbnailUrl ? `
+                <img src="${thumbnailUrl}" class="card-img-top shadowing__thumbnail" alt="${item.title}" style="height: 200px; object-fit: cover;">
+              ` : ''}
+              <div class="card-body">
+                <div class="shadowing__timestamps text-muted small mb-2">
+                  ⌚ <span title="Ngày tạo">${createDate}</span> · ⟳ <span title="Ngày cập nhật">${updateDate}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-start mb-3 gap-2 position-relative">
+                  <div class="flex-grow-1 pe-4" style="min-width: 0;">
+                    <h5 class="card-title mb-1 shadowing__title" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.4; min-height: 2.8em; max-height: 2.8em;" title="${item.title}">${item.title}</h5>
+                    <div class="shadowing__meta">
+                      <span class="badge badge-primary me-2">${topicTitle}</span>
+                      <span class="badge badge-info me-2">${levelTitle}</span>
+                      <span class="badge badge-secondary me-2">${transcriptCount} câu</span>
+                      <span class="badge ${item.isActive !== false ? 'badge-success' : 'badge-danger'}">${item.isActive !== false ? 'Đang hoạt động' : 'Ngưng hoạt động'}</span>
+                    </div>
+                  </div>
+                  <div class="shadowing__actions flex-shrink-0" style="white-space: nowrap;">
+                    <button class="btn btn-sm btn-info" onclick="editShadowing('${item._id}')" title="Chỉnh sửa">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="copyShadowing('${item._id}')" title="Sao chép">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteShadowing('${item._id}')" title="Xóa">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                <p class="text-muted mb-1"><strong>Slug:</strong> ${item.slug}</p>
+                <p class="text-muted mb-1"><strong>Vị trí:</strong> ${item.pos || '-'}</p>
+                <p class="text-muted mb-1"><strong>Video URL:</strong> <a href="${item.videoUrl}" target="_blank" class="text-primary">${item.videoUrl}</a></p>
+                ${item.transcript && item.transcript.length > 0 ? `
+                  <div class="shadowing__preview mt-3">
+                    <strong>Xem trước transcript:</strong>
+                    <ul class="mt-2 mb-0">
+                      ${item.transcript.slice(0, 2).map(t => `<li>${t.enText || ''} (${t.startTime}s - ${t.endTime}s)</li>`).join('')}
+                      ${item.transcript.length > 2 ? `<li class="text-muted">... và ${item.transcript.length - 2} câu khác</li>` : ''}
+                    </ul>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `
+        container.innerHTML += card
+      })
+    }
+
+    function updatePaginationUI() {
+      if (elements.paginationInfo) {
+        if (pagination.total > 0) {
+          const totalPages = Math.max(pagination.totalPages, 1)
+          elements.paginationInfo.textContent = `Trang ${pagination.page}/${totalPages} • ${pagination.total} nội dung`
+        } else {
+          elements.paginationInfo.textContent = 'Không có dữ liệu'
+        }
+      }
+      if (elements.paginationPrev) {
+        elements.paginationPrev.disabled = !pagination.hasPrevPage
+      }
+      if (elements.paginationNext) {
+        elements.paginationNext.disabled = !pagination.hasNextPage
+      }
+    }
+
+    function toggleLoading(show) {
+      const loadingEl = elements.loading || document.getElementById('shadowingLoading')
+      const listEl = elements.list || document.getElementById('shadowingList')
+      if (!loadingEl || !listEl) return
+      if (!elements.loading) elements.loading = loadingEl
+      if (!elements.list) elements.list = listEl
+
+      if (show) {
+        loadingEl.classList.remove('d-none')
+        listEl.classList.add('d-none')
+        toggleEmpty(false)
+      } else {
+        loadingEl.classList.add('d-none')
+      }
+    }
+
+    function toggleEmpty(show) {
+      const emptyEl = elements.empty || document.getElementById('shadowingEmpty')
+      if (!emptyEl) return
+      if (!elements.empty) elements.empty = emptyEl
+      if (show) {
+        emptyEl.classList.remove('d-none')
+      } else {
+        emptyEl.classList.add('d-none')
+      }
+    }
+
+    function populateSelectOptions() {
+      const topicSelect = document.getElementById('shadowingTopic')
+      const levelSelect = document.getElementById('shadowingLevel')
+
+      if (topicSelect) {
+        topicSelect.innerHTML = '<option value="">Chọn chủ đề</option>'
+      }
+      if (levelSelect) {
+        levelSelect.innerHTML = '<option value="">Chọn cấp độ</option>'
+      }
+      if (elements.filterTopic) {
+        elements.filterTopic.innerHTML = '<option value="">Tất cả chủ đề</option>'
+      }
+      if (elements.filterLevel) {
+        elements.filterLevel.innerHTML = '<option value="">Tất cả cấp độ</option>'
+      }
+
+      topicsData.forEach(topic => {
+        if (topicSelect) {
+          const option = document.createElement('option')
+          option.value = topic._id
+          option.textContent = topic.title
+          topicSelect.appendChild(option)
+        }
+        if (elements.filterTopic) {
+          const filterOption = document.createElement('option')
+          filterOption.value = topic._id
+          filterOption.textContent = topic.title
+          elements.filterTopic.appendChild(filterOption)
+        }
+      })
+
+      levelsData.forEach(level => {
+        if (levelSelect) {
+          const option = document.createElement('option')
+          option.value = level._id
+          option.textContent = level.title
+          levelSelect.appendChild(option)
+        }
+        if (elements.filterLevel) {
+          const filterOption = document.createElement('option')
+          filterOption.value = level._id
+          filterOption.textContent = level.title
+          elements.filterLevel.appendChild(filterOption)
+        }
+      })
+    }
+
+    function handleFilterEvents() {
+      const applyBtn = document.getElementById('filterApplyBtn')
+      const resetBtn = document.getElementById('filterResetBtn')
+
+      if (applyBtn) {
+        applyBtn.addEventListener('click', () => {
+          state.topic = elements.filterTopic?.value || ''
+          state.level = elements.filterLevel?.value || ''
+          state.isActive = elements.filterIsActive?.value || ''
+          state.search = elements.filterSearch?.value.trim() || ''
+          state.sortKey = elements.filterSortKey?.value || 'pos'
+          state.sortOrder = elements.filterSortOrder?.value || 'asc'
+          state.page = 1
+          fetchShadowing()
+        })
+      }
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          state.topic = ''
+          state.level = ''
+          state.isActive = ''
+          state.limit = 6
+          state.search = ''
+          state.sortKey = 'pos'
+          state.sortOrder = 'asc'
+          state.page = 1
+          if (elements.filterTopic) elements.filterTopic.value = ''
+          if (elements.filterLevel) elements.filterLevel.value = ''
+          if (elements.filterIsActive) elements.filterIsActive.value = ''
+          if (elements.filterLimit) elements.filterLimit.value = '6'
+          if (elements.filterSearch) elements.filterSearch.value = ''
+          if (elements.filterSortKey) elements.filterSortKey.value = 'pos'
+          if (elements.filterSortOrder) elements.filterSortOrder.value = 'asc'
+          fetchShadowing()
+        })
+      }
+
+      if (elements.filterLimit) {
+        elements.filterLimit.value = state.limit.toString()
+        elements.filterLimit.addEventListener('change', event => {
+          const value = Number(event.target.value) || 6
+          state.limit = value
+          state.page = 1
+          fetchShadowing()
+        })
+      }
+
+      if (elements.filterSortKey) {
+        elements.filterSortKey.value = state.sortKey
+      }
+
+      if (elements.filterSortOrder) {
+        elements.filterSortOrder.value = state.sortOrder
+      }
+
+      if (elements.paginationPrev) {
+        elements.paginationPrev.addEventListener('click', () => {
+          if (!pagination.hasPrevPage) return
+          state.page = Math.max(1, state.page - 1)
+          fetchShadowing()
+        })
+      }
+
+      if (elements.paginationNext) {
+        elements.paginationNext.addEventListener('click', () => {
+          if (!pagination.hasNextPage) return
+          state.page += 1
+          fetchShadowing()
+        })
+      }
+    }
+
+    function addTranscriptItem() {
+      transcriptCounter++
+      const transcriptHtml = `
+        <div class="shadowing__transcript-item mb-3 p-3 border rounded" data-transcript-id="${transcriptCounter}">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Câu ${transcriptCounter}</h6>
+            <button type="button" class="btn btn-sm btn-danger" onclick="removeTranscriptItem(${transcriptCounter})">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+          <div class="row mb-2">
+            <div class="col-md-3">
+              <label class="form-label">Thời gian bắt đầu (s) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control form-control-sm shadowing__start-time" value="0" min="0" step="0.1" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Thời gian kết thúc (s) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control form-control-sm shadowing__end-time" value="0" min="0" step="0.1" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Câu tiếng Anh <span class="text-danger">*</span></label>
+              <input type="text" class="form-control shadowing__en-text" required placeholder="Nhập câu tiếng Anh">
+            </div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label class="form-label">Câu tiếng Việt <span class="text-danger">*</span></label>
+              <input type="text" class="form-control shadowing__vi-text" required placeholder="Nhập câu tiếng Việt">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Phát âm</label>
+              <input type="text" class="form-control shadowing__phonetics" placeholder="Nhập phiên âm">
+            </div>
+          </div>
+        </div>
+      `
+      document.getElementById('transcriptList').insertAdjacentHTML('beforeend', transcriptHtml)
+    }
+
+    function removeTranscriptItem(transcriptId) {
+      const transcriptEl = document.querySelector(`[data-transcript-id="${transcriptId}"]`)
+      if (transcriptEl) {
+        transcriptEl.remove()
+      }
+    }
+
+    function openAddModal() {
+      document.getElementById('shadowingForm').reset()
+      document.getElementById('shadowingId').value = ''
+      document.getElementById('shadowingModalLabel').textContent = 'Thêm bài nghe Shadowing mới'
+      document.getElementById('transcriptList').innerHTML = ''
+      document.getElementById('videoPreviewContainer').style.display = 'none'
+      document.getElementById('thumbnailPreviewContainer').style.display = 'none'
+      transcriptCounter = 0
+      addTranscriptItem()
+    }
+
+    function populateFormWithItem(item, { isCopy = false } = {}) {
+      if (!item) return
+      const topicId = typeof item.topic === 'string' ? item.topic : item.topic?._id
+      const levelId = typeof item.level === 'string' ? item.level : item.level?._id
+
+      document.getElementById('shadowingId').value = isCopy ? '' : item._id
+      document.getElementById('shadowingTitle').value = isCopy
+        ? `${item.title} (Copy)`
+        : item.title
+      document.getElementById('shadowingTopic').value = topicId || ''
+      document.getElementById('shadowingLevel').value = levelId || ''
+      document.getElementById('shadowingSlug').value = isCopy ? '' : item.slug || ''
+      document.getElementById('shadowingPos').value = item.pos || 1
+      document.getElementById('shadowingIsActive').value = isCopy ? 'true' : (item.isActive !== false ? 'true' : 'false')
+      document.getElementById('shadowingVideoUrl').value = item.videoUrl || ''
+      document.getElementById('shadowingThumbnailUrl').value = item.thumbnailUrl || ''
+      document.getElementById('shadowingModalLabel').textContent = isCopy
+        ? 'Sao chép bài nghe Shadowing'
+        : 'Chỉnh sửa bài nghe Shadowing'
+      
+      setTimeout(() => {
+        updateVideoPreview()
+        updateThumbnailPreview()
+      }, 100)
+
+      document.getElementById('transcriptList').innerHTML = ''
+      transcriptCounter = 0
+
+      if (item.transcript && item.transcript.length > 0) {
+        item.transcript.forEach(transcript => {
+          transcriptCounter++
+          const transcriptHtml = `
+            <div class="shadowing__transcript-item mb-3 p-3 border rounded" data-transcript-id="${transcriptCounter}">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Câu ${transcriptCounter}</h6>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeTranscriptItem(${transcriptCounter})">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+              <div class="row mb-2">
+                <div class="col-md-3">
+                  <label class="form-label">Thời gian bắt đầu (s) <span class="text-danger">*</span></label>
+                  <input type="number" class="form-control form-control-sm shadowing__start-time" value="${transcript.startTime || 0}" min="0" step="0.1" required>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Thời gian kết thúc (s) <span class="text-danger">*</span></label>
+                  <input type="number" class="form-control form-control-sm shadowing__end-time" value="${transcript.endTime || 0}" min="0" step="0.1" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Câu tiếng Anh <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control shadowing__en-text" required value="${transcript.enText || ''}" placeholder="Nhập câu tiếng Anh">
+                </div>
+              </div>
+              <div class="row mb-2">
+                <div class="col-md-6">
+                  <label class="form-label">Câu tiếng Việt <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control shadowing__vi-text" required value="${transcript.viText || ''}" placeholder="Nhập câu tiếng Việt">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Phát âm</label>
+                  <input type="text" class="form-control shadowing__phonetics" value="${transcript.phonetics || ''}" placeholder="Nhập phiên âm">
+                </div>
+              </div>
+            </div>
+          `
+          document.getElementById('transcriptList').insertAdjacentHTML('beforeend', transcriptHtml)
+        })
+      } else {
+        addTranscriptItem()
+      }
+
+      new bootstrap.Modal(document.getElementById('shadowingModal')).show()
+    }
+
+    function editShadowing(id) {
+      const item = shadowingData.find(s => s._id === id)
+      if (!item) return
+      populateFormWithItem(item)
+    }
+
+    function copyShadowing(id) {
+      const item = shadowingData.find(s => s._id === id)
+      if (!item) return
+      populateFormWithItem(item, { isCopy: true })
+    }
+
+    function deleteShadowing(id) {
+      showConfirmModal(
+        'Xóa bài nghe Shadowing',
+        'Bạn có chắc chắn muốn xóa bài này? Hành động này không thể hoàn tác!',
+        () => {
+          fetch(AdminApiBreakpoint.DELETE_SV_LIST, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ id })
+          })
+            .then(async response => {
+              if (!response.ok) {
+                const error = await response.json()
+                error.status = response.status
+                return Promise.reject(error)
+              }
+              return response.json()
+            })
+            .then(data => {
+              showNotification('success', data.message || 'Đã xóa bài thành công!')
+              fetchShadowing()
+            })
+            .catch(error => {
+              let errorMessage = 'Có lỗi xảy ra khi xóa bài'
+              if (error.status === 422 && error.errors) {
+                errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                  .map(err => `- ${err.msg || err}`)
+                  .join('\n')
+              } else if (error.errors) {
+                const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+                errorMessage = errorMessages || error.message || errorMessage
+              } else if (error.message) {
+                errorMessage = error.message
+              }
+              showNotification('error', errorMessage)
+            })
+        }
+      )
+    }
+
+    function saveShadowing() {
+      const form = document.getElementById('shadowingForm')
+      if (!form.checkValidity()) {
+        form.reportValidity()
+        return
+      }
+
+      const id = document.getElementById('shadowingId').value
+      const title = document.getElementById('shadowingTitle').value
+      const topic = document.getElementById('shadowingTopic').value
+      const level = document.getElementById('shadowingLevel').value
+      let slug = document.getElementById('shadowingSlug').value.trim()
+      const pos = parseInt(document.getElementById('shadowingPos').value) || 1
+      const isActive = document.getElementById('shadowingIsActive').value === 'true'
+      const videoUrl = document.getElementById('shadowingVideoUrl').value.trim()
+      const thumbnailUrl = document.getElementById('shadowingThumbnailUrl').value.trim()
+
+      const transcript = []
+      const transcriptItems = document.querySelectorAll('.shadowing__transcript-item')
+
+      transcriptItems.forEach(transcriptEl => {
+        const startTime = parseFloat(transcriptEl.querySelector('.shadowing__start-time').value) || 0
+        const endTime = parseFloat(transcriptEl.querySelector('.shadowing__end-time').value) || 0
+        const enText = transcriptEl.querySelector('.shadowing__en-text').value.trim()
+        const viText = transcriptEl.querySelector('.shadowing__vi-text').value.trim()
+        if (!enText || !viText) return
+
+        const phonetics = transcriptEl.querySelector('.shadowing__phonetics').value.trim()
+
+        transcript.push({
+          startTime: startTime,
+          endTime: endTime,
+          enText: enText,
+          viText: viText,
+          phonetics: phonetics || ''
+        })
+      })
+
+      if (transcript.length === 0) {
+        showNotification('error', 'Vui lòng thêm ít nhất một câu transcript!')
+        return
+      }
+
+      const svData = {
+        title,
+        topic,
+        level,
+        slug,
+        pos,
+        isActive,
+        videoUrl,
+        thumbnailUrl: thumbnailUrl || undefined,
+        transcript
+      }
+
+      if (id) {
+        svData.id = id
+        fetch(AdminApiBreakpoint.UPDATE_SV_LIST, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(svData)
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const error = await response.json()
+              error.status = response.status
+              return Promise.reject(error)
+            }
+            return response.json()
+          })
+          .then(data => {
+            showNotification('success', data.message || 'Đã cập nhật bài thành công!')
+            bootstrap.Modal.getInstance(document.getElementById('shadowingModal')).hide()
+            fetchShadowing()
+          })
+          .catch(error => {
+            let errorMessage = 'Có lỗi xảy ra khi cập nhật bài'
+            if (error.status === 422 && error.errors) {
+              errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                .map(err => `- ${err.msg || err}`)
+                .join('\n')
+            } else if (error.errors) {
+              const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+              errorMessage = errorMessages || error.message || errorMessage
+            } else if (error.message) {
+              errorMessage = error.message
+            }
+            showNotification('error', errorMessage)
+          })
+      } else {
+        fetch(AdminApiBreakpoint.CREATE_SV_LIST, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(svData)
+        })
+          .then(async response => {
+            if (!response.ok) {
+              const error = await response.json()
+              error.status = response.status
+              return Promise.reject(error)
+            }
+            return response.json()
+          })
+          .then(data => {
+            showNotification('success', data.message || 'Đã thêm bài mới thành công!')
+            bootstrap.Modal.getInstance(document.getElementById('shadowingModal')).hide()
+            fetchShadowing()
+          })
+          .catch(error => {
+            let errorMessage = 'Có lỗi xảy ra khi thêm bài'
+            if (error.status === 422 && error.errors) {
+              errorMessage = 'Lỗi validation:\n' + Object.values(error.errors)
+                .map(err => `- ${err.msg || err}`)
+                .join('\n')
+            } else if (error.errors) {
+              const errorMessages = Object.values(error.errors).map(err => err.msg || err).join(', ')
+              errorMessage = errorMessages || error.message || errorMessage
+            } else if (error.message) {
+              errorMessage = error.message
+            }
+            showNotification('error', errorMessage)
+          })
+      }
+    }
+
+    function showConfirmModal(title, message, callback) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: title,
+          text: message,
+          icon: 'warning',
+          buttons: {
+            cancel: 'Hủy',
+            confirm: 'Xác nhận'
+          },
+          dangerMode: true
+        }).then((willDelete) => {
+          if (willDelete) {
+            callback()
+          }
+        })
+      } else {
+        document.getElementById('confirmModalLabel').textContent = title
+        document.getElementById('confirmMessage').textContent = message
+
+        const confirmBtn = document.getElementById('confirmAction')
+        confirmBtn.onclick = () => {
+          bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide()
+          callback()
+        }
+
+        new bootstrap.Modal(document.getElementById('confirmModal')).show()
+      }
+    }
+
+    function showNotification(type, message) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      cacheElements()
+      populateSelectOptions()
+      handleFilterEvents()
+      fetchShadowing()
+
+      const currentPath = window.location.pathname
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active')
+      })
+
+      if (currentPath.includes('/speaking-shadowing')) {
+        const sshLink = document.querySelector(`a[href="${prefixAdmin}/speaking-shadowing"]`)
+        if (sshLink && sshLink.parentElement) {
+          sshLink.parentElement.classList.add('active')
+          const parentCollapse = sshLink.closest('.collapse')
+          if (parentCollapse) {
+            parentCollapse.classList.add('show')
+            const parentLink = parentCollapse.previousElementSibling
+            if (parentLink) {
+              parentLink.classList.remove('collapsed')
+              parentLink.setAttribute('aria-expanded', 'true')
+            }
+          }
+        }
+      }
+    })
+
+    function extractYouTubeVideoId(url) {
+      if (!url) return null
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
+      const match = url.match(regExp)
+      return match && match[2].length === 11 ? match[2] : null
+    }
+
+    function updateVideoPreview() {
+      const videoUrl = document.getElementById('shadowingVideoUrl').value.trim()
+      const previewContainer = document.getElementById('videoPreviewContainer')
+      const previewIframe = document.getElementById('videoPreview')
+      
+      if (!videoUrl) {
+        previewContainer.style.display = 'none'
+        return
+      }
+
+      const videoId = extractYouTubeVideoId(videoUrl)
+      if (videoId) {
+        const embedUrl = `https://www.youtube.com/embed/${videoId}`
+        previewIframe.src = embedUrl
+        previewContainer.style.display = 'block'
+      } else {
+        previewContainer.style.display = 'none'
+      }
+    }
+
+    function updateThumbnailPreview() {
+      const thumbnailUrl = document.getElementById('shadowingThumbnailUrl').value.trim()
+      const previewContainer = document.getElementById('thumbnailPreviewContainer')
+      const previewImg = document.getElementById('thumbnailPreview')
+      
+      if (!thumbnailUrl) {
+        previewContainer.style.display = 'none'
+        return
+      }
+
+      previewImg.src = thumbnailUrl
+      previewImg.onload = () => {
+        previewContainer.style.display = 'block'
+      }
+      previewImg.onerror = () => {
+        previewContainer.style.display = 'none'
+      }
+    }
+
+    function autoGenerateThumbnailFromVideo() {
+      const videoUrl = document.getElementById('shadowingVideoUrl').value.trim()
+      const thumbnailInput = document.getElementById('shadowingThumbnailUrl')
+      
+      if (!thumbnailInput.value.trim() && videoUrl) {
+        const videoId = extractYouTubeVideoId(videoUrl)
+        if (videoId) {
+          thumbnailInput.value = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+          updateThumbnailPreview()
+        }
+      }
+    }
+
+    window.openAddModal = openAddModal
+    window.saveShadowing = saveShadowing
+    window.editShadowing = editShadowing
+    window.copyShadowing = copyShadowing
+    window.deleteShadowing = deleteShadowing
+    window.addTranscriptItem = addTranscriptItem
+    window.removeTranscriptItem = removeTranscriptItem
+    window.updateVideoPreview = updateVideoPreview
+    window.updateThumbnailPreview = updateThumbnailPreview
+

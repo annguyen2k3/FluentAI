@@ -8,6 +8,7 @@ import manageCategoryRoutes from './manage-category.routes'
 import manageWsRoutes from './manage-ws.routes'
 import manageWpRoutes from './manage-wp.routes'
 import manageSsRoutes from './manage-ss.routes'
+import manageSshRoutes from './manage-ssh.routes'
 
 export default function (app: Express) {
   const prefixAdmin = process.env.PREFIX_ADMIN
@@ -38,4 +39,6 @@ export default function (app: Express) {
   app.use(prefixAdmin + '/wp', manageWpRoutes)
 
   app.use(prefixAdmin + '/speaking-sentence', manageSsRoutes)
+
+  app.use(prefixAdmin + '/speaking-shadowing', manageSshRoutes)
 }

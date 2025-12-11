@@ -21,6 +21,7 @@ import {
 import { ErrorWithStatus } from '~/models/Errors'
 import { HttpStatus } from '~/constants/httpStatus'
 import SSList from '~/models/schemas/ss-list.schema'
+import SVShadowing from '~/models/schemas/sv-shadowing.schema'
 import HisSSUser, {
   HisSSUserSentenceType
 } from '~/models/schemas/his-ss-user.schema'
@@ -568,6 +569,25 @@ class SpeakingServices {
 
   async deleteSSList(id: string) {
     await databaseService.ssLists.deleteOne({ _id: new ObjectId(id) })
+    return true
+  }
+
+  async createSVShadowing(svShadowing: SVShadowing) {
+    const newSVShadowing = new SVShadowing(svShadowing)
+    await databaseService.svShadowings.insertOne(newSVShadowing)
+    return newSVShadowing
+  }
+
+  async updateSVShadowing(svShadowing: SVShadowing) {
+    await databaseService.svShadowings.updateOne(
+      { _id: svShadowing._id },
+      { $set: svShadowing }
+    )
+    return svShadowing
+  }
+
+  async deleteSVShadowing(id: string) {
+    await databaseService.svShadowings.deleteOne({ _id: new ObjectId(id) })
     return true
   }
 }
