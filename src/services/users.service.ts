@@ -344,7 +344,8 @@ class UserService {
     limit = 10,
     status = '' as any,
     search = '',
-    sort = 'desc',
+    sortKey = 'create_at',
+    sortOrder = 'desc',
     startDate,
     endDate
   }: {
@@ -352,7 +353,8 @@ class UserService {
     limit?: number
     status?: UserStatus | ''
     search?: string
-    sort?: 'asc' | 'desc'
+    sortKey?: 'create_at' | 'credit' | 'score'
+    sortOrder?: 'asc' | 'desc'
     startDate?: string
     endDate?: string
   }) {
@@ -390,46 +392,103 @@ class UserService {
       }
     }
 
-    const sortOrder = sort === 'asc' ? 1 : -1
+    const sortDirection = sortOrder === 'asc' ? 1 : -1
+    const sortStage: any = {}
+
+    if (sortKey === 'create_at') {
+      sortStage.create_at = sortDirection
+    } else if (sortKey === 'credit') {
+      sortStage['wallet.balance_credit'] = sortDirection
+    }
+
+    const aggregationPipeline: any[] = [
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'wallets',
+          localField: 'wallet',
+          foreignField: '_id',
+          as: 'wallet'
+        }
+      },
+      {
+        $unwind: {
+          path: '$wallet',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $addFields: {
+          wallet: {
+            _id: '$wallet._id',
+            balance_credit: { $ifNull: ['$wallet.balance_credit', 0] }
+          }
+        }
+      },
+      {
+        $project: {
+          password: 0,
+          'wallet.history_transactions': 0,
+          'wallet.update_at': 0
+        }
+      }
+    ]
+
+    if (sortKey === 'score') {
+      const [allUsers, total] = await Promise.all([
+        databaseService.users.aggregate(aggregationPipeline).toArray(),
+        databaseService.users.countDocuments(matchStage)
+      ])
+
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = now.getMonth() + 1
+
+      let listWithScore = await Promise.all(
+        allUsers.map(async (user) => {
+          const monthlyScore = await scoreService.getUserMonthlyScore(
+            user._id as ObjectId,
+            year,
+            month
+          )
+
+          return {
+            ...user,
+            user_month_score: monthlyScore?.totalScore || 0
+          }
+        })
+      )
+
+      listWithScore.sort((a, b) => {
+        const scoreA = a.user_month_score || 0
+        const scoreB = b.user_month_score || 0
+        return sortOrder === 'asc' ? scoreA - scoreB : scoreB - scoreA
+      })
+
+      const paginatedList = listWithScore.slice(skip, skip + limit)
+      const totalPages = Math.ceil(total / limit)
+
+      return {
+        list: paginatedList,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1
+        }
+      }
+    }
+
+    if (Object.keys(sortStage).length > 0) {
+      aggregationPipeline.push({ $sort: sortStage })
+    }
+
+    aggregationPipeline.push({ $skip: skip }, { $limit: limit })
 
     const [list, total] = await Promise.all([
-      databaseService.users
-        .aggregate([
-          { $match: matchStage },
-          {
-            $lookup: {
-              from: 'wallets',
-              localField: 'wallet',
-              foreignField: '_id',
-              as: 'wallet'
-            }
-          },
-          {
-            $unwind: {
-              path: '$wallet',
-              preserveNullAndEmptyArrays: true
-            }
-          },
-          {
-            $addFields: {
-              wallet: {
-                _id: '$wallet._id',
-                balance_credit: '$wallet.balance_credit'
-              }
-            }
-          },
-          {
-            $project: {
-              password: 0,
-              'wallet.history_transactions': 0,
-              'wallet.update_at': 0
-            }
-          },
-          { $sort: { create_at: sortOrder } },
-          { $skip: skip },
-          { $limit: limit }
-        ])
-        .toArray(),
+      databaseService.users.aggregate(aggregationPipeline).toArray(),
       databaseService.users.countDocuments(matchStage)
     ])
 

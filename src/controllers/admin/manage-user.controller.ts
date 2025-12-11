@@ -79,16 +79,31 @@ export const getListUsersController = async (req: Request, res: Response) => {
   const limit = Number(req.query.limit) || 10
   const status = (req.query.status as UserStatus) || ''
   const search = (req.query.search as string) || ''
-  const sort = (req.query.sort as 'asc' | 'desc') || 'desc'
+  const sort = (req.query.sort as string) || 'desc'
   const startDate = (req.query.startDate as string) || undefined
   const endDate = (req.query.endDate as string) || undefined
+
+  let sortKey: 'create_at' | 'credit' | 'score' = 'create_at'
+  let sortOrder: 'asc' | 'desc' = 'desc'
+
+  if (sort === 'asc' || sort === 'desc') {
+    sortKey = 'create_at'
+    sortOrder = sort
+  } else if (sort === 'credit_asc' || sort === 'credit_desc') {
+    sortKey = 'credit'
+    sortOrder = sort === 'credit_asc' ? 'asc' : 'desc'
+  } else if (sort === 'score_asc' || sort === 'score_desc') {
+    sortKey = 'score'
+    sortOrder = sort === 'score_asc' ? 'asc' : 'desc'
+  }
 
   const result = await userService.getListUsers({
     page,
     limit,
     status,
     search,
-    sort,
+    sortKey,
+    sortOrder,
     startDate,
     endDate
   })

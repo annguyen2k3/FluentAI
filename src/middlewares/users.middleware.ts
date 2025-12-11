@@ -529,7 +529,15 @@ export const getListValidator = validate(
         custom: {
           options: async (value, { req }) => {
             if (!value || value === '') return true
-            if (!['asc', 'desc'].includes(value)) {
+            const validSortValues = [
+              'asc',
+              'desc',
+              'credit_asc',
+              'credit_desc',
+              'score_asc',
+              'score_desc'
+            ]
+            if (!validSortValues.includes(value)) {
               throw new Error(PROPERTY_MESSAGES.SORT_INVALID)
             }
             return true

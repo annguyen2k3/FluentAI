@@ -94,6 +94,10 @@ block main-content
                 select(class="form-control" id="sortFilter")
                   option(value="desc") Mới nhất
                   option(value="asc") Cũ nhất
+                  option(value="credit_asc") Số dư tăng dần
+                  option(value="credit_desc") Số dư giảm dần
+                  option(value="score_asc") Điểm tăng dần
+                  option(value="score_desc") Điểm giảm dần
             div(class="col-md-1")
               div(class="form-group")
                 label &nbsp;
@@ -108,9 +112,9 @@ block main-content
                   th Avatar
                   th Tên
                   th Email
-                  th Số điện thoại
                   th Trạng thái
                   th Ngày đăng ký
+                  th Khác
                   th Thao tác
               tbody(id="usersTableBody")
                 tr
@@ -302,8 +306,9 @@ block scripts
         const userId = user._id ? user._id.toString() : ''
         const username = user.username || 'Chưa cập nhật'
         const email = user.email || '-'
-        const phone = user.phone_number || '-'
         const avatar = user.avatar || 'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'
+        const walletBalance = Number((user.wallet && user.wallet.balance_credit) || 0)
+        const monthScore = Number(user.user_month_score || 0)
 
         return `
           <tr data-user-id="${userId}">
@@ -321,11 +326,16 @@ block scripts
             <td>
               <span class="user-table__id" title="${email}" style="display:inline-block; max-width:150px; min-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${email}</span>
             </td>
-            <td>${phone}</td>
             <td>
               <span class="badge ${statusClass}">${statusText}</span>
             </td>
             <td>${createDate}</td>
+            <td>
+              <div style="line-height: 1.8;">
+                <div>Credit: ${walletBalance.toLocaleString('vi-VN')}</div>
+                <div>Điểm: ${monthScore.toLocaleString('vi-VN')}</div>
+              </div>
+            </td>
             <td>
               <div class="btn-group">
                 <button class="btn btn-sm btn-info" data-action="view" data-user-id="${userId}" title="Xem chi tiết">
