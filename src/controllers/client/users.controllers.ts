@@ -373,7 +373,7 @@ export const renderWalletPageController = async (
   const user = req.user as User
   const walletInfo = user.wallet as any
   const wallet = await userService.getDetailWallet(walletInfo?._id as string)
-  const pricingCredit = await systemConfigService.getCachedPricingCredit()
+  const pricingCredit = systemConfigService.getCachedPricingCredit()
   res.render('client/pages/users/wallet.pug', {
     pageTitle: 'FluentAI - Ví của tôi',
     user: user,

@@ -20,7 +20,7 @@ import { generateOTP } from '~/utils/random'
 import OTPVerifyEmail from '~/models/schemas/otp-verify-email.schema'
 import { sendMail } from '~/utils/nodemailer'
 import scoreService from './score.service'
-
+import Wallet, { WalletType } from '~/models/schemas/wallet.schema'
 config()
 
 class UserService {
@@ -538,6 +538,104 @@ class UserService {
         }
       }
     )
+  }
+
+  async editWalletUser(
+    userId: string,
+    amount: number,
+    titleMail: string,
+    htmlDescriptionMail: string
+  ) {
+    const user = (await databaseService.users.findOne({
+      _id: new ObjectId(userId)
+    })) as User
+    if (!user) {
+      return {
+        success: false,
+        message: 'Người dùng không tồn tại'
+      }
+    }
+
+    const walletId = user.wallet as ObjectId
+    const wallet = (await databaseService.wallets.findOne({
+      _id: walletId
+    })) as Wallet
+
+    if (!wallet) {
+      return {
+        success: false,
+        message: 'Ví không tồn tại'
+      }
+    }
+
+    let newBalance = (wallet.balance_credit || 0) + amount
+
+    if (newBalance < 0) newBalance = 0
+
+    await databaseService.wallets.updateOne(
+      {
+        _id: walletId
+      },
+      {
+        $set: {
+          balance_credit: newBalance,
+          history_transactions: [
+            ...(wallet.history_transactions || []),
+            {
+              _id: new ObjectId(),
+              title: titleMail,
+              price: 0,
+              credit: amount,
+              description:
+                'Chỉnh sửa số dư ví bởi admin. Vui lòng kiểm tra email để xem chi tiết.',
+              status: TransactionStatus.SUCCESS,
+              create_at: new Date(),
+              update_at: new Date()
+            }
+          ],
+          update_at: new Date()
+        }
+      }
+    )
+
+    htmlDescriptionMail += `
+    <br>
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #f8f9fa; border-radius: 8px; overflow: hidden;">
+      <thead>
+        <tr>
+          <th style="background-color: #007bff; color: white; padding: 12px; text-align: left; font-size: 16px; font-weight: 600;">Thông tin cập nhật ví</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">
+            <strong>Số dư ví trước khi cập nhật:</strong> 
+            <span style="color: #6c757d;">${wallet.balance_credit?.toLocaleString('vi-VN')} credit</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">
+            <strong>Số dư ví sau khi cập nhật:</strong> 
+            <span style="color: #28a745; font-weight: 600;">${newBalance.toLocaleString('vi-VN')} credit</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 12px; background-color: #e9ecef;">
+            <strong>Liên hệ hỗ trợ:</strong><br>
+            <span style="color: #495057;">📧 Email: <a href="mailto:annguyen300243@gmail.com" style="color: #007bff; text-decoration: none;">annguyen300243@gmail.com</a></span><br>
+            <span style="color: #495057;">📞 Điện thoại: <a href="tel:0343513046" style="color: #007bff; text-decoration: none;">0343513046</a></span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    `
+
+    await sendMail(user.email, titleMail, htmlDescriptionMail)
+
+    return {
+      success: true,
+      message: 'Cập nhật ví người dùng thành công'
+    }
   }
 }
 

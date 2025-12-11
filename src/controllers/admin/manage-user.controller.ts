@@ -100,7 +100,7 @@ export const getListUsersController = async (req: Request, res: Response) => {
   })
 }
 
-// GET /admin/users/score
+// GET /admin/users/score/:userId
 export const renderManageUserScoreController = async (
   req: Request,
   res: Response
@@ -134,6 +134,55 @@ export const renderManageUserScoreController = async (
     prefixAdmin,
     user,
     userMonthlyScore
+  })
+}
+
+// GET /admin/users/wallet/:userId
+export const renderManageUserWalletController = async (
+  req: Request,
+  res: Response
+) => {
+  const admin = req.admin as Admin
+  const userId = req.params.userId
+  const user = await userService.getUserById(userId)
+  if (!user) {
+    res.render('admin/pages/404.pug', {
+      pageTitle: 'Admin - 404',
+      admin,
+      prefixAdmin
+    })
+    return
+  }
+
+  const wallet = await userService.getDetailWallet(user.wallet?._id as string)
+  res.render('admin/pages/users/wallet.pug', {
+    pageTitle: 'Admin - Quản lý ví người dùng',
+    admin,
+    prefixAdmin,
+    user,
+    wallet
+  })
+}
+
+// PATCH /admin/users/wallet/edit
+export const editWalletUserController = async (req: Request, res: Response) => {
+  const { userId, amount, titleMail, htmlDescriptionMail } = req.body
+  const result = await userService.editWalletUser(
+    userId,
+    amount,
+    titleMail,
+    htmlDescriptionMail
+  )
+  if (!result.success) {
+    res.status(HttpStatus.BAD_REQUEST).json({
+      status: HttpStatus.BAD_REQUEST,
+      message: result.message
+    })
+    return
+  }
+  res.status(HttpStatus.OK).json({
+    status: HttpStatus.OK,
+    message: 'Cập nhật ví người dùng thành công'
   })
 }
 

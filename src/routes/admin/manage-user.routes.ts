@@ -1,11 +1,13 @@
 import { Router } from 'express'
 import {
   deleteUserController,
+  editWalletUserController,
   getListUsersController,
   lockUserController,
   logoutUserController,
   renderManageUserController,
   renderManageUserScoreController,
+  renderManageUserWalletController,
   unlockUserController,
   updateUserManageController
 } from '~/controllers/admin/manage-user.controller'
@@ -39,10 +41,28 @@ manageUserRoutes.get(
 
 // GET /admin/users/score
 // Description: Render page manage users score
+// Query: year, month
 manageUserRoutes.get(
   '/score/:userId',
   requireAdminAuth,
   wrapRequestHandler(renderManageUserScoreController)
+)
+
+// GET /admin/users/wallet
+// Description: Render page manage users wallet
+manageUserRoutes.get(
+  '/wallet/:userId',
+  requireAdminAuth,
+  wrapRequestHandler(renderManageUserWalletController)
+)
+
+// PATCH /admin/users/wallet/edit
+// Description: Edit wallet user
+// Body: userId, amount, titleMail, htmlDescriptionMail
+manageUserRoutes.patch(
+  '/wallet/edit',
+  requireAdminAuth,
+  wrapRequestHandler(editWalletUserController)
 )
 
 // POST /admin/users/lock

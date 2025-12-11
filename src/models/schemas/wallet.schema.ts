@@ -14,7 +14,7 @@ interface TransactionType {
   update_at?: Date
 }
 
-interface WalletType {
+export interface WalletType {
   _id?: ObjectId
   balance_credit?: number
   history_transactions?: TransactionType[]

@@ -1,0 +1,361 @@
+extends ../../layouts/default.pug
+
+block head
+  style.
+    .wallet-hero {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .wallet-hero__meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .wallet-hero__badge {
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: #f8f9fa;
+      font-weight: 600;
+    }
+    .wallet-history__table td,
+    .wallet-history__table th {
+      vertical-align: middle;
+    }
+    .wallet-history__count {
+      white-space: nowrap;
+    }
+    .wallet-balance__value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .wallet-balance__badge {
+      background: #fff4d6;
+      border: 1px solid #ffd666;
+      padding: 6px 10px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+    .wallet-edit__preview {
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 320px;
+      overflow: auto;
+      background: #fff;
+    }
+    .wallet-edit__amount {
+      transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+block main-content
+  +loadingOverlay('walletLoading', 'Đang xử lý...')
+  -
+    const balance = Number(wallet?.balance_credit || 0)
+    const history = Array.isArray(wallet?.history_transactions) ? [...wallet.history_transactions] : []
+    history.sort((a, b) => {
+      const timeA = a.update_at ? new Date(a.update_at).getTime() : 0
+      const timeB = b.update_at ? new Date(b.update_at).getTime() : 0
+      return timeB - timeA
+    })
+    const totalTransactions = history.length
+    const pendingCount = history.filter((h) => h.status === 'pending').length
+    const successCount = history.filter((h) => h.status === 'success').length
+    const failedCount = history.filter((h) => h.status === 'failed').length
+    const totalPriceChange = history.reduce((sum, h) => sum + (Number(h.price) || 0), 0)
+    const totalPaidSuccess = history
+      .filter((h) => h.status === 'success')
+      .reduce((sum, h) => sum + (Number(h.price) || 0), 0)
+    const statusClasses = {
+      pending: 'badge bg-warning text-dark',
+      success: 'badge bg-success',
+      failed: 'badge bg-danger'
+    }
+    const statusLabels = {
+      pending: 'Đang xử lý',
+      success: 'Thành công',
+      failed: 'Thất bại'
+    }
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href=`${prefixAdmin}/users`) Quản lý người dùng
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Ví người dùng
+
+  div(class="row mb-3 align-items-stretch")
+    div(class="col-lg-8")
+      div(class="card h-100")
+        div(class="card-body")
+          div(class="wallet-hero")
+            div(class="avatar-lg")
+              img(src=user.avatar || 'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png' alt=user.username class="avatar-img rounded-circle w-100 h-100" onerror="this.src='https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'")
+            div(class="flex-grow-1")
+              h3.mb-1 #{user.username || 'Người dùng'}
+              p.mb-1.text-muted #{user.email || 'Chưa cập nhật email'}
+              p.mb-0.text-muted
+                span.me-3
+                  i(class="fas fa-id-card me-1")
+                  | #{user._id}
+                if user.phone_number
+                  span
+                    i(class="fas fa-phone me-1")
+                    | #{user.phone_number}
+    div(class="col-lg-4")
+      div(class="card h-100")
+        div(class="card-body")
+          h5.mb-3 Số dư ví 🪙
+          div(class="d-flex align-items-center justify-content-between mb-2")
+            span.text-muted Số dư hiện tại
+            span.wallet-balance__badge
+              i(class="fas fa-wallet")
+              span.wallet-balance__value.text-warning #{balance.toLocaleString('vi-VN')} credit
+          div(class="d-flex align-items-center justify-content-between")
+            span.text-muted Số tiền đã nạp
+            span.wallet-balance__value.text-success #{totalPaidSuccess.toLocaleString('vi-VN')} đ
+          hr
+          div(class="d-grid")
+            button(type="button" class="btn btn-outline-primary btn-sm" id="walletEditBtn")
+              i(class="fas fa-pen-to-square me-2")
+              | Chỉnh sửa số dư
+
+  div(class="row g-3")
+    div(class="col-12")
+      div(class="card")
+        div(class="card-header d-flex align-items-center justify-content-between")
+          h4(class="card-title mb-0") Lịch sử giao dịch
+          div(class="d-flex align-items-center gap-2")
+            select(class="form-select form-select-sm" id="walletStatusFilter")
+              option(value="all") Tất cả
+              option(value="success") Thành công
+              option(value="pending") Đang xử lý
+              option(value="failed") Thất bại
+            span(class="text-muted small wallet-history__count") #{totalTransactions} mục
+        div(class="card-body")
+          if history.length
+            div(class="table-responsive")
+              table(class="table table-hover wallet-history__table")
+                thead
+                  tr
+                    th Thời gian
+                    th Tiêu đề
+                    th Credit
+                    th Số tiền
+                    th Trạng thái
+                tbody#walletHistoryBody
+                  each item, idx in history
+                    tr(class="wallet-history__row" data-index=idx data-status=item.status || 'pending')
+                      td= item.update_at ? new Date(item.update_at).toLocaleString('vi-VN') : '-'
+                      td
+                        div.fw-semibold #{item.title || 'Giao dịch'}
+                        if item.description
+                          div.text-muted.small #{item.description}
+                      td
+                        span(class=item.credit >= 0 ? 'text-success fw-semibold' : 'text-danger fw-semibold') #{item.credit || 0}
+                      td #{(item.price || 0).toLocaleString('vi-VN')} đ
+                      td
+                        - const st = item.status || 'pending'
+                        span(class=statusClasses[st] || 'badge bg-secondary') #{statusLabels[st] || st}
+            if history.length > 5
+              div(class="d-flex gap-2 mt-3")
+                button(type="button" class="btn btn-outline-primary btn-sm" id="walletShowMore") Xem thêm
+                button(type="button" class="btn btn-light btn-sm d-none" id="walletShowLess") Ẩn bớt
+          else
+            p.mb-0.text-muted Chưa có giao dịch nào
+
+  div(class="modal fade" id="walletEditModal" tabindex="-1" aria-hidden="true")
+    div(class="modal-dialog modal-xl modal-dialog-centered")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title") Chỉnh sửa số dư ví
+          button(type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close")
+        div(class="modal-body")
+          form(id="walletEditForm" class="row g-3")
+            div(class="col-lg-4")
+              label.form-label(for="walletAmountInput") Số tiền điều chỉnh
+              input(type="number" step="1" min="-100000000" max="100000000" class="form-control wallet-edit__amount" id="walletAmountInput" value="0")
+              small(class="text-muted d-block mt-1") Âm: trừ credit, Dương: cộng credit
+            div(class="col-lg-4")
+              label.form-label(for="walletTitleInput") Tiêu đề mail thông báo
+              input(type="text" class="form-control" id="walletTitleInput" placeholder="Nhập tiêu đề mail")
+            div(class="col-lg-4")
+              label.form-label(for="walletHtmlInput") HTML mô tả mail thông báo
+              textarea(class="form-control" id="walletHtmlInput" rows="4" placeholder="Nhập nội dung HTML")
+            div(class="col-lg-6")
+              label.form-label Preview HTML
+              div(class="wallet-edit__preview" id="walletHtmlPreview") (Xem trước)
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Đóng
+          button(type="submit" form="walletEditForm" class="btn btn-primary" id="walletSubmitBtn")
+            i(class="fas fa-paper-plane me-2")
+            | Gửi yêu cầu
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      const body = document.getElementById('walletHistoryBody')
+      if (!body) return
+      const rows = Array.from(body.querySelectorAll('.wallet-history__row'))
+      const filterSelect = document.getElementById('walletStatusFilter')
+      const showMoreBtn = document.getElementById('walletShowMore')
+      const showLessBtn = document.getElementById('walletShowLess')
+      const editBtn = document.getElementById('walletEditBtn')
+      const editModalEl = document.getElementById('walletEditModal')
+      const editForm = document.getElementById('walletEditForm')
+      const amountInput = document.getElementById('walletAmountInput')
+      const titleInput = document.getElementById('walletTitleInput')
+      const htmlInput = document.getElementById('walletHtmlInput')
+      const htmlPreview = document.getElementById('walletHtmlPreview')
+      const submitBtn = document.getElementById('walletSubmitBtn')
+      const walletLoading = document.getElementById('walletLoading')
+      const userId = "#{user._id}"
+      const prefixAdmin = "#{prefixAdmin}"
+      let visibleCount = 5
+      let currentFilter = 'all'
+
+      const getFilteredRows = () => {
+        if (currentFilter === 'all') return rows
+        return rows.filter((row) => {
+          const st = row.getAttribute('data-status')
+          return st === currentFilter
+        })
+      }
+
+      const applyVisibility = () => {
+        const filtered = getFilteredRows()
+        rows.forEach((row) => {
+          row.style.display = 'none'
+        })
+        filtered.forEach((row, idx) => {
+          row.style.display = idx < visibleCount ? '' : 'none'
+        })
+        if (showMoreBtn) {
+          const hasMore = visibleCount < filtered.length
+          showMoreBtn.classList.toggle('d-none', !hasMore)
+        }
+        if (showLessBtn) {
+          const canLess = visibleCount > 5
+          showLessBtn.classList.toggle('d-none', !canLess)
+        }
+      }
+      applyVisibility()
+      const updateAmountState = () => {
+        if (!amountInput) return
+        const value = Number(amountInput.value || 0)
+        amountInput.classList.remove('text-success', 'text-danger', 'border-success', 'border-danger')
+        if (value > 0) {
+          amountInput.classList.add('text-success', 'border-success')
+        } else if (value < 0) {
+          amountInput.classList.add('text-danger', 'border-danger')
+        }
+      }
+      const updatePreview = () => {
+        if (!htmlPreview || !htmlInput) return
+        const content = htmlInput.value || '(Xem trước)'
+        htmlPreview.innerHTML = content
+      }
+      if (amountInput) {
+        amountInput.addEventListener('input', updateAmountState)
+        updateAmountState()
+      }
+      if (htmlInput) {
+        htmlInput.addEventListener('input', updatePreview)
+        updatePreview()
+      }
+      if (editBtn && editModalEl) {
+        const modal = new bootstrap.Modal(editModalEl)
+        editBtn.addEventListener('click', () => {
+          if (amountInput) amountInput.value = 0
+          if (titleInput) titleInput.value = ''
+          if (htmlInput) htmlInput.value = ''
+          updateAmountState()
+          updatePreview()
+          modal.show()
+        })
+      }
+      const showNotification = (type, message) => {
+        if (typeof swal !== 'undefined') {
+          swal({
+            title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+            text: message,
+            icon: type,
+            button: 'OK'
+          })
+        } else {
+          // fallback nhẹ
+          const div = document.createElement('div')
+          div.textContent = message
+          div.className = `alert ${type === 'success' ? 'alert-success' : 'alert-danger'}`
+          div.style.position = 'fixed'
+          div.style.top = '20px'
+          div.style.right = '20px'
+          div.style.zIndex = '1080'
+          document.body.appendChild(div)
+          setTimeout(() => div.remove(), 3000)
+        }
+      }
+
+      if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+          e.preventDefault()
+          if (!submitBtn) return
+          if (walletLoading) walletLoading.classList.add('is-active')
+          submitBtn.disabled = true
+          const payload = {
+            userId,
+            amount: Number(amountInput?.value || 0),
+            titleMail: titleInput?.value || '',
+            htmlDescriptionMail: htmlInput?.value || ''
+          }
+          try {
+            const res = await fetch(`${prefixAdmin}/users/wallet/edit`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            })
+            const data = await res.json().catch(() => ({}))
+            if (!res.ok || data.status !== 200) {
+              throw new Error(data.message || `HTTP ${res.status}`)
+            }
+            showNotification('success', data.message || 'Cập nhật số dư thành công')
+            window.location.reload()
+          } catch (err) {
+            showNotification('error', err.message || 'Có lỗi xảy ra')
+          } finally {
+            submitBtn.disabled = false
+            if (walletLoading) walletLoading.classList.remove('is-active')
+          }
+        })
+      }
+      if (filterSelect) {
+        filterSelect.addEventListener('change', () => {
+          currentFilter = filterSelect.value || 'all'
+          visibleCount = 5
+          applyVisibility()
+        })
+      }
+      if (showMoreBtn) {
+        showMoreBtn.addEventListener('click', () => {
+          const filtered = getFilteredRows()
+          visibleCount = Math.min(filtered.length, visibleCount + 5)
+          applyVisibility()
+        })
+      }
+      if (showLessBtn) {
+        showLessBtn.addEventListener('click', () => {
+          visibleCount = Math.max(5, visibleCount - 5)
+          applyVisibility()
+        })
+      }
+    })
+

@@ -1,5 +1,6 @@
 doctype html
 html(lang="vi")
+  include ../mixins/loading.pug
   head
     meta(http-equiv="X-UA-Compatible" content="IE=edge")
     title #{pageTitle}
@@ -42,6 +43,7 @@ html(lang="vi")
             block main-content
 
           include ../partials/footer.pug
+        +loadingOverlay('globalLoading', 'Đang xử lý...')
         
     script(src="/admin/assets/js/core/jquery-3.7.1.min.js")
     script(src="/admin/assets/js/core/popper.min.js")

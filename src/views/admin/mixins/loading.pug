@@ -1,0 +1,6 @@
+mixin loadingOverlay(id='globalLoading', text='Đang xử lý...')
+  .loading-overlay(id=id)
+    .loading-overlay__spinner
+      i(class="fas fa-circle-notch fa-spin fa-2x")
+    if text
+      p.loading-overlay__text= text
