@@ -1,0 +1,426 @@
+extends ../../layouts/default.pug
+
+block head
+  style.
+    .score-calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(90px, 1fr));
+      gap: 12px;
+    }
+    .score-calendar__day {
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 88px;
+      background: #f8f9fa;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .score-calendar__day--active {
+      background: #e8f4ff;
+      border-color: #b6dcff;
+    }
+    .score-calendar__day--today {
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+      transform: translateY(-2px);
+    }
+    .score-calendar__number {
+      font-weight: 700;
+      color: #212529;
+    }
+    .score-calendar__score {
+      font-size: 14px;
+      color: #0d6efd;
+      font-weight: 600;
+    }
+    .score-calendar__placeholder {
+      visibility: hidden;
+    }
+    .score-activity__item + .score-activity__item {
+      border-top: 1px dashed #e9ecef;
+    }
+    .score-type__percent {
+      min-width: 42px;
+      text-align: right;
+    }
+
+block main-content
+  -
+    const monthly = userMonthlyScore || {}
+    const targetYear = Number(monthly.year) || new Date().getFullYear()
+    const targetMonth = Number(monthly.month) || new Date().getMonth() + 1
+    const details = Array.isArray(monthly.details) ? monthly.details : []
+    const dayScores = {}
+    const now = new Date()
+    const nowYear = now.getFullYear()
+    const nowMonth = now.getMonth() + 1
+    const nowDate = now.getDate()
+    const activeDays = new Set()
+    const activityLog = []
+    details.forEach((d) => {
+      const dayKey = Number(d.day)
+      if (Number.isNaN(dayKey)) return
+      const scoresArr = Array.isArray(d.scores) ? d.scores : []
+      const scoreSum = scoresArr.reduce((sum, s) => sum + (s.score || 0), 0)
+      if (!dayScores[dayKey]) {
+        dayScores[dayKey] = { score: 0, items: [] }
+      }
+      dayScores[dayKey].score += scoreSum
+      dayScores[dayKey].items = dayScores[dayKey].items.concat(scoresArr)
+      if (scoresArr.length) {
+        activeDays.add(dayKey)
+      }
+      scoresArr.forEach((s) => {
+        activityLog.push({
+          title: s.title || 'Hoạt động',
+          score: s.score || 0,
+          day: dayKey,
+          type: s.type,
+          created: s.create_at ? new Date(s.create_at) : null
+        })
+      })
+    })
+    const totalDaysActive = activeDays.size
+    const totalScore = monthly.totalScore || 0
+    const daysInMonth = new Date(targetYear, targetMonth, 0).getDate()
+    const firstDayIndex = new Date(targetYear, targetMonth - 1, 1).getDay()
+    const calendarDays = [
+      ...Array.from({ length: firstDayIndex }).map(() => null),
+      ...Array.from({ length: daysInMonth }).map((_, idx) => idx + 1)
+    ]
+    activityLog.sort((a, b) => {
+      const timeA = a.created ? a.created.getTime() : 0
+      const timeB = b.created ? b.created.getTime() : 0
+      return timeB - timeA
+    })
+    const typeLabels = {
+      writing_sentence: 'Luyện viết câu',
+      writing_paragraph: 'Luyện viết đoạn văn',
+      speaking_sentence: 'Luyện phát âm',
+      speaking_shadowing: 'Shadowing',
+      listening_video: 'Luyện nghe'
+    }
+    const typeIcons = {
+      writing_sentence: 'fas fa-pencil-alt',
+      writing_paragraph: 'fas fa-pen-nib',
+      speaking_sentence: 'fas fa-microphone',
+      speaking_shadowing: 'fas fa-video',
+      listening_video: 'fas fa-headphones'
+    }
+    const typePrefixes = {
+      writing_sentence: 'Luyện viết câu: ',
+      writing_paragraph: 'Luyện viết đoạn văn: ',
+      speaking_sentence: 'Luyện phát âm: ',
+      speaking_shadowing: 'Shadowing: ',
+      listening_video: 'Luyện nghe: '
+    }
+    const typeTotals = {}
+    activityLog.forEach((item) => {
+      if (!item.type) return
+      if (!typeTotals[item.type]) {
+        typeTotals[item.type] = { score: 0, count: 0 }
+      }
+      typeTotals[item.type].score += item.score || 0
+      typeTotals[item.type].count += 1
+    })
+    const bestDay = Object.entries(dayScores).reduce(
+      (acc, [day, info]) => {
+        if ((info.score || 0) > acc.score) {
+          return { day: Number(day), score: info.score }
+        }
+        return acc
+      },
+      { day: null, score: 0 }
+    )
+    const averageActiveScore = totalDaysActive ? Math.round(totalScore / totalDaysActive) : 0
+    const activeDayList = Array.from(activeDays).sort((a, b) => a - b)
+    let currentStreak = 0
+    let longestStreak = 0
+    activeDayList.forEach((day, idx) => {
+      if (idx > 0 && day === activeDayList[idx - 1] + 1) {
+        currentStreak += 1
+      } else {
+        currentStreak = 1
+      }
+      if (currentStreak > longestStreak) {
+        longestStreak = currentStreak
+      }
+    })
+    const groupedActivities = []
+    activityLog.forEach((item) => {
+      const prefix = typePrefixes[item.type] || ''
+      const displayTitle = `${prefix}${item.title || 'Hoạt động'}`
+      const prev = groupedActivities[groupedActivities.length - 1]
+      if (prev && prev.displayTitle === displayTitle) {
+        prev.score += item.score || 0
+        prev.createdTo = item.created || prev.createdTo
+        prev.count += 1
+        return
+      }
+      groupedActivities.push({
+        displayTitle,
+        score: item.score || 0,
+        createdFrom: item.created || null,
+        createdTo: item.created || null,
+        count: 1
+      })
+    })
+    const recentActivities = groupedActivities
+    const totalActivities = groupedActivities.length
+    const lastActivityDate =
+      groupedActivities.length && groupedActivities[0].createdFrom
+        ? groupedActivities[0].createdFrom.toLocaleDateString('vi-VN')
+        : 'Chưa có'
+    const filterYears = Array.from({ length: 3 }).map((_, idx) => nowYear - idx)
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href=`${prefixAdmin}/users`) Quản lý người dùng
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Lịch sử luyện tập
+
+  div(class="row mb-3")
+    div(class="col-lg-8")
+      div(class="card")
+        div(class="card-body d-flex align-items-center gap-3")
+          div(class="avatar-lg")
+            img(src=user.avatar || 'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png' alt=user.username class="avatar-img rounded-circle w-100 h-100" onerror="this.src='https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'")
+          div(class="flex-grow-1")
+            div(class="d-flex align-items-center gap-2 mb-1")
+              h3.mb-0 #{user.username || 'Người dùng'}
+              span(class=`badge ${user.status === 'blocked' ? 'badge-danger' : 'badge-success'}`)= user.status === 'blocked' ? 'Đã khóa' : 'Đang hoạt động'
+            p.mb-1.text-muted #{user.email || 'Chưa cập nhật email'}
+            p.mb-0.text-muted
+              span.me-2
+                i(class="fas fa-id-card me-1")
+                | #{user._id}
+              if user.phone_number
+                span.ms-3
+                  i(class="fas fa-phone me-1")
+                  | #{user.phone_number}
+          div(class="text-end")
+            p.mb-1.text-muted Tháng #{targetMonth}/#{targetYear}
+            h4.mb-0.text-primary #{totalScore} điểm
+            small.text-muted Tổng điểm tháng
+    div(class="col-lg-4")
+      div(class="card")
+        div(class="card-body")
+          h5(class="mb-3 d-flex align-items-center justify-content-between")
+            span Bộ lọc nhanh
+            span.badge.bg-light.text-dark #{totalActivities} hoạt động
+          form(class="row g-2" method="get" action=`${prefixAdmin}/users/score/${user._id}`)
+            div(class="col-6")
+              label.form-label Tháng
+              select(name="month" class="form-select form-select-sm")
+                each m in [1,2,3,4,5,6,7,8,9,10,11,12]
+                  option(value=m selected=(m === targetMonth)) Tháng #{m}
+            div(class="col-6")
+              label.form-label Năm
+              select(name="year" class="form-select form-select-sm")
+                each y in filterYears
+                  option(value=y selected=(y === targetYear)) Năm #{y}
+            div(class="col-12 d-grid")
+              button(type="submit" class="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center gap-2")
+                i(class="fas fa-rotate")
+                span Xem báo cáo
+
+  div(class="row g-3")
+    div(class="col-md-6 col-xl-3")
+      div(class="card card-stats card-primary")
+        div(class="card-body")
+          div(class="d-flex align-items-center justify-content-between")
+            div
+              p(class="card-category mb-1") Ngày hoạt động
+              h4(class="card-title mb-0") #{totalDaysActive}
+              small.text-muted #{daysInMonth - totalDaysActive} ngày trống
+            div(class="icon-big text-center")
+              i(class="fas fa-sun")
+    div(class="col-md-6 col-xl-3")
+      div(class="card card-stats card-success")
+        div(class="card-body")
+          div(class="d-flex align-items-center justify-content-between")
+            div
+              p(class="card-category mb-1") Tổng điểm
+              h4(class="card-title mb-0") #{totalScore}
+              small.text-muted Trung bình #{averageActiveScore} điểm/ngày
+            div(class="icon-big text-center")
+              i(class="fas fa-star")
+    div(class="col-md-6 col-xl-3")
+      div(class="card card-stats card-warning")
+        div(class="card-body")
+          div(class="d-flex align-items-center justify-content-between")
+            div
+              p(class="card-category mb-1") Điểm cao nhất
+              h4(class="card-title mb-0") #{bestDay.day ? bestDay.score : 0}
+              small.text-muted= bestDay.day ? `Ngày ${bestDay.day}` : 'Chưa có dữ liệu'
+            div(class="icon-big text-center")
+              i(class="fas fa-medal")
+    div(class="col-md-6 col-xl-3")
+      div(class="card card-stats card-info")
+        div(class="card-body")
+          div(class="d-flex align-items-center justify-content-between")
+            div
+              p(class="card-category mb-1") Chuỗi ngày
+              h4(class="card-title mb-0") #{longestStreak}
+              small.text-muted Chuỗi hiện tại #{currentStreak || 0}
+            div(class="icon-big text-center")
+              i(class="fas fa-fire")
+
+  div(class="row g-3")
+    div(class="col-xl-8")
+      div(class="card")
+        div(class="card-header d-flex align-items-center justify-content-between")
+          h4(class="card-title mb-0") Lịch hoạt động
+          div(class="d-flex align-items-center gap-2")
+            span.badge.bg-primary-subtle.text-primary Có luyện tập
+            span.badge.bg-light.text-dark Hôm nay
+        div(class="card-body")
+          h5.mb-3 Tháng #{targetMonth}
+          div(class="score-calendar")
+            each day in calendarDays
+              if day
+                - const isActive = activeDays.has(day)
+                - const isToday = targetYear === nowYear && targetMonth === nowMonth && day === nowDate
+                - const scoreValue = isActive && dayScores[day] ? dayScores[day].score : 0
+                div(class=`score-calendar__day ${isActive ? 'score-calendar__day--active' : ''} ${isToday ? 'score-calendar__day--today' : ''}` title=isActive ? `${scoreValue} điểm` : 'Chưa luyện')
+                  div(class="d-flex align-items-center justify-content-between")
+                    span(class="score-calendar__number")= day
+                    if isActive
+                      span(class="badge bg-primary-subtle text-primary") #{scoreValue}đ
+                  if isActive
+                    span(class="score-calendar__score") #{scoreValue} điểm
+                  else
+                    span(class="text-muted small") Chưa có dữ liệu
+              else
+                div(class="score-calendar__day score-calendar__placeholder")
+    div(class="col-xl-4")
+      div(class="card h-100")
+        div(class="card-header d-flex align-items-center justify-content-between")
+          h4(class="card-title mb-0") Phân bố kỹ năng
+          span(class="text-muted small") Tổng #{totalScore} điểm
+        div(class="card-body")
+          if totalScore
+            each key in Object.keys(typeLabels)
+              - const data = typeTotals[key] || { score: 0, count: 0 }
+              - const percent = totalScore ? Math.round((data.score / totalScore) * 100) : 0
+              div(class="mb-3")
+                div(class="d-flex align-items-center justify-content-between mb-1")
+                  div(class="d-flex align-items-center gap-2")
+                    span(class="badge bg-light text-dark")
+                      i(class=typeIcons[key] || 'fas fa-check')
+                    span #{typeLabels[key]}
+                  span(class="score-type__percent text-muted") #{percent}%
+                div(class="progress")
+                  div(class="progress-bar" role="progressbar" style=`width: ${percent}%` aria-valuenow=percent aria-valuemin="0" aria-valuemax="100")
+                p(class="mb-0 small text-muted") #{data.score} điểm • #{data.count} lượt
+          else
+            p.mb-0.text-muted Chưa có dữ liệu điểm số
+
+  div(class="row g-3")
+    div(class="col-xl-8")
+      div(class="card")
+        div(class="card-header d-flex align-items-center justify-content-between")
+          h4(class="card-title mb-0") Nhật ký hoạt động
+          span(class="text-muted small") #{recentActivities.length} mục
+        div(class="card-body")
+          if recentActivities.length
+            ul(class="list-unstyled mb-3" id="scoreActivityList")
+              each item, idx in recentActivities
+                li(class="score-activity__item py-3" data-index=idx)
+                  div(class="d-flex align-items-start gap-3")
+                    div(class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0")
+                      i(class="fas fa-stream")
+                    div(class="flex-grow-1")
+                      p(class="mb-1 fw-semibold") #{item.displayTitle}
+                      p(class="mb-1 text-muted small d-flex align-items-center gap-3")
+                        span
+                          i(class="fas fa-bolt me-1 text-primary")
+                          | #{item.score} điểm
+                        if item.createdFrom
+                          - const sameTime = item.createdTo && item.createdFrom && item.createdTo.getTime() === item.createdFrom.getTime()
+                          span
+                            i(class="fas fa-calendar-day me-1 text-muted")
+                            if sameTime
+                              | #{item.createdFrom.toLocaleString('vi-VN')}
+                            else
+                              | #{item.createdTo ? `${item.createdTo.toLocaleString('vi-VN')} - ${item.createdFrom.toLocaleString('vi-VN')}` : item.createdFrom.toLocaleString('vi-VN')}
+            if recentActivities.length > 5
+              div(class="d-flex gap-2")
+                button(type="button" class="btn btn-outline-primary btn-sm" id="scoreShowMore") Xem thêm
+                button(type="button" class="btn btn-light btn-sm d-none" id="scoreShowLess") Ẩn bớt
+          else
+            p.mb-0.text-muted Chưa có hoạt động nào trong tháng này
+    div(class="col-xl-4")
+      div(class="card h-100")
+        div(class="card-header")
+          h4(class="card-title mb-0") Điểm nổi bật
+        div(class="card-body")
+          div(class="row g-3")
+            div(class="col-12")
+              div(class="alert alert-light mb-0 d-flex justify-content-between align-items-center")
+                div
+                  p(class="mb-0 text-muted small") Thời gian cập nhật
+                  h5(class="mb-0") #{lastActivityDate}
+                div
+                  i(class="fas fa-clock text-primary fs-4")
+            div(class="col-12")
+              div(class="alert alert-primary mb-0 d-flex justify-content-between align-items-center")
+                div
+                  p(class="mb-0 text-muted small") Chuỗi hiện tại
+                  h5(class="mb-0") #{currentStreak || 0} ngày
+                div
+                  i(class="fas fa-fire fs-4")
+            div(class="col-12")
+              div(class="alert alert-success mb-0 d-flex justify-content-between align-items-center")
+                div
+                  p(class="mb-0 text-muted small") Hoạt động đã ghi
+                  h5(class="mb-0") #{totalActivities}
+                div
+                  i(class="fas fa-list fs-4")
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      const list = document.getElementById('scoreActivityList')
+      if (!list) return
+      const items = Array.from(list.querySelectorAll('.score-activity__item'))
+      const showMoreBtn = document.getElementById('scoreShowMore')
+      const showLessBtn = document.getElementById('scoreShowLess')
+      let visibleCount = 5
+      const applyVisibility = () => {
+        items.forEach((item, idx) => {
+          item.style.display = idx < visibleCount ? '' : 'none'
+        })
+        if (showMoreBtn) {
+          const hasMore = visibleCount < items.length
+          showMoreBtn.classList.toggle('d-none', !hasMore)
+        }
+        if (showLessBtn) {
+          const canLess = visibleCount > 5
+          showLessBtn.classList.toggle('d-none', !canLess)
+        }
+      }
+      applyVisibility()
+      if (showMoreBtn) {
+        showMoreBtn.addEventListener('click', () => {
+          visibleCount = Math.min(items.length, visibleCount + 5)
+          applyVisibility()
+        })
+      }
+      if (showLessBtn) {
+        showLessBtn.addEventListener('click', () => {
+          visibleCount = Math.max(5, visibleCount - 5)
+          applyVisibility()
+        })
+      }
+    })
+

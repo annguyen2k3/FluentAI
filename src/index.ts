@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Request, Response } from 'express'
 import dotenv from 'dotenv'
 import clientRoutes from './routes/client/index.routes'
 import adminRoutes from './routes/admin/index.routes'
@@ -10,6 +10,7 @@ import cookieParser from 'cookie-parser'
 import { initFolder } from './utils/file'
 import scoreService from '~/services/score.service'
 import systemConfigService from './services/system-config.service'
+import { requireAdminAuth } from './middlewares/admin.middleware'
 
 dotenv.config()
 

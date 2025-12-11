@@ -5,6 +5,7 @@ import { UserStatus } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import userService from '~/services/users.service'
 import User from '~/models/schemas/users.schema'
+import scoreService from '~/services/score.service'
 
 const prefixAdmin = process.env.PREFIX_ADMIN
 
@@ -61,7 +62,7 @@ export const renderManageUserController = async (
   const countBlockedUsers = stats.blocked[0]?.count || 0
   const countNewUsers = stats.newUsers[0]?.count || 0
 
-  res.render('admin/pages/manage-users.pug', {
+  res.render('admin/pages/users/manage-users.pug', {
     pageTitle: 'Admin - Quản lý người dùng',
     admin,
     prefixAdmin,
@@ -96,6 +97,43 @@ export const getListUsersController = async (req: Request, res: Response) => {
     status: HttpStatus.OK,
     message: 'Get list of users successfully',
     data: result
+  })
+}
+
+// GET /admin/users/score
+export const renderManageUserScoreController = async (
+  req: Request,
+  res: Response
+) => {
+  const admin = req.admin as Admin
+
+  const userId = req.params.userId
+  const user = await userService.getUserById(userId)
+  if (!user) {
+    res.render('admin/pages/404.pug', {
+      pageTitle: 'Admin - 404',
+      admin,
+      prefixAdmin
+    })
+    return
+  }
+
+  const now = new Date()
+  const year = Number(req.query.year) || now.getFullYear()
+  const month = Number(req.query.month) || now.getMonth() + 1
+
+  const userMonthlyScore = await scoreService.getUserMonthlyScore(
+    user._id as ObjectId,
+    year,
+    month
+  )
+
+  res.render('admin/pages/users/score.pug', {
+    pageTitle: 'Admin - Quản lý điểm số người dùng',
+    admin,
+    prefixAdmin,
+    user,
+    userMonthlyScore
   })
 }
 

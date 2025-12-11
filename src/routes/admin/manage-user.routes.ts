@@ -5,6 +5,7 @@ import {
   lockUserController,
   logoutUserController,
   renderManageUserController,
+  renderManageUserScoreController,
   unlockUserController,
   updateUserManageController
 } from '~/controllers/admin/manage-user.controller'
@@ -20,7 +21,11 @@ const manageUserRoutes = Router()
 
 // GET /admin/users
 // Description: Render page manage users
-manageUserRoutes.get('/', requireAdminAuth, wrapRequestHandler(renderManageUserController))
+manageUserRoutes.get(
+  '/',
+  requireAdminAuth,
+  wrapRequestHandler(renderManageUserController)
+)
 
 // GET /admin/users/list
 // Description: Get list of users
@@ -30,6 +35,14 @@ manageUserRoutes.get(
   requireAdminAuth,
   getListValidator,
   wrapRequestHandler(getListUsersController)
+)
+
+// GET /admin/users/score
+// Description: Render page manage users score
+manageUserRoutes.get(
+  '/score/:userId',
+  requireAdminAuth,
+  wrapRequestHandler(renderManageUserScoreController)
 )
 
 // POST /admin/users/lock

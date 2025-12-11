@@ -1,4 +1,4 @@
-extends ../layouts/default.pug
+extends ../../layouts/default.pug
 
 block main-content
   div(class="page-header")
@@ -148,7 +148,7 @@ block main-content
                     div
                       div(class="small text-uppercase text-muted mb-1") Điểm tháng
                       div(class="h5 mb-0 font-weight-bold" id="userMonthScore") 0
-                    a(href="/admin/users/score" class="text-primary font-weight-bold" id="userMonthScoreLink") Chi tiết
+                    a(href="#" class="text-primary font-weight-bold" id="userMonthScoreLink") Chi tiết
                 div(class="col-12 col-md-6")
                   div(class="alert alert-primary d-flex align-items-center justify-content-between mb-3")
                     div
@@ -216,6 +216,7 @@ block main-content
 block scripts
   script(type="module").
     import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+    const prefixAdmin = "#{prefixAdmin}"
     let currentPage = 1
     const limit = 10
     let currentFilters = {
@@ -485,7 +486,7 @@ block scripts
       document.getElementById('userLastLogin').textContent = updateDate
       document.getElementById('userMonthScore').textContent = monthScore.toLocaleString('vi-VN') + '🎯'
       document.getElementById('userWalletBalance').textContent = walletBalance.toLocaleString('vi-VN') + '🪙'
-      if (monthScoreLink) monthScoreLink.href = '/admin/users/score'
+      if (monthScoreLink) monthScoreLink.href = `${prefixAdmin}/users/score/${userId}`
       if (walletLink) walletLink.href = '/admin/users/wallet'
       $('#userDetailModal').modal('show')
     }
