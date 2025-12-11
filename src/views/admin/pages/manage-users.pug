@@ -143,6 +143,18 @@ block main-content
               span(class="badge badge-success" id="userStatus") Hoạt động
             div(class="col-md-8")
               div(class="row")
+                div(class="col-12 col-md-6")
+                  div(class="alert alert-info d-flex align-items-center justify-content-between mb-3")
+                    div
+                      div(class="small text-uppercase text-muted mb-1") Điểm tháng
+                      div(class="h5 mb-0 font-weight-bold" id="userMonthScore") 0
+                    a(href="/admin/users/score" class="text-primary font-weight-bold" id="userMonthScoreLink") Chi tiết
+                div(class="col-12 col-md-6")
+                  div(class="alert alert-primary d-flex align-items-center justify-content-between mb-3")
+                    div
+                      div(class="small text-uppercase text-muted mb-1") Tài sản
+                      div(class="h5 mb-0 font-weight-bold" id="userWalletBalance") 0
+                    a(href="/admin/users/wallet" class="text-primary font-weight-bold" id="userWalletLink") Chi tiết
                 div(class="col-md-6")
                   div(class="form-group")
                     label(class="form-label") ID người dùng
@@ -179,17 +191,6 @@ block main-content
                   div(class="form-group")
                     label(class="form-label") Cập nhật lần cuối
                     p(class="form-control-plaintext" id="userLastLogin") -
-                div(class="col-md-6")
-                  div(class="form-group")
-                    label(class="form-label") Điểm số hiện tại
-                    input(type="number" class="form-control" id="userScore" min="0" step="1" placeholder="Chưa có dữ liệu" disabled)
-                div(class="col-md-6")
-                  div(class="form-group")
-                    label(class="form-label") Cấp độ
-                    p(class="form-control-plaintext" id="userLevel") Chưa có dữ liệu
-              div(class="mt-4")
-                h6 Lịch sử hoạt động
-                div(class="timeline" id="userActivity")
         div(class="modal-footer")
           button(type="button" class="btn btn-outline-secondary d-none" id="cancelEditBtn" onclick="cancelEditUser()")
             i(class="fas fa-times")
@@ -438,12 +439,20 @@ block scripts
         return
       }
 
+      console.log(user)
+
       const avatar = user.avatar || 'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'
       const username = user.username || 'Chưa cập nhật'
       const status = user.status || 'active'
       const statusText = getStatusText(status)
       const statusClass = getStatusClass(status)
       const userIdDisplay = user._id ? user._id.toString() : '-'
+      const monthScore = Number(user.user_month_score || 0)
+      const walletBalance = Number(
+        (user.wallet && user.wallet.balance_credit) || 0
+      )
+      const monthScoreLink = document.getElementById('userMonthScoreLink')
+      const walletLink = document.getElementById('userWalletLink')
       
       const createDate = user.create_at ? new Date(user.create_at).toLocaleDateString('vi-VN', {
         year: 'numeric',
@@ -474,36 +483,10 @@ block scripts
       document.getElementById('userId').textContent = userIdDisplay
       document.getElementById('userRegisterDate').textContent = createDate
       document.getElementById('userLastLogin').textContent = updateDate
-      document.getElementById('userLevel').textContent = 'Chưa có dữ liệu'
-
-      const activityHTML = `
-        <div class="timeline-item">
-          <div class="timeline-marker bg-info"></div>
-          <div class="timeline-content">
-            <h6 class="timeline-title">Đăng ký tài khoản</h6>
-            <p class="timeline-text">Người dùng đã đăng ký tài khoản mới</p>
-            <span class="timeline-date">${createDate}</span>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-marker bg-success"></div>
-          <div class="timeline-content">
-            <h6 class="timeline-title">Cập nhật thông tin</h6>
-            <p class="timeline-text">Cập nhật thông tin cá nhân lần cuối</p>
-            <span class="timeline-date">${updateDate}</span>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-marker bg-warning"></div>
-          <div class="timeline-content">
-            <h6 class="timeline-title">Chức năng đang phát triển</h6>
-            <p class="timeline-text">Lịch sử hoạt động chi tiết sẽ được cập nhật trong phiên bản tiếp theo</p>
-            <span class="timeline-date">-</span>
-          </div>
-        </div>
-      `
-      document.getElementById('userActivity').innerHTML = activityHTML
-
+      document.getElementById('userMonthScore').textContent = monthScore.toLocaleString('vi-VN') + '🎯'
+      document.getElementById('userWalletBalance').textContent = walletBalance.toLocaleString('vi-VN') + '🪙'
+      if (monthScoreLink) monthScoreLink.href = '/admin/users/score'
+      if (walletLink) walletLink.href = '/admin/users/wallet'
       $('#userDetailModal').modal('show')
     }
 
@@ -678,7 +661,7 @@ block scripts
     }
 
     function setUserFormDisabled(isDisabled) {
-      const editableFieldIds = ['userName', 'userEmailDetail', 'userPhone', 'userGender', 'userDateOfBirth', 'userScore']
+      const editableFieldIds = ['userName', 'userEmailDetail', 'userPhone', 'userGender', 'userDateOfBirth']
       editableFieldIds.forEach(id => {
         const field = document.getElementById(id)
         if (field) {
@@ -716,12 +699,6 @@ block scripts
         dateInput.value = user.date_of_birth ? formatDateForInput(user.date_of_birth) : ''
       }
 
-      const scoreInput = document.getElementById('userScore')
-      if (scoreInput) {
-        const scoreValue = user.score ?? ''
-        scoreInput.value = scoreValue === null ? '' : scoreValue
-        scoreInput.placeholder = scoreValue === '' ? 'Chưa có dữ liệu' : ''
-      }
     }
 
     function formatDateForInput(dateString) {
@@ -783,13 +760,6 @@ block scripts
       const phone = document.getElementById('userPhone').value.trim()
       const gender = document.getElementById('userGender').value
       const dateOfBirth = document.getElementById('userDateOfBirth').value
-      const scoreRaw = document.getElementById('userScore').value.trim()
-
-      const score = scoreRaw === '' ? null : Number(scoreRaw)
-      if (score !== null && Number.isNaN(score)) {
-        showNotification('error', 'Điểm số không hợp lệ!')
-        return
-      }
 
       if (!username) {
         showNotification('error', 'Tên người dùng không được để trống!')
@@ -852,7 +822,6 @@ block scripts
           phone_number: phone || null,
           gender: gender || null,
           date_of_birth: dateOfBirth || null,
-          score
         }
 
         const userIndex = usersList.findIndex(
@@ -866,7 +835,6 @@ block scripts
             phone_number: phone || null,
             gender: gender || null,
             date_of_birth: dateOfBirth || null,
-            score
           }
         }
 

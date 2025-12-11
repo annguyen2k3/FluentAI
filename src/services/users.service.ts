@@ -19,6 +19,7 @@ import md5 from 'md5'
 import { generateOTP } from '~/utils/random'
 import OTPVerifyEmail from '~/models/schemas/otp-verify-email.schema'
 import { sendMail } from '~/utils/nodemailer'
+import scoreService from './score.service'
 
 config()
 
@@ -395,6 +396,35 @@ class UserService {
       databaseService.users
         .aggregate([
           { $match: matchStage },
+          {
+            $lookup: {
+              from: 'wallets',
+              localField: 'wallet',
+              foreignField: '_id',
+              as: 'wallet'
+            }
+          },
+          {
+            $unwind: {
+              path: '$wallet',
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $addFields: {
+              wallet: {
+                _id: '$wallet._id',
+                balance_credit: '$wallet.balance_credit'
+              }
+            }
+          },
+          {
+            $project: {
+              password: 0,
+              'wallet.history_transactions': 0,
+              'wallet.update_at': 0
+            }
+          },
           { $sort: { create_at: sortOrder } },
           { $skip: skip },
           { $limit: limit }
@@ -403,9 +433,28 @@ class UserService {
       databaseService.users.countDocuments(matchStage)
     ])
 
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1
+
+    const listWithScore = await Promise.all(
+      list.map(async (user) => {
+        const monthlyScore = await scoreService.getUserMonthlyScore(
+          user._id as ObjectId,
+          year,
+          month
+        )
+
+        return {
+          ...user,
+          user_month_score: monthlyScore?.totalScore || 0
+        }
+      })
+    )
+
     const totalPages = Math.ceil(total / limit)
     return {
-      list,
+      list: listWithScore,
       pagination: {
         page,
         limit,

@@ -149,7 +149,7 @@
   background: #fff;
   border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-lg);
-  min-width: 280px;
+  min-width: 300px;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
