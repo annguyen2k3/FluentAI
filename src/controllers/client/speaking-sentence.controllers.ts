@@ -47,6 +47,7 @@ export const getSSListController = async (req: Request, res: Response) => {
     sortKey?: string
     sortOrder?: 'asc' | 'desc'
     status?: StatusLesson
+    isActive?: boolean
     history?: {
       userId: ObjectId
       status?: StatusLesson
@@ -84,7 +85,7 @@ export const getSSListController = async (req: Request, res: Response) => {
       userId: user._id as ObjectId
     }
   }
-
+  find.isActive = true
   const data = await speakingServices.getSSList(find)
 
   res.status(HttpStatus.OK).json({

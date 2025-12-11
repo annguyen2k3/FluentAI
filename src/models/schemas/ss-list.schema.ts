@@ -42,7 +42,7 @@ export default class SSList {
     this.list = ssList.list || []
     this.pos = ssList.pos || 1
     this.slug = ssList.slug || createSlug(ssList.title)
-    this.isActive = ssList.isActive || true
+    this.isActive = ssList.isActive !== undefined ? ssList.isActive : true
     this.create_at = ssList.create_at || new Date()
     this.update_at = ssList.update_at || new Date()
   }

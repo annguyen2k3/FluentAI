@@ -20,6 +20,7 @@ import {
 } from '~/utils/gemini'
 import { ErrorWithStatus } from '~/models/Errors'
 import { HttpStatus } from '~/constants/httpStatus'
+import SSList from '~/models/schemas/ss-list.schema'
 import HisSSUser, {
   HisSSUserSentenceType
 } from '~/models/schemas/his-ss-user.schema'
@@ -61,6 +62,7 @@ class SpeakingServices {
     search?: string
     sortKey?: string
     sortOrder?: 'asc' | 'desc'
+    isActive?: boolean
     history?: {
       userId: ObjectId
       status?: StatusLesson
@@ -71,6 +73,7 @@ class SpeakingServices {
       limit = 10,
       sortKey = 'pos',
       sortOrder = 'asc',
+      isActive,
       history,
       ...matchQuery
     } = find
@@ -80,7 +83,7 @@ class SpeakingServices {
     if (matchQuery.topic) matchStage.topic = matchQuery.topic
     if (matchQuery.search)
       matchStage.title = { $regex: matchQuery.search, $options: 'i' }
-
+    if (typeof isActive === 'boolean') matchStage.isActive = isActive
     const basePipeline: Record<string, unknown>[] = [
       { $match: matchStage },
       {
@@ -547,6 +550,25 @@ class SpeakingServices {
       type: HistoryUserType.PRACTICE_SPEAKING_SHADOWING,
       'content.svShadowingId': new ObjectId(practiceId)
     })
+  }
+
+  async createSSList(ssList: SSList) {
+    const newSSList = new SSList(ssList)
+    await databaseService.ssLists.insertOne(newSSList)
+    return newSSList
+  }
+
+  async updateSSList(ssList: SSList) {
+    await databaseService.ssLists.updateOne(
+      { _id: ssList._id },
+      { $set: ssList }
+    )
+    return ssList
+  }
+
+  async deleteSSList(id: string) {
+    await databaseService.ssLists.deleteOne({ _id: new ObjectId(id) })
+    return true
   }
 }
 

@@ -86,6 +86,22 @@ export const WRITING_PARAGRAPH_MESSAGES = {
   RANDOM_WP_SUCCESS: 'Đoạn văn ngẫu nhiên đã lấy thành công'
 } as const
 
+export const SPEAKING_SENTENCE_MESSAGES = {
+  ID_INVALID: 'ID không hợp lệ',
+  SS_LIST_NOT_FOUND: 'Danh sách nội dung phát âm câu không tồn tại',
+  TITLE_INVALID: 'Tiêu đề không hợp lệ',
+  TOPIC_INVALID: 'Chủ đề không hợp lệ',
+  LEVEL_INVALID: 'Cấp độ không hợp lệ',
+  LIST_INVALID: 'Danh sách câu không hợp lệ',
+  POS_INVALID: 'Vị trí không hợp lệ',
+  SLUG_INVALID:
+    'Slug không hợp lệ. Chỉ được chứa chữ cái, số, dấu gạch dưới ( _ ) và dấu gạch ngang ( - )',
+  SLUG_EXISTS: 'Slug đã tồn tại',
+  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự và tối đa 50 ký tự',
+  EN_SENTENCE_INVALID: 'Câu tiếng Anh không hợp lệ',
+  VI_SENTENCE_INVALID: 'Câu tiếng Việt không hợp lệ'
+} as const
+
 export const CATEGORIES_MESSAGES = {
   LEVEL_NOT_FOUND: 'Cấp độ không tồn tại',
   TYPE_NOT_FOUND: 'Loại không tồn tại',

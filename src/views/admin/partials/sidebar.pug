@@ -22,10 +22,6 @@ div(class="sidebar" data-background-color="dark")
             i(class="fas fa-users")
             p Quản lý người dùng
         li(class="nav-item")
-          a(href="/admin/scores.html")
-            i(class="fas fa-trophy")
-            p Quản lý điểm số
-        li(class="nav-item")
           a(class="collapsed" data-bs-toggle="collapse" href="#contentClassification" aria-expanded="false")
             i(class="fas fa-tags")
             p Phân loại nội dung
@@ -55,8 +51,11 @@ div(class="sidebar" data-background-color="dark")
                 a(href=`${prefixAdmin}/wp`)
                   span(class="sub-item") Luyện viết đoạn văn
               li
-                a(href="#")
-                  span(class="sub-item") Luyện phát âm
+                a(href=`${prefixAdmin}/speaking-sentence`)
+                  span(class="sub-item") Luyện phát âm (danh sách câu)
+              li
+                a(href=`${prefixAdmin}/speaking-shadowing`)
+                  span(class="sub-item") Luyện phát âm (Shadowing)
               li
                 a(href="#")
                   span(class="sub-item") Luyện nghe
