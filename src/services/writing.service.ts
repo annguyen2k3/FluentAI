@@ -396,6 +396,7 @@ class WritingService {
     level?: ObjectId
     topic?: ObjectId
     type?: ObjectId
+    isActive?: boolean
     page?: number
     limit?: number
     search?: string
@@ -419,6 +420,8 @@ class WritingService {
     if (matchQuery.level) matchStage.level = matchQuery.level
     if (matchQuery.topic) matchStage.topic = matchQuery.topic
     if (matchQuery.type) matchStage.type = matchQuery.type
+    if (matchQuery.isActive !== undefined)
+      matchStage.isActive = matchQuery.isActive
     if (matchQuery.search)
       matchStage.title = { $regex: matchQuery.search, $options: 'i' }
 

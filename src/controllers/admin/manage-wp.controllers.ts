@@ -48,6 +48,7 @@ export const getListWpController = async (req: Request, res: Response) => {
   const levelParam = req.query.level as string | undefined
   const topicParam = req.query.topic as string | undefined
   const typeParam = req.query.type as string | undefined
+  const isActiveParam = req.query.isActive as string | undefined
   const searchParam = req.query.search as string | undefined
   const sortKeyParam = req.query.sortKey as string | undefined
   const sortOrderParam = req.query.sortOrder as 'asc' | 'desc' | undefined
@@ -70,6 +71,10 @@ export const getListWpController = async (req: Request, res: Response) => {
     typeParam && ObjectId.isValid(typeParam)
       ? new ObjectId(typeParam)
       : undefined
+  const isActive =
+    isActiveParam !== undefined && isActiveParam !== ''
+      ? isActiveParam === 'true'
+      : undefined
 
   const data = await writingService.getWPList({
     page,
@@ -77,6 +82,7 @@ export const getListWpController = async (req: Request, res: Response) => {
     level,
     topic,
     type,
+    isActive,
     search,
     sortKey,
     sortOrder
@@ -89,7 +95,8 @@ export const getListWpController = async (req: Request, res: Response) => {
 }
 
 export const createWPListController = async (req: Request, res: Response) => {
-  const { title, topic, level, type, content, hint, pos, slug } = req.body
+  const { title, topic, level, type, content, hint, pos, slug, isActive } =
+    req.body
   const wpParagraph = new WPParagraph({
     title,
     topic: new ObjectId(topic),
@@ -98,7 +105,9 @@ export const createWPListController = async (req: Request, res: Response) => {
     content,
     hint: hint || [],
     pos: Number(pos),
-    slug
+    slug,
+    isActive:
+      isActive !== undefined ? isActive === true || isActive === 'true' : true
   })
   await writingService.createWPParagraph(wpParagraph)
   res.status(HttpStatus.CREATED).json({
@@ -109,7 +118,8 @@ export const createWPListController = async (req: Request, res: Response) => {
 }
 
 export const updateWPListController = async (req: Request, res: Response) => {
-  const { id, title, topic, level, type, content, hint, pos, slug } = req.body
+  const { id, title, topic, level, type, content, hint, pos, slug, isActive } =
+    req.body
   const wpParagraph = new WPParagraph({
     _id: new ObjectId(id),
     title,
@@ -120,6 +130,8 @@ export const updateWPListController = async (req: Request, res: Response) => {
     hint: hint || [],
     pos: Number(pos),
     slug,
+    isActive:
+      isActive !== undefined ? isActive === true || isActive === 'true' : true,
     update_at: new Date()
   })
   await writingService.updateWPParagraph(wpParagraph)
