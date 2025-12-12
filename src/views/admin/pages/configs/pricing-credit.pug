@@ -1,0 +1,371 @@
+extends ../../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Cấu hình hệ thống
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Gói mua credit
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card")
+        div(class="card-header d-flex align-items-center justify-content-between")
+          div
+            h4(class="card-title mb-0") Cấu hình gói credit
+            small(class="text-muted") Giá, khuyến mãi và số credit tương ứng
+          div(class="btn-group")
+            button(type="button" class="btn btn-outline-secondary" id="pricingRefreshBtn")
+              i(class="fas fa-sync-alt me-1")
+              |  Tải lại
+            button(type="button" class="btn btn-primary" id="pricingEditBtn")
+              i(class="fas fa-edit me-1")
+              |  Chỉnh sửa
+            button(type="button" class="btn btn-success d-none" id="pricingSaveBtn")
+              i(class="fas fa-save me-1")
+              |  Lưu
+            button(type="button" class="btn btn-outline-secondary d-none" id="pricingCancelBtn")
+              i(class="fas fa-times me-1")
+              |  Hủy
+        div(class="card-body")
+          div(class="d-flex justify-content-end mb-3")
+            button(type="button" class="btn btn-outline-primary pricing-credit-config__add-btn d-none" id="pricingAddPackageBtn")
+              i(class="fas fa-plus me-1")
+              |  Thêm gói
+          div(class="table-responsive")
+            table(class="table table-striped align-middle")
+              thead
+                tr
+                  th(style="width: 60px;") #
+                  th Số credit
+                  th(style="160px") Giá gốc (VND)
+                  th(style="140px") Giảm giá (VND)
+                  th(style="160px") Tổng thanh toán (VND)
+                  th Thao tác
+              tbody(id="pricingTableBody")
+                tr
+                  td(colspan="6" class="text-center py-4 text-muted") Đang tải cấu hình...
+          div(class="d-flex justify-content-start align-items-center mt-3 flex-wrap gap-4")
+            div(class="text-muted small d-flex align-items-center gap-2")
+              span ID cấu hình: 
+              span(id="pricingConfigId" class="fw-semibold") -
+            div(class="text-muted small d-flex align-items-center gap-2")
+              i(class="far fa-clock text-info")
+              span Lần cập nhật:
+              span(class="fw-semibold" id="pricingUpdatedAt") -
+            div(class="text-muted small d-flex align-items-center gap-2")
+              i(class="fas fa-user-shield text-success")
+              span Người cập nhật:
+              span(class="fw-semibold" id="pricingUpdatedBy") -
+
+block head
+  style.
+    .pricing-credit-config__remove-btn {
+      color: #dc3545;
+    }
+    .pricing-credit-config__add-btn.d-none {
+      display: none !important;
+    }
+
+block scripts
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    const prefixAdmin = '#{prefixAdmin}'
+    const configData = !{JSON.stringify(config || null)}
+    const adminUpdateConfigPricingCredit = !{JSON.stringify(adminUpdateConfigPricingCredit || null)}
+
+    const state = {
+      parameters: [],
+      original: [],
+      isEditing: false,
+      meta: {
+        create_at: null,
+        update_at: null,
+        updated_by: null,
+        _id: null
+      }
+    }
+
+    function initState() {
+      const parameters = Array.isArray(configData?.config?.parameters) ? configData.config.parameters : []
+      state.parameters = parameters.map(item => ({
+        _id: item._id,
+        credit: Number(item.credit) || 0,
+        price: Number(item.price) || 0,
+        discount: Number(item.discount) || 0
+      }))
+      state.original = JSON.parse(JSON.stringify(state.parameters))
+      state.meta = {
+        create_at: configData?.config?.create_at || configData?.create_at || null,
+        update_at: configData?.config?.update_at || configData?.update_at || null,
+        updated_by: configData?.config?.updated_by || configData?.updated_by || null,
+        _id: configData?._id || null
+      }
+    }
+
+    function formatDate(value) {
+      if (!value) return '-'
+      const date = new Date(value)
+      if (Number.isNaN(date.getTime())) return '-'
+      return date.toLocaleString('vi-VN')
+    }
+
+    function formatCurrency(value) {
+      return (Number(value) || 0).toLocaleString('vi-VN')
+    }
+
+    function renderMeta() {
+      const updatedAtEl = document.getElementById('pricingUpdatedAt')
+      if (updatedAtEl) {
+        updatedAtEl.textContent = formatDate(state.meta.update_at)
+      }
+
+      let updatedByText = 'Mặc định'
+      if (adminUpdateConfigPricingCredit && adminUpdateConfigPricingCredit.username) {
+        const username = adminUpdateConfigPricingCredit.username
+        const role = adminUpdateConfigPricingCredit.role || 'root_admin'
+        updatedByText = `${username} - ${role}`
+      }
+      const updatedByEl = document.getElementById('pricingUpdatedBy')
+      if (updatedByEl) {
+        updatedByEl.textContent = updatedByText
+      }
+
+      const configIdEl = document.getElementById('pricingConfigId')
+      if (configIdEl) {
+        configIdEl.textContent = state.meta._id || '-'
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('pricingTableBody')
+      if (!tbody) return
+      if (!state.parameters.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Không có cấu hình nào</td></tr>'
+        return
+      }
+      const rows = state.parameters
+        .map((item, index) => {
+          const price = Number(item.price) || 0
+          const discount = Number(item.discount) || 0
+          const total = Math.max(price - discount, 0)
+          return `
+            <tr data-id="${item._id || index}">
+              <td>${index + 1}</td>
+              <td>
+                <input
+                  type="number"
+                  class="form-control form-control-sm pricing-credit-config__credit-input"
+                  value="${item.credit}"
+                  min="0"
+                  data-index="${index}"
+                  ${state.isEditing ? '' : 'disabled'}
+                >
+              </td>
+              <td>
+                <input
+                  type="number"
+                  class="form-control form-control-sm pricing-credit-config__price-input"
+                  value="${item.price}"
+                  min="0"
+                  step="1000"
+                  data-index="${index}"
+                  ${state.isEditing ? '' : 'disabled'}
+                >
+              </td>
+              <td>
+                <input
+                  type="number"
+                  class="form-control form-control-sm pricing-credit-config__discount-input"
+                  value="${item.discount}"
+                  min="0"
+                  max="${price}"
+                  step="1000"
+                  data-index="${index}"
+                  ${state.isEditing ? '' : 'disabled'}
+                >
+              </td>
+              <td>
+                <div class="text-end fw-semibold text-primary">${formatCurrency(total)}</div>
+              </td>
+              <td class="text-end">
+                ${state.isEditing ? `<button type="button" class="btn btn-link text-decoration-none pricing-credit-config__remove-btn" data-index="${index}"><i class="fas fa-trash-alt"></i></button>` : '<span class="text-muted small">-</span>'}
+              </td>
+            </tr>
+          `
+        })
+        .join('')
+      tbody.innerHTML = rows
+    }
+
+    function setEditingMode(isEditing) {
+      state.isEditing = isEditing
+      const editBtn = document.getElementById('pricingEditBtn')
+      const saveBtn = document.getElementById('pricingSaveBtn')
+      const cancelBtn = document.getElementById('pricingCancelBtn')
+      const addBtn = document.getElementById('pricingAddPackageBtn')
+      if (editBtn) editBtn.classList.toggle('d-none', isEditing)
+      if (saveBtn) saveBtn.classList.toggle('d-none', !isEditing)
+      if (cancelBtn) cancelBtn.classList.toggle('d-none', !isEditing)
+      if (addBtn) addBtn.classList.toggle('d-none', !isEditing)
+      renderTable()
+    }
+
+    function handleInputChange(event) {
+      const target = event.target
+      if (!target.dataset.index) return
+      const index = Number(target.dataset.index)
+      if (Number.isNaN(index) || !state.parameters[index]) return
+      if (target.classList.contains('pricing-credit-config__credit-input')) {
+        state.parameters[index].credit = Number(target.value) || 0
+      }
+      if (target.classList.contains('pricing-credit-config__price-input')) {
+        state.parameters[index].price = Number(target.value) || 0
+        const price = state.parameters[index].price
+        if (state.parameters[index].discount > price) {
+          state.parameters[index].discount = price
+        }
+      }
+      if (target.classList.contains('pricing-credit-config__discount-input')) {
+        const value = Number(target.value) || 0
+        const price = Number(state.parameters[index].price) || 0
+        const clamped = Math.min(Math.max(value, 0), price)
+        state.parameters[index].discount = clamped
+        target.value = state.parameters[index].discount
+      }
+    }
+
+    function handleRemovePackage(event) {
+      const target = event.target.closest('button[data-index]')
+      if (!target) return
+      const index = Number(target.dataset.index)
+      if (Number.isNaN(index) || !state.parameters[index]) return
+      state.parameters.splice(index, 1)
+      renderTable()
+    }
+
+    function handleAddPackage() {
+      state.parameters.push({
+        _id: null,
+        credit: 0,
+        price: 0,
+        discount: 0
+      })
+      renderTable()
+    }
+
+    function attachEvents() {
+      const editBtn = document.getElementById('pricingEditBtn')
+      const saveBtn = document.getElementById('pricingSaveBtn')
+      const cancelBtn = document.getElementById('pricingCancelBtn')
+      const refreshBtn = document.getElementById('pricingRefreshBtn')
+      const addBtn = document.getElementById('pricingAddPackageBtn')
+      const table = document.getElementById('pricingTableBody')
+
+      if (editBtn) {
+        editBtn.addEventListener('click', () => setEditingMode(true))
+      }
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+          state.parameters = JSON.parse(JSON.stringify(state.original))
+          setEditingMode(false)
+          renderMeta()
+        })
+      }
+      if (addBtn) {
+        addBtn.addEventListener('click', handleAddPackage)
+      }
+      if (saveBtn) {
+        saveBtn.addEventListener('click', async () => {
+          const packages = state.parameters.map(item => ({
+            price: Number(item.price) || 0,
+            discount: Number(item.discount) || 0,
+            credit: Number(item.credit) || 0
+          }))
+
+          const saveBtnEl = document.getElementById('pricingSaveBtn')
+          const originalText = saveBtnEl.innerHTML
+          saveBtnEl.disabled = true
+          saveBtnEl.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Đang lưu...'
+
+          try {
+            const response = await fetch(AdminApiBreakpoint.UPDATE_PRICING_CREDIT, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              credentials: 'same-origin',
+              body: JSON.stringify(packages)
+            })
+
+            let result
+            try {
+              result = await response.json()
+            } catch (e) {
+              const text = await response.text()
+              throw new Error(text || `HTTP ${response.status}: ${response.statusText}`)
+            }
+
+            if (!response.ok) {
+              throw new Error(result.message || 'Có lỗi xảy ra khi cập nhật cấu hình')
+            }
+
+            showNotification('success', result.message || 'Cập nhật cấu hình gói credit thành công!')
+            setEditingMode(false)
+            state.original = JSON.parse(JSON.stringify(state.parameters))
+            setTimeout(() => {
+              window.location.reload()
+            }, 1500)
+          } catch (error) {
+            console.error('Error updating pricing config:', error)
+            showNotification('error', error.message || 'Có lỗi xảy ra khi cập nhật cấu hình')
+            saveBtnEl.disabled = false
+            saveBtnEl.innerHTML = originalText
+          }
+        })
+      }
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+          window.location.reload()
+        })
+      }
+      if (table) {
+        table.addEventListener('input', handleInputChange)
+        table.addEventListener('click', (event) => {
+          if (!state.isEditing) return
+          if (event.target.closest('.pricing-credit-config__remove-btn')) {
+            handleRemovePackage(event)
+          }
+        })
+      }
+    }
+
+    function showNotification(type, message) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initState()
+      renderMeta()
+      renderTable()
+      attachEvents()
+    })
+

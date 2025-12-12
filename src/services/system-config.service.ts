@@ -5,7 +5,8 @@ import {
 } from '~/constants/enum'
 import SystemConfig, {
   PracticeScoreType,
-  PracticeCostType
+  PracticeCostType,
+  PricingCreditType
 } from '~/models/schemas/system-config'
 import { databaseService } from './database.service'
 import { ObjectId } from 'mongodb'
@@ -182,6 +183,46 @@ class SystemConfigService {
       { $set: { config: config } }
     )
     this.practiceCostConfigCache = null
+    return true
+  }
+
+  async updatePricingCreditConfig(
+    adminId: ObjectId,
+    parameters: Array<{
+      price: number
+      discount: number
+      credit: number
+    }>
+  ): Promise<boolean> {
+    let pricingConfig = this.getCachedPricingCredit()
+    if (!pricingConfig) {
+      const pricingConfigData: PricingCreditType = {
+        parameters: [],
+        create_at: new Date(),
+        update_at: new Date(),
+        updated_by: adminId
+      }
+      pricingConfig = new SystemConfig({
+        type: ConfigSystemType.PRICING_CREDIT,
+        config: pricingConfigData
+      })
+      await databaseService.systemConfigs.insertOne(pricingConfig)
+      this.pricingConfigCache = pricingConfig
+    }
+    const config = pricingConfig.config as PricingCreditType
+    config.parameters = parameters.map((item) => ({
+      _id: new ObjectId(),
+      price: Number(item.price) || 0,
+      discount: Number(item.discount) || 0,
+      credit: Number(item.credit) || 0
+    }))
+    config.updated_by = adminId
+    config.update_at = new Date()
+    await databaseService.systemConfigs.updateOne(
+      { _id: pricingConfig._id },
+      { $set: { config: config } }
+    )
+    this.pricingConfigCache = null
     return true
   }
 }

@@ -5,7 +5,7 @@ import {
   UserScoreType
 } from '~/constants/enum'
 
-interface PricingCreditType {
+export interface PricingCreditType {
   parameters: {
     _id: ObjectId
     price: number

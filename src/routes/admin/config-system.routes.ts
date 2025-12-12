@@ -4,6 +4,10 @@ import {
   updateConfigScoreController
 } from '~/controllers/admin/config-score.controllers'
 import {
+  renderConfigPricingCreditController,
+  updateConfigPricingCreditController
+} from '~/controllers/admin/config-pricing-credit.controllers'
+import {
   renderConfigCreditUsageController,
   updateConfigCreditUsageController
 } from '~/controllers/admin/config-credit-usage.controllers'
@@ -27,6 +31,23 @@ configSystemRoutes.put(
   '/score',
   requireAdminAuth,
   wrapRequestHandler(updateConfigScoreController)
+)
+
+// GET /admin/configs/pricing-credit
+// Description: Render config pricing credit page
+configSystemRoutes.get(
+  '/pricing-credit',
+  requireAdminAuth,
+  wrapRequestHandler(renderConfigPricingCreditController)
+)
+
+// PUT /admin/configs/pricing-credit
+// Description: Update config pricing credit
+// Body: Array<{ price: number; discount: number; credit: number }>
+configSystemRoutes.put(
+  '/pricing-credit',
+  requireAdminAuth,
+  wrapRequestHandler(updateConfigPricingCreditController)
 )
 
 // GET /admin/configs/credit-usage
