@@ -8,7 +8,6 @@ import bodyParser from 'body-parser'
 import { defaultErrorHandler } from './middlewares/errors.middleware'
 import cookieParser from 'cookie-parser'
 import { initFolder } from './utils/file'
-import scoreService from '~/services/score.service'
 import systemConfigService from './services/system-config.service'
 import { requireAdminAuth } from './middlewares/admin.middleware'
 
@@ -19,12 +18,9 @@ const port = process.env.PORT || 3000
 
 initFolder()
 databaseService.connect().then(async () => {
-  Promise.all([scoreService.loadCache(), systemConfigService.loadCache()]).then(
-    () => {
-      console.log('Score config cache loaded')
-      console.log('System config cache loaded')
-    }
-  )
+  systemConfigService.loadCache().then(() => {
+    console.log('System config cache loaded')
+  })
 })
 
 // Serving static files

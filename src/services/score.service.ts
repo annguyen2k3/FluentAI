@@ -1,46 +1,17 @@
 import { ObjectId } from 'mongodb'
 import { UserScoreType } from '~/constants/enum'
 import { databaseService } from './database.service'
-import SystemScore from '~/models/schemas/system-score.schema'
 import UserScore from '~/models/schemas/user-score.schema'
+import systemConfigService from './system-config.service'
+import { PracticeScoreType } from '~/models/schemas/system-config'
 
 class ScoreService {
-  private scoreConfigCache: SystemScore | null = null
-  private isCacheLoaded: boolean = false
-
   async getActiveScoreConfig(
     forceRefresh: boolean = false
-  ): Promise<SystemScore | null> {
-    if (!forceRefresh && this.isCacheLoaded && this.scoreConfigCache) {
-      return this.scoreConfigCache
-    }
-
-    const config = await databaseService.systemScores.findOne({
-      isActive: true
-    })
-
-    this.scoreConfigCache = config
-    this.isCacheLoaded = true
-
-    return config
-  }
-
-  async loadCache(): Promise<SystemScore | null> {
-    return await this.getActiveScoreConfig(true)
-  }
-
-  async refreshCache(): Promise<SystemScore | null> {
-    this.invalidateCache()
-    return await this.loadCache()
-  }
-
-  invalidateCache(): void {
-    this.scoreConfigCache = null
-    this.isCacheLoaded = false
-  }
-
-  getCachedConfig(): SystemScore | null {
-    return this.scoreConfigCache
+  ): Promise<PracticeScoreType | null> {
+    const config = await systemConfigService.getPracticeScore(forceRefresh)
+    if (!config) return null
+    return (config.config as PracticeScoreType) || null
   }
 
   async getScoreForPracticeType(userScoreType: UserScoreType): Promise<number> {
@@ -50,11 +21,11 @@ class ScoreService {
       return this.getDefaultScore(userScoreType)
     }
 
-    const scoreConfig = config.scoreConfigs.find(
-      (sc) => sc.userScoreType === userScoreType
+    const scoreConfig = config.parameters.find(
+      (sc) => sc.type === userScoreType
     )
 
-    return scoreConfig?.baseScore || 0
+    return scoreConfig?.score || 0
   }
 
   private getDefaultScore(userScoreType: UserScoreType): number {

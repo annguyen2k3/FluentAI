@@ -1,5 +1,9 @@
 import { ObjectId } from 'mongodb'
-import { ConfigSystemType, CreditUsageType } from '~/constants/enum'
+import {
+  ConfigSystemType,
+  CreditUsageType,
+  UserScoreType
+} from '~/constants/enum'
 
 interface PricingCreditType {
   parameters: {
@@ -10,6 +14,7 @@ interface PricingCreditType {
   }[]
   create_at?: Date
   update_at?: Date
+  updated_by?: ObjectId
 }
 
 export interface PracticeCostType {
@@ -20,18 +25,31 @@ export interface PracticeCostType {
   }[]
   create_at?: Date
   update_at?: Date
+  updated_by?: ObjectId
+}
+
+export interface PracticeScoreType {
+  parameters: {
+    _id: ObjectId
+    type: UserScoreType
+    score: number
+    description?: string
+  }[]
+  create_at?: Date
+  update_at?: Date
+  updated_by?: ObjectId
 }
 
 export interface SystemConfigType {
   _id?: ObjectId
   type: ConfigSystemType
-  config: PricingCreditType | PracticeCostType
+  config: PricingCreditType | PracticeCostType | PracticeScoreType
 }
 
 export default class SystemConfig {
   _id?: ObjectId
   type: ConfigSystemType
-  config: PricingCreditType | PracticeCostType
+  config: PricingCreditType | PracticeCostType | PracticeScoreType
 
   constructor(systemConfig: SystemConfigType) {
     this._id = systemConfig._id || new ObjectId()

@@ -15,10 +15,8 @@ import HisSSUser from '~/models/schemas/his-ss-user.schema'
 import SVShadowing from '~/models/schemas/sv-shadowing.schema'
 import HisPracticeUser from '~/models/schemas/his-practice-user.schema'
 import ListeningVideo from '~/models/schemas/lv-video.schemas'
-import SystemScore from '~/models/schemas/system-score.schema'
 import UserScore from '~/models/schemas/user-score.schema'
 import Wallet from '~/models/schemas/wallet.schema'
-import PricingCredit from '~/models/schemas/system-config'
 import SystemConfig from '~/models/schemas/system-config'
 config()
 
@@ -128,10 +126,6 @@ class DatabaseService {
 
   get listeningVideos(): Collection<ListeningVideo> {
     return this.db.collection('lv_videos')
-  }
-
-  get systemScores(): Collection<SystemScore> {
-    return this.db.collection('system_scores')
   }
 
   get userScores(): Collection<UserScore> {

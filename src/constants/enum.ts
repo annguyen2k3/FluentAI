@@ -87,7 +87,8 @@ export enum TransactionStatus {
 
 export enum ConfigSystemType {
   PRICING_CREDIT = 'pricing_credit',
-  COST_USAGE = 'cost_usage'
+  COST_USAGE = 'cost_usage',
+  PRACTICE_SCORE = 'practice_score'
 }
 
 export enum CreditUsageType {
