@@ -84,6 +84,10 @@ block main-content
                         h3.fs-5.mb-3.fw-bold
                             i.fas.fa-clipboard-check.me-2(style="color: var(--primary-color);")
                             | Bài trắc nghiệm thu hoạch
+                        if (scorePractice)
+                            span.lv-aln-quiz-view__score-bonus.badge.bg-success.mb-3.d-none
+                                i.fas.fa-plus.me-1
+                                | #{scorePractice} điểm
 
                         .lv-aln-quiz-view__score.d-none.alert(role="status")
                             span.lv-aln-quiz-view__score-badge.badge.me-2
@@ -371,6 +375,7 @@ block scripts
                     const scoreEl = document.querySelector('.lv-aln-quiz-view__score')
                     const scoreBadgeEl = document.querySelector('.lv-aln-quiz-view__score-badge')
                     const scoreTextEl = document.querySelector('.lv-aln-quiz-view__score-text')
+                    const scoreBonusEl = document.querySelector('.lv-aln-quiz-view__score-bonus')
 
                     if (scoreEl) {
                         if (hasUnanswered) {
@@ -383,6 +388,9 @@ block scripts
                             if (scoreTextEl) {
                                 scoreTextEl.textContent =
                                     'Vui lòng chọn đáp án cho tất cả các câu hỏi trước khi xem điểm.'
+                            }
+                            if (scoreBonusEl) {
+                                scoreBonusEl.classList.add('d-none')
                             }
                         } else {
                             const totalQuestions = questionEls.length
@@ -400,9 +408,17 @@ block scripts
                             if (scoreTextEl) {
                                 const baseText = `${correctCount}/${totalQuestions} câu đúng`
                                 const message = isPassed
-                                    ? 'Tuyệt vời! Bạn đã đạt yêu cầu, hãy tiếp tục luyện tập để giữ phong độ nhé.'
+                                    ? `Tuyệt vời! Bạn đã đạt yêu cầu, hãy tiếp tục luyện tập để giữ phong độ nhé.`
                                     : 'Cố gắng lên! Hãy xem lại đáp án và thử luyện nghe lại thêm một lần nữa nhé.'
                                 scoreTextEl.textContent = `${baseText}. ${message}`
+                            }
+
+                            if (scoreBonusEl) {
+                                if (isPassed) {
+                                    scoreBonusEl.classList.remove('d-none')
+                                } else {
+                                    scoreBonusEl.classList.add('d-none')
+                                }
                             }
 
                             if (quizActionsEl) {

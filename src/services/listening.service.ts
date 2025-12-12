@@ -1,9 +1,10 @@
 import { ObjectId } from 'mongodb'
-import { StatusLesson, HistoryUserType } from '~/constants/enum'
+import { StatusLesson, HistoryUserType, UserScoreType } from '~/constants/enum'
 import { databaseService } from './database.service'
 import HisLVUser from '~/models/schemas/his-lv.schema'
 import HisPracticeUser from '~/models/schemas/his-practice-user.schema'
 import ListeningVideo from '~/models/schemas/lv-video.schemas'
+import scoreService from './score.service'
 
 class ListeningService {
   async getLVList(find: {

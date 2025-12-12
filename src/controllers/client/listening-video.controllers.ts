@@ -1,10 +1,11 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
-import { StatusLesson } from '~/constants/enum'
+import { StatusLesson, UserScoreType } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import User from '~/models/schemas/users.schema'
 import { databaseService } from '~/services/database.service'
 import listeningService from '~/services/listening.service'
+import scoreService from '~/services/score.service'
 
 // GET /listening-video
 export const renderListeningVideoController = async (
@@ -121,6 +122,10 @@ export const renderLVALNController = async (req: Request, res: Response) => {
     return res.redirect('/listening-video')
   }
 
+  const score = await scoreService.getScoreForPracticeType(
+    UserScoreType.LISTENING_VIDEO
+  )
+
   await listeningService.updateHistory(
     user._id as ObjectId,
     lv._id as ObjectId,
@@ -130,7 +135,8 @@ export const renderLVALNController = async (req: Request, res: Response) => {
   res.render('client/pages/listening-video/practice-aln.pug', {
     pageTitle: 'Luyện nghe video - Active Listening',
     user,
-    lv
+    lv,
+    scorePractice: score
   })
 }
 
@@ -161,6 +167,15 @@ export const updateLVStatusController = async (req: Request, res: Response) => {
     lv._id as ObjectId,
     status
   )
+
+  if (status === StatusLesson.COMPLETED) {
+    await scoreService.addScore(
+      user._id as ObjectId,
+      UserScoreType.LISTENING_VIDEO,
+      lv._id as ObjectId,
+      `Luyện nghe video - ${lv.title}`
+    )
+  }
 
   return res.status(HttpStatus.OK).json({
     message: 'Trạng thái video nghe đã được cập nhật thành công',
