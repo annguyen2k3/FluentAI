@@ -1,5 +1,12 @@
-import { ConfigSystemType, UserScoreType } from '~/constants/enum'
-import SystemConfig, { PracticeScoreType } from '~/models/schemas/system-config'
+import {
+  ConfigSystemType,
+  UserScoreType,
+  CreditUsageType
+} from '~/constants/enum'
+import SystemConfig, {
+  PracticeScoreType,
+  PracticeCostType
+} from '~/models/schemas/system-config'
 import { databaseService } from './database.service'
 import { ObjectId } from 'mongodb'
 
@@ -150,6 +157,31 @@ class SystemConfigService {
       { _id: practiceScoreConfig._id },
       { $set: { config: config } }
     )
+    this.invalidatePracticeScoreCache()
+    return true
+  }
+
+  async updatePracticeCostConfig(
+    adminId: ObjectId,
+    record: Record<CreditUsageType, number>
+  ): Promise<Boolean> {
+    const practiceCostConfig = this.getCachedPracticeCost()
+    if (!practiceCostConfig) {
+      return false
+    }
+    const config = practiceCostConfig.config as PracticeCostType
+    config.parameters = Object.entries(record).map(([type, cost]) => ({
+      _id: new ObjectId(),
+      type: type as CreditUsageType,
+      cost
+    }))
+    config.updated_by = adminId
+    config.update_at = new Date()
+    await databaseService.systemConfigs.updateOne(
+      { _id: practiceCostConfig._id },
+      { $set: { config: config } }
+    )
+    this.practiceCostConfigCache = null
     return true
   }
 }
