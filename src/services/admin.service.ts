@@ -4,6 +4,7 @@ import { signToken } from '~/utils/jwt'
 import { TokenType } from '~/constants/enum'
 import { ObjectId } from 'mongodb'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
+import { unset } from 'lodash'
 
 class AdminServices {
   private signAccessToken(user_id: string) {
@@ -55,6 +56,15 @@ class AdminServices {
       access_token,
       refresh_token
     }
+  }
+
+  async getAdminById(user_id: string) {
+    const admin = await databaseService.admins.findOne({
+      _id: new ObjectId(user_id)
+    })
+    if (!admin) return null
+    unset(admin, 'password')
+    return admin
   }
 }
 

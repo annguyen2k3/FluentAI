@@ -60,6 +60,22 @@ div(class="sidebar" data-background-color="dark")
                 a(href=`${prefixAdmin}/listening-video`)
                   span(class="sub-item") Luyện nghe (video)
         li(class="nav-item")
+          a(class="collapsed" data-bs-toggle="collapse" href="#configuration" aria-expanded="false")
+            i(class="fas fa-cog")
+            p Cấu hình hệ thống
+            span(class="caret")
+          div(id="configuration" class="collapse")
+            ul(class="nav nav-collapse")
+              li
+                a(href=`${prefixAdmin}/configs/score`)
+                  span(class="sub-item") Điểm số luyện tập
+              li
+                a(href=`${prefixAdmin}/configs/cost`)
+                  span(class="sub-item") Chi phí luyện tập
+              li
+                a(href=`${prefixAdmin}/configs/payment`)
+                  span(class="sub-item") Giao dịch thanh toán
+        li(class="nav-item")
           a(href="#")
             i(class="fas fa-book")
             p Quản lý từ điển

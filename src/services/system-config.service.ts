@@ -1,12 +1,21 @@
-import { ConfigSystemType } from '~/constants/enum'
-import SystemConfig from '~/models/schemas/system-config'
+import { ConfigSystemType, UserScoreType } from '~/constants/enum'
+import SystemConfig, { PracticeScoreType } from '~/models/schemas/system-config'
 import { databaseService } from './database.service'
+import { ObjectId } from 'mongodb'
 
 class SystemConfigService {
   private pricingConfigCache: SystemConfig | null = null
   private practiceCostConfigCache: SystemConfig | null = null
   private practiceScoreConfigCache: SystemConfig | null = null
   private isCacheLoaded: boolean = false
+
+  private defaultPracticeScoreConfig: Record<UserScoreType, number> = {
+    [UserScoreType.WRITING_SENTENCE]: 10,
+    [UserScoreType.WRITING_PARAGRAPH]: 10,
+    [UserScoreType.SPEAKING_SENTENCE]: 15,
+    [UserScoreType.SPEAKING_SHADOWING]: 15,
+    [UserScoreType.LISTENING_VIDEO]: 30
+  }
 
   async getPricingCredit(
     forceRefresh: boolean = false
@@ -49,9 +58,29 @@ class SystemConfigService {
       return this.practiceScoreConfigCache
     }
 
-    const config = await databaseService.systemConfigs.findOne<SystemConfig>({
+    let config = await databaseService.systemConfigs.findOne<SystemConfig>({
       type: ConfigSystemType.PRACTICE_SCORE
     })
+
+    if (!config) {
+      const practiceScoreConfig: PracticeScoreType = {
+        parameters: Object.entries(this.defaultPracticeScoreConfig).map(
+          ([type, score]) => ({
+            _id: new ObjectId(),
+            type: type as UserScoreType,
+            score
+          })
+        ),
+        create_at: new Date(),
+        update_at: new Date(),
+        updated_by: undefined
+      }
+      config = new SystemConfig({
+        type: ConfigSystemType.PRACTICE_SCORE,
+        config: practiceScoreConfig
+      })
+      await databaseService.systemConfigs.insertOne(config)
+    }
 
     this.practiceScoreConfigCache = config
     this.isCacheLoaded = true
@@ -99,6 +128,29 @@ class SystemConfigService {
 
   getCachedPracticeScore(): SystemConfig | null {
     return this.practiceScoreConfigCache
+  }
+
+  async updatePracticeScoreConfig(
+    adminId: ObjectId,
+    record: Record<UserScoreType, number>
+  ): Promise<Boolean> {
+    const practiceScoreConfig = this.getCachedPracticeScore()
+    if (!practiceScoreConfig) {
+      return false
+    }
+    const config = practiceScoreConfig.config as PracticeScoreType
+    config.parameters = Object.entries(record).map(([type, score]) => ({
+      _id: new ObjectId(),
+      type: type as UserScoreType,
+      score
+    }))
+    config.updated_by = adminId
+    config.update_at = new Date()
+    await databaseService.systemConfigs.updateOne(
+      { _id: practiceScoreConfig._id },
+      { $set: { config: config } }
+    )
+    return true
   }
 }
 
