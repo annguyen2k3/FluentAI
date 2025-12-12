@@ -1,12 +1,12 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
-import { TransactionStatus } from '~/constants/enum'
+import { TransactionStatus, ConfigSystemType } from '~/constants/enum'
 import { HttpStatus } from '~/constants/httpStatus'
 import User from '~/models/schemas/users.schema'
 import { databaseService } from '~/services/database.service'
 import systemConfigService from '~/services/system-config.service'
-import userService from '~/services/users.service'
 import { paymentCod } from '~/utils/payment-momo'
+import { PricingCreditType } from '~/models/schemas/system-config'
 
 export const paymentCodController = async (req: Request, res: Response) => {
   const user = req.user as User
@@ -14,7 +14,11 @@ export const paymentCodController = async (req: Request, res: Response) => {
   const packageId = req.body.packageId
 
   const pricingConfig = systemConfigService.getCachedPricingCredit()
-  const packages = pricingConfig?.config?.parameters || []
+  const pricingParameters =
+    pricingConfig?.type === ConfigSystemType.PRICING_CREDIT
+      ? (pricingConfig.config as PricingCreditType).parameters
+      : []
+  const packages = pricingParameters || []
   if (!packageId) {
     return res.status(400).json({ message: 'Thiếu packageId' })
   }
