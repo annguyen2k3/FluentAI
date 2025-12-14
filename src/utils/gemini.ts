@@ -1,10 +1,10 @@
 // utils/gemini.ts
 import { GoogleGenAI } from '@google/genai'
 import dotenv from 'dotenv'
+import geminiService from '~/services/gemini.service'
 dotenv.config()
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY })
-const MODEL = 'gemini-2.5-flash-lite'
 
 type GeminiChat = ReturnType<GoogleGenAI['chats']['create']>
 type Session = { chat: GeminiChat; createdAt: Date; lastUsed: Date }
@@ -13,13 +13,21 @@ const sessions = new Map<string, Session>()
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000
 const CLEANUP_MS = 5 * 60 * 1000
 
-const defaultConfig = {
-  model: MODEL,
-  config: {
-    responseMimeType: 'application/json',
-    temperature: 0.5, // Giảm từ 0.5 để tăng tính nhất quán
-    maxOutputTokens: 2000, // Giới hạn chi phí và độ dài
-    topP: 0.95 // Kiểm soát tính ngẫu nhiên
+function getConfigFromCache() {
+  const cachedConfig = geminiService.getCachedActiveConfig()
+  if (!cachedConfig) {
+    throw new Error(
+      'Gemini config cache chưa được load. Vui lòng đợi hệ thống khởi động.'
+    )
+  }
+  return {
+    model: cachedConfig.model,
+    config: {
+      responseMimeType: cachedConfig.config.responseMimeType,
+      temperature: cachedConfig.config.temperature,
+      maxOutputTokens: cachedConfig.config.maxOutputTokens,
+      topP: cachedConfig.config.topP
+    }
   }
 }
 
@@ -41,8 +49,9 @@ export async function resetAndInitSession(
   initPrompt: string
 ) {
   const key = keyOf(userId, practiceId)
-  sessions.delete(key) // luôn xóa nếu tồn tại
-  const chat = ai.chats.create(defaultConfig)
+  sessions.delete(key)
+  const config = getConfigFromCache()
+  const chat = ai.chats.create(config)
   const res = await chat.sendMessage({ message: initPrompt })
   sessions.set(key, { chat, createdAt: new Date(), lastUsed: new Date() })
   return res.text
@@ -85,10 +94,8 @@ export async function completeAndDeleteSession(
   return res.text
 }
 
-// Hàm send message 1 lần với prompt được truyền vào
 export async function sendMessageOnce(prompt: string) {
-  const res = await ai.chats
-    .create(defaultConfig)
-    .sendMessage({ message: prompt })
+  const config = getConfigFromCache()
+  const res = await ai.chats.create(config).sendMessage({ message: prompt })
   return res.text
 }
