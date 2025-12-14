@@ -1,0 +1,128 @@
+%%{init: {'theme': 'neutral', 'themeVariables': { 'background': '#ffffff' }}}%%
+sequenceDiagram
+    participant User as Người dùng
+    participant ProtectedRoute as Route được bảo vệ
+    participant Backend as Backend
+    participant DB as CSDL
+
+    %% 1. Người dùng truy cập route được bảo vệ
+    User->>ProtectedRoute: 1. Truy cập route được bảo vệ
+    ProtectedRoute->>Backend: Request (cookies: access_token, refresh_token)
+
+    %% 2. Middleware requireAuth kiểm tra cookies
+    Note over Backend: requireAuth middleware:<br/>Kiểm tra cookies
+    rect rgb(255, 240, 240)
+        Note over User,DB: Trường hợp lỗi
+        alt [ Không có access_token hoặc refresh_token ]
+            Backend->>Backend: Redirect /users/login
+            Backend-->>ProtectedRoute: Redirect /users/login
+            ProtectedRoute-->>User: 2. Chuyển đến trang đăng nhập
+        end
+    end
+
+    %% 3. Kiểm tra refresh_token trong DB
+    rect rgb(240, 248, 255)
+        Note over User,DB: Luồng xử lý chính
+        alt [ Có đủ cookies ]
+            Backend->>DB: 3. Tìm refresh_token trong DB
+            DB-->>Backend: Trả về kết quả
+
+            rect rgb(255, 240, 240)
+                Note over User,DB: Trường hợp lỗi
+                alt [ refresh_token không tồn tại trong DB ]
+                    Backend->>Backend: Redirect /users/login
+                    Backend-->>ProtectedRoute: Redirect /users/login
+                    ProtectedRoute-->>User: 4. Chuyển đến trang đăng nhập
+                end
+            end
+
+            %% 4. Verify access_token
+            rect rgb(240, 248, 255)
+                Note over User,DB: Xác thực access_token
+                alt [ refresh_token tồn tại trong DB ]
+                    Note over Backend: Thử verify access_token
+                    Backend->>Backend: verifyToken(access_token)
+
+                    rect rgb(240, 255, 240)
+                        Note over User,DB: Trường hợp thành công
+                        alt [ access_token hợp lệ ]
+                            Backend->>DB: 4. Lấy user theo user_id từ token
+                            DB-->>Backend: Trả về user
+
+                            rect rgb(255, 240, 240)
+                                Note over User,DB: Trường hợp lỗi
+                                alt [ User không tồn tại hoặc bị BLOCKED ]
+                                    Backend->>Backend: Redirect /users/login
+                                    Backend-->>ProtectedRoute: Redirect /users/login
+                                    ProtectedRoute-->>User: 5. Chuyển đến trang đăng nhập
+                                end
+                            end
+
+                            rect rgb(240, 255, 240)
+                                Note over User,DB: Trường hợp thành công
+                                alt [ User tồn tại và ACTIVE ]
+                                    Note over Backend: Xóa password khỏi user<br/>Gán user vào req.user
+                                    Backend->>Backend: next()
+                                    Backend-->>ProtectedRoute: Cho phép truy cập
+                                    ProtectedRoute-->>User: 6. Hiển thị nội dung được bảo vệ
+                                end
+                            end
+                        end
+                    end
+
+                    rect rgb(255, 240, 240)
+                        Note over User,DB: Trường hợp lỗi
+                        alt [ access_token hết hạn (TokenExpiredError) ]
+                            Note over Backend: Thử verify refresh_token
+                            Backend->>Backend: verifyToken(refresh_token)
+
+                            rect rgb(240, 255, 240)
+                                Note over User,DB: Trường hợp thành công
+                                alt [ refresh_token hợp lệ ]
+                                    Backend->>DB: 5. Lấy user theo user_id từ refresh_token
+                                    DB-->>Backend: Trả về user
+
+                                    rect rgb(255, 240, 240)
+                                        Note over User,DB: Trường hợp lỗi
+                                        alt [ User không tồn tại ]
+                                            Backend->>Backend: Redirect /users/login
+                                            Backend-->>ProtectedRoute: Redirect /users/login
+                                            ProtectedRoute-->>User: 6. Chuyển đến trang đăng nhập
+                                        end
+                                    end
+
+                                    rect rgb(240, 255, 240)
+                                        Note over User,DB: Trường hợp thành công
+                                        alt [ User tồn tại ]
+                                            Note over Backend: Tạo access_token mới (5M)<br/>và refresh_token mới (30D)
+                                            Backend->>DB: 6. Xóa refresh_token cũ
+                                            Backend->>DB: 7. Lưu refresh_token mới
+                                            DB-->>Backend: Lưu thành công
+                                            Note over Backend: Set cookies HttpOnly mới<br/>(access_token, refresh_token)
+                                            Note over Backend: Xóa password khỏi user<br/>Gán user vào req.user
+                                            Backend->>Backend: next()
+                                            Backend-->>ProtectedRoute: Cho phép truy cập
+                                            ProtectedRoute-->>User: 7. Hiển thị nội dung được bảo vệ
+                                        end
+                                    end
+                                end
+                            end
+
+                            rect rgb(255, 240, 240)
+                                Note over User,DB: Trường hợp lỗi
+                                alt [ refresh_token không hợp lệ ]
+                                    Backend->>Backend: Redirect /users/login
+                                    Backend-->>ProtectedRoute: Redirect /users/login
+                                    ProtectedRoute-->>User: 6. Chuyển đến trang đăng nhập
+                                end
+                            end
+                        else [ Lỗi khác khi verify access_token ]
+                            Backend->>Backend: Redirect /users/login
+                            Backend-->>ProtectedRoute: Redirect /users/login
+                            ProtectedRoute-->>User: 5. Chuyển đến trang đăng nhập
+                        end
+                    end
+                end
+            end
+        end
+    end

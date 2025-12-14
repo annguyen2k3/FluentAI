@@ -76,17 +76,22 @@ div(class="sidebar" data-background-color="dark")
                 a(href=`${prefixAdmin}/configs/pricing-credit`)
                   span(class="sub-item") Gói mua credit
         li(class="nav-item")
-          a(href="#")
-            i(class="fas fa-book")
-            p Quản lý từ điển
+          a(class="collapsed" data-bs-toggle="collapse" href="#ai-llm" aria-expanded="false")
+            i(class="fas fa-brain")
+            p Quản lý AI/LLM
+            span(class="caret")
+          div(id="ai-llm" class="collapse")
+            ul(class="nav nav-collapse")
+              li
+                a(href=`${prefixAdmin}/ai-llm/config-general`)
+                  span(class="sub-item") Cấu hình chung
+              li
+                a(href=`${prefixAdmin}/ai-llm/prompt-templates`)
+                  span(class="sub-item") Cấu hình prompt templates
         li(class="nav-item")
           a(href="#")
             i(class="fas fa-chart-bar")
             p Thống kê & Báo cáo
-        li(class="nav-item")
-          a(href="#")
-            i(class="fas fa-brain")
-            p Quản lý AI/LLM
         li(class="nav-item")
           a(href="#")
             i(class="fas fa-comments")

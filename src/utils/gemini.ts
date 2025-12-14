@@ -15,7 +15,12 @@ const CLEANUP_MS = 5 * 60 * 1000
 
 const defaultConfig = {
   model: MODEL,
-  config: { responseMimeType: 'application/json', temperature: 0.5 }
+  config: {
+    responseMimeType: 'application/json',
+    temperature: 0.5, // Giảm từ 0.5 để tăng tính nhất quán
+    maxOutputTokens: 2000, // Giới hạn chi phí và độ dài
+    topP: 0.95 // Kiểm soát tính ngẫu nhiên
+  }
 }
 
 function keyOf(userId: string, practiceId: string) {

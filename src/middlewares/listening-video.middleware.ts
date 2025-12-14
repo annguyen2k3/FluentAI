@@ -27,9 +27,9 @@ const LISTENING_VIDEO_MESSAGES = {
   SLUG_INVALID:
     'Slug không hợp lệ. Chỉ được chứa chữ cái, số, dấu gạch dưới ( _ ) và dấu gạch ngang ( - )',
   SLUG_EXISTS: 'Slug đã tồn tại',
-  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự và tối đa 50 ký tự',
+  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự',
   TOPICS_REQUIRED: 'Vui lòng chọn ít nhất một chủ đề'
-}
+} as const
 
 export const createLVListValidator = validate(
   checkSchema(
@@ -429,8 +429,7 @@ export const updateLVListValidator = validate(
         },
         isLength: {
           options: {
-            min: 1,
-            max: 50
+            min: 1
           },
           errorMessage: LISTENING_VIDEO_MESSAGES.SLUG_LENGTH
         },

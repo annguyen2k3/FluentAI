@@ -18,6 +18,7 @@ import ListeningVideo from '~/models/schemas/lv-video.schemas'
 import UserScore from '~/models/schemas/user-score.schema'
 import Wallet from '~/models/schemas/wallet.schema'
 import SystemConfig from '~/models/schemas/system-config'
+import GeminiConfig from '~/models/schemas/gemini-config.schema'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.cp2tnzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -138,6 +139,10 @@ class DatabaseService {
 
   get systemConfigs(): Collection<SystemConfig> {
     return this.db.collection('system_configs')
+  }
+
+  get geminiConfigs(): Collection<GeminiConfig> {
+    return this.db.collection('gemini_configs')
   }
 }
 

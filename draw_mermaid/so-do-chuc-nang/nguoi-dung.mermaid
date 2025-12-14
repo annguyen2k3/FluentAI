@@ -1,0 +1,37 @@
+flowchart TD
+    A[NGƯỜI DÙNG]
+
+    A --> B1[Đăng ký/Đăng nhập]
+    B1 --> B11[Đăng ký tài khoản mới]
+    B1 --> B12[Đăng nhập bằng Google]
+    B1 --> B13[Quên mật khẩu]
+
+    A --> B2[Quản lý hồ sơ]
+    B2 --> B21[Cập nhật thông tin cá nhân]
+    B2 --> B22[Thay đổi mật khẩu]
+    B2 --> B23[Thay đổi avatar]
+
+    A --> B3[Luyện kỹ năng Viết]
+    B3 --> B31[Luyện viết câu]
+    B31 --> B311[Chọn bài có sẵn]
+    B31 --> B312[Tạo bài từ chủ đề tùy chỉnh]
+    B3 --> B32[Luyện viết đoạn]
+    B3 --> B33[Phản hồi từ AI]
+    B3 --> B34[Đánh giá tổng quan]
+
+    A --> B4[Luyện kỹ năng Nói]
+    B4 --> B41[Luyện phát âm câu]
+    B4 --> B42[Luyện shadowing video]
+    B4 --> B43[Phân tích phát âm]
+
+    A --> B5[Luyện kỹ năng Nghe]
+    B5 --> B51[Luyện nghe video]
+    B5 --> B52[Subtitle hỗ trợ]
+    B5 --> B53[Đánh giá kết quả]
+
+    A --> B6[Tạo bài học AI]
+    A --> B7[Điểm số & Xếp hạng]
+
+    classDef rootNode fill:#e1f5ff,stroke:#01579b,stroke-width:3px
+    class A rootNode
+

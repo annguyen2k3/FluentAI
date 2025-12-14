@@ -1,0 +1,61 @@
+%%{init: {'theme': 'neutral', 'themeVariables': { 'background': '#ffffff' }}}%%
+sequenceDiagram
+    participant User as Người dùng
+    participant LoginUI as Giao diện đăng nhập
+    participant Backend as Backend
+    participant DB as CSDL
+
+    %% 1. Truy cập trang đăng nhập
+    User->>LoginUI: 1. Truy cập /users/login
+    LoginUI->>Backend: GET /users/login
+    Backend-->>LoginUI: Render form đăng nhập
+    LoginUI-->>User: 2. Hiển thị form đăng nhập
+
+    %% 2. Nhập và gửi thông tin
+    User->>LoginUI: 3. Nhập Email và Password
+    User->>LoginUI: 4. Nhấn nút Đăng nhập
+    LoginUI->>Backend: POST /users/login (email, password)
+
+    %% 3. Validation và kiểm tra
+    Note over Backend: loginValidator kiểm tra:<br/>- Định dạng email<br/>- Email tồn tại<br/>- Mật khẩu đúng (MD5)
+    Backend->>DB: 5. Tìm user theo email & password (MD5)
+    DB-->>Backend: Trả về user (hoặc null)
+
+    %% 4. Xử lý kết quả
+    rect rgb(255, 240, 240)
+        Note over User,DB: Trường hợp lỗi
+        alt [ Thông tin không hợp lệ ]
+            Backend-->>LoginUI: 6. 422 JSON lỗi validation
+            LoginUI-->>User: 7. Hiển thị thông báo lỗi đăng nhập
+        end
+    end
+
+    rect rgb(240, 248, 255)
+        Note over User,DB: Luồng xử lý chính
+        alt [ Thông tin hợp lệ ]
+            Note over Backend: Kiểm tra trạng thái tài khoản
+            rect rgb(255, 240, 240)
+                Note over User,DB: Trường hợp lỗi
+                alt [ Tài khoản bị BLOCKED ]
+                    Backend-->>LoginUI: 6. 400 JSON { USER_BLOCKED }
+                    LoginUI-->>User: 7. Thông báo tài khoản bị khóa
+                end
+            end
+
+            rect rgb(240, 255, 240)
+                Note over User,DB: Trường hợp thành công
+                alt [ Tài khoản ACTIVE ]
+                    Note over Backend: Sinh access_token (5M)<br/>và refresh_token (30D)
+                    Backend->>DB: 6. Xóa refresh_token cũ
+                    Backend->>DB: 7. Lưu refresh_token mới
+                    DB-->>Backend: Lưu thành công
+                    Note over Backend: Set cookies HttpOnly<br/>(refresh_token, access_token)
+                    Backend-->>LoginUI: 8. 200 JSON { LOGIN_SUCCESS }
+                    LoginUI-->>User: 9. Thông báo đăng nhập thành công
+                    LoginUI->>LoginUI: Redirect /
+                    LoginUI-->>User: 10. Hiển thị trang chủ FluentAI
+                end
+            end
+        end
+    end
+

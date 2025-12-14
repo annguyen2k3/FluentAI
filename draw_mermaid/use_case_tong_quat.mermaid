@@ -1,0 +1,65 @@
+flowchart TB
+    subgraph WEBSITE["WEBSITE"]
+        direction TB
+        
+        %% Use cases cho Người dùng
+        UC1["Đăng ký"]
+        UC2["Đăng nhập"]
+        UC3["Quên mật khẩu"]
+        UC4["Quản lý tài khoản cá nhân"]
+        UC5["Thay đổi mật khẩu"]
+        UC6["Luyện kỹ năng Viết"]
+        UC7["Luyện kỹ năng Nói"]
+        UC8["Luyện kỹ năng Nghe"]
+        UC9["Quản lý từ điển cá nhân"]  
+        UC10["Xem điểm số và xếp hạng"]
+        UC11["Xem lịch sử hoạt động"]
+        UC12["Tạo bài học AI"]
+        
+        %% Use cases cho Quản trị viên
+        UC13["Quản lý tài khoản người dùng"]
+        UC14["Quản lý nội dung học tập"]
+        UC15["Quản lý bài luyện viết"]
+        UC16["Quản lý bài luyện nói"]
+        UC17["Quản lý bài luyện nghe"]
+        UC18["Quản lý cấp độ"]
+        UC19["Quản lý chủ đề"]
+        UC20["Quản lý loại nội dung"]
+        UC21["Quản lý điểm số"]
+        UC22["Thống kê và báo cáo"]
+        UC23["Quản lý AI/LLM"]
+        UC24["Cấu hình hệ thống"]
+    end
+    
+    %% Actors
+    USER["Người dùng"]
+    ADMIN["Quản trị viên"]
+    
+    %% Kết nối Người dùng với các use cases
+    USER --> UC1
+    USER --> UC2
+    USER --> UC3
+    USER --> UC4
+    USER --> UC5
+    USER --> UC6
+    USER --> UC7
+    USER --> UC8
+    USER --> UC9
+    USER --> UC10
+    USER --> UC11
+    USER --> UC12
+    
+    %% Kết nối Quản trị viên với các use cases
+    ADMIN --> UC13
+    ADMIN --> UC14
+    ADMIN --> UC15
+    ADMIN --> UC16
+    ADMIN --> UC17
+    ADMIN --> UC18
+    ADMIN --> UC19
+    ADMIN --> UC20
+    ADMIN --> UC21
+    ADMIN --> UC22
+    ADMIN --> UC23
+    ADMIN --> UC24
+    

@@ -9,7 +9,7 @@ import { defaultErrorHandler } from './middlewares/errors.middleware'
 import cookieParser from 'cookie-parser'
 import { initFolder } from './utils/file'
 import systemConfigService from './services/system-config.service'
-import { requireAdminAuth } from './middlewares/admin.middleware'
+import geminiService from './services/gemini.service'
 
 dotenv.config()
 
@@ -18,9 +18,14 @@ const port = process.env.PORT || 3000
 
 initFolder()
 databaseService.connect().then(async () => {
-  systemConfigService.loadCache().then(() => {
-    console.log('System config cache loaded')
-  })
+  await Promise.all([
+    systemConfigService.loadCache(),
+    geminiService.loadCache()
+  ])
+  console.log('--------------------------------')
+  console.log('System config cache loaded successfully')
+  console.log('Gemini config cache loaded successfully')
+  console.log('--------------------------------')
 })
 
 // Serving static files
