@@ -11,6 +11,7 @@ class GeminiService {
 
   private getDefaultConfigData(): GeminiConfig {
     return new GeminiConfig({
+      _id: new ObjectId(),
       name: this.DEFAULT_CONFIG_NAME,
       description: 'Config mặc định',
       model: 'gemini-2.5-flash-lite',
@@ -43,7 +44,9 @@ class GeminiService {
 
       if (!defaultConfig) {
         const newDefaultConfig = this.getDefaultConfigData()
+
         await databaseService.geminiConfigs.insertOne(newDefaultConfig)
+
         config = newDefaultConfig
       } else {
         await databaseService.geminiConfigs.updateOne(
@@ -66,6 +69,24 @@ class GeminiService {
     const configs = await databaseService.geminiConfigs
       .find<GeminiConfig>({})
       .toArray()
+
+    for (const config of configs) {
+      const testResult = await this.testActiveConfig(config._id as ObjectId)
+      config.test_config = {
+        success: testResult.success,
+        message: testResult.message,
+        test_at: new Date()
+      }
+    }
+
+    await databaseService.geminiConfigs.updateMany(
+      { _id: { $in: configs.map((config) => config._id as ObjectId) } },
+      {
+        $set: {
+          test_config: { success: false, message: '', test_at: new Date() }
+        }
+      }
+    )
 
     return configs
   }

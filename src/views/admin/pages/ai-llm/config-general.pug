@@ -39,6 +39,72 @@ block head
       word-break: break-word;
       line-height: 1.4;
     }
+    .config-warning-alert {
+      margin-bottom: 1.5rem;
+      border: 3px solid #dc3545;
+      border-left: 8px solid #dc3545;
+      background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3), 0 0 20px rgba(220, 53, 69, 0.15);
+      padding: 1.25rem 1.5rem;
+      border-radius: 6px;
+      animation: pulse-warning 1.5s infinite, glow-warning 2s infinite;
+      font-weight: 600;
+      font-size: 1.05rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .config-warning-alert::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      animation: shimmer 2s infinite;
+      pointer-events: none;
+    }
+    .config-warning-alert i {
+      color: #dc3545;
+      filter: drop-shadow(0 2px 4px rgba(220, 53, 69, 0.4));
+      animation: shake-icon 0.5s infinite;
+    }
+    @keyframes pulse-warning {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3), 0 0 20px rgba(220, 53, 69, 0.15);
+      }
+      50% {
+        transform: scale(1.01);
+        box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4), 0 0 30px rgba(220, 53, 69, 0.25);
+      }
+    }
+    @keyframes glow-warning {
+      0%, 100% {
+      }
+      50% {
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.5), 0 0 25px rgba(220, 53, 69, 0.3);
+      }
+    }
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%);
+      }
+      100% {
+        transform: translateX(100%);
+      }
+    }
+    @keyframes shake-icon {
+      0%, 100% {
+        transform: rotate(0deg);
+      }
+      25% {
+        transform: rotate(-5deg);
+      }
+      75% {
+        transform: rotate(5deg);
+      }
+    }
 
 block main-content
   div(class="page-header")
@@ -72,6 +138,13 @@ block main-content
                     - const configId = config._id ? config._id.toString() : ''
                     option(value=configId selected=(config.isActive === true)) #{config.name}
         div(class="card-body")
+          - const activeConfigWithError = allConfigs.find(c => c.isActive === true && c.test_config && c.test_config.test_at && c.test_config.success === false)
+          if activeConfigWithError
+            div(class="alert alert-danger config-warning-alert" role="alert")
+              div(class="d-flex align-items-center")
+                i(class="fas fa-exclamation-triangle fa-2x mr-3")
+                div
+                  strong ĐANG SỬ DỤNG CONFIG VỚI TRẠNG THÁI KHI TEST LÀ LỖI. ĐIỀU NÀY CÓ THỂ ẢNH HƯỞNG NGHIÊM TRỌNG TỚI HỆ THỐNG. HÃY KIỂM TRA LẠI !!!
           div(class="table-responsive")
             table(class="table table-striped" id="configsTable")
               thead
@@ -128,8 +201,6 @@ block main-content
                       div(class="btn-group")
                         button(class="btn btn-sm btn-info" data-action="view" data-config-id=configId title="Xem chi tiết")
                           i(class="fas fa-eye")
-                        button(class="btn btn-sm btn-warning" data-action="test" data-config-id=configId title="Test Config")
-                          i(class="fas fa-vial")
                         button(class="btn btn-sm btn-primary" data-action="duplicate" data-config-id=configId title="Duplicate")
                           i(class="fas fa-copy")
                         if config.name !== 'default'
@@ -228,9 +299,6 @@ block scripts
             switch(action) {
               case 'view':
                 viewConfig(configId)
-                break
-              case 'test':
-                testConfig(configId)
                 break
               case 'duplicate':
                 duplicateConfig(configId)
@@ -652,55 +720,6 @@ block scripts
           }
         }
       )
-    }
-
-    async function testConfig(configId) {
-      const config = allConfigsData.find(c => c._id && c._id.toString() === configId)
-      
-      if (!config) {
-        showNotification('error', 'Không tìm thấy config để test!')
-        return
-      }
-
-      if (typeof swal !== 'undefined') {
-        swal({
-          title: 'Đang test config...',
-          text: 'Vui lòng đợi trong giây lát',
-          icon: 'info',
-          buttons: false,
-          closeOnClickOutside: false,
-          closeOnEsc: false
-        })
-      }
-
-      try {
-        const response = await fetch(AdminApiBreakpoint.TEST_CONFIG.replace('{configId}', configId), {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-
-        const result = await response.json()
-
-        if (response.ok && result.status === 200) {
-          showNotification('success', result.message || 'Test config thành công!')
-          setTimeout(() => {
-            window.location.reload()
-          }, 1000)
-        } else {
-          showNotification('error', result.message || 'Test config thất bại!')
-          setTimeout(() => {
-            window.location.reload()
-          }, 1000)
-        }
-      } catch (error) {
-        console.error('Error testing config:', error)
-        showNotification('error', error.message || 'Có lỗi xảy ra khi test config!')
-        setTimeout(() => {
-          window.location.reload()
-        }, 1000)
-      }
     }
 
     async function deleteConfig(configId) {
