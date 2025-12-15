@@ -4,6 +4,8 @@ import Prompts from '~/models/schemas/prompts.schema'
 import { PromptFeature, PromptFeatureType } from '~/constants/enum'
 import { databaseService } from './database.service'
 import { ObjectId } from 'mongodb'
+import { promises as fs } from 'fs'
+import path from 'path'
 
 class PromptService {
   private promptCache: Map<string, Prompts> = new Map()
@@ -41,10 +43,59 @@ class PromptService {
     }
   }
 
+  private async seedDefaultPrompts(): Promise<Prompts[]> {
+    try {
+      const seedPath = path.resolve(
+        process.cwd(),
+        'seeds',
+        'init_default.prompts.json'
+      )
+      const content = await fs.readFile(seedPath, 'utf8')
+      const raw = JSON.parse(content) as any[]
+
+      const documents = raw.map((item) => {
+        const normalized: any = {
+          ...item,
+          _id: item._id?.$oid ? new ObjectId(item._id.$oid) : new ObjectId(),
+          create_at: item.create_at?.$date
+            ? new Date(item.create_at.$date)
+            : item.create_at
+              ? new Date(item.create_at)
+              : new Date(),
+          update_at: item.update_at?.$date
+            ? new Date(item.update_at.$date)
+            : item.update_at
+              ? new Date(item.update_at)
+              : new Date()
+        }
+        return normalized
+      })
+
+      if (documents.length) {
+        await databaseService.prompts.insertMany(documents)
+      }
+
+      return documents.map((doc) => new Prompts(doc))
+    } catch (error) {
+      console.error('Seed default prompts failed:', error)
+      return []
+    }
+  }
+
   async loadCache(): Promise<void> {
     const activePrompts = await databaseService.prompts
       .find<Prompts>({ isActive: true })
       .toArray()
+
+    if (!activePrompts.length) {
+      const seeded = await this.seedDefaultPrompts()
+      if (seeded.length) {
+        const activeSeeded = seeded.filter((p) => p.isActive)
+        this.setCache(activeSeeded)
+        this.isCacheLoaded = true
+        return
+      }
+    }
 
     this.setCache(activePrompts)
     this.isCacheLoaded = true
