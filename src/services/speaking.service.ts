@@ -29,6 +29,7 @@ import HisSVUser, {
   HisSVUserSentenceType
 } from '~/models/schemas/his-sv-user.schema'
 import HisPracticeUser from '~/models/schemas/his-practice-user.schema'
+import promptService from './prompt.service'
 
 function fillTemplate(tpl: string, vars: Record<string, string>) {
   return Object.keys(vars).reduce(
@@ -41,17 +42,7 @@ async function loadPrompt(
   feature: PromptFeature,
   featureType: PromptFeatureType
 ) {
-  const doc = await databaseService.prompts.findOne({
-    feature: feature,
-    feature_type: featureType,
-    status: true
-  })
-  if (!doc?.content)
-    throw new ErrorWithStatus(
-      `Prompt not found: ${featureType}`,
-      HttpStatus.NOT_FOUND
-    )
-  return doc.content
+  return promptService.getPromptContent(feature, featureType)
 }
 
 class SpeakingServices {

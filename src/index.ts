@@ -10,6 +10,7 @@ import cookieParser from 'cookie-parser'
 import { initFolder } from './utils/file'
 import systemConfigService from './services/system-config.service'
 import geminiService from './services/gemini.service'
+import promptService from './services/prompt.service'
 
 dotenv.config()
 
@@ -20,12 +21,14 @@ initFolder()
 databaseService.connect().then(async () => {
   await Promise.all([
     systemConfigService.loadCache(),
-    geminiService.loadCache()
+    geminiService.loadCache(),
+    promptService.loadCache()
   ])
-  console.log('--------------------------------')
-  console.log('System config cache loaded successfully')
-  console.log('Gemini config cache loaded successfully')
-  console.log('--------------------------------')
+  console.log('----Cache loaded successfully----')
+  console.log('|      System config            |')
+  console.log('|      Gemini config            |')
+  console.log('|      Prompt config            |')
+  console.log('---------------------------------')
 })
 
 // Serving static files

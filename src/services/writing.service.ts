@@ -36,6 +36,7 @@ import HisUser from '~/models/schemas/his-practice-user.schema'
 import HisPracticeUser from '~/models/schemas/his-practice-user.schema'
 import { HisWPUserSentenceType } from '~/models/schemas/his-wp-user.schema'
 import HisWPUser from '~/models/schemas/his-wp-user.schema'
+import promptService from './prompt.service'
 config()
 
 function sk(userId: string, practiceId: string) {
@@ -53,17 +54,7 @@ async function loadPrompt(
   feature: PromptFeature,
   featureType: PromptFeatureType
 ) {
-  const doc = await databaseService.prompts.findOne({
-    feature: feature,
-    feature_type: featureType,
-    status: true
-  })
-  if (!doc?.content)
-    throw new ErrorWithStatus(
-      `Prompt not found: ${featureType}`,
-      HttpStatus.NOT_FOUND
-    )
-  return doc.content
+  return promptService.getPromptContent(feature, featureType)
 }
 
 class WritingService {
