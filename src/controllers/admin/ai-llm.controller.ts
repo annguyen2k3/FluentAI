@@ -4,6 +4,8 @@ import geminiService from '~/services/gemini.service'
 import { HttpStatus } from '~/constants/httpStatus'
 import { config } from 'dotenv'
 import { ObjectId } from 'mongodb'
+import promptService from '~/services/prompt.service'
+import { PromptFeature, PromptFeatureType } from '~/constants/enum'
 
 config()
 
@@ -299,6 +301,229 @@ export const testActiveConfigController = async (
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       status: HttpStatus.INTERNAL_SERVER_ERROR,
       message: error.message || 'Có lỗi xảy ra khi test config'
+    })
+  }
+}
+
+// GET /admin/ai-llm/prompt-writing
+export const renderPromptWritingController = async (
+  req: Request,
+  res: Response
+) => {
+  const admin = req.admin as Admin
+  const promptWritingSentences = await promptService.getPromptWithFeature(
+    PromptFeature.WRITE_SENTENCE
+  )
+  const promptWritingParagraphs = await promptService.getPromptWithFeature(
+    PromptFeature.WRITE_PARAGRAPH
+  )
+  res.render('admin/pages/ai-llm/prompt-writing.pug', {
+    pageTitle: 'Admin - Cấu hình prompt Writing',
+    admin,
+    prefixAdmin,
+    promptWritingSentences,
+    promptWritingParagraphs
+  })
+}
+
+const normalizeReplaceVars = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === 'string' ? item.trim() : ''))
+      .filter(Boolean)
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+
+  return []
+}
+
+export const setActivePromptController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { promptId } = req.body
+
+    if (!promptId) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Prompt ID là bắt buộc'
+      })
+      return
+    }
+
+    const updatedPrompt = await promptService.setActivePrompt(
+      new ObjectId(promptId)
+    )
+
+    if (!updatedPrompt) {
+      res.status(HttpStatus.NOT_FOUND).json({
+        status: HttpStatus.NOT_FOUND,
+        message: 'Prompt không tồn tại'
+      })
+      return
+    }
+
+    res.status(HttpStatus.OK).json({
+      status: HttpStatus.OK,
+      message: 'Đã cập nhật prompt đang sử dụng thành công'
+    })
+  } catch (error: any) {
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: error.message || 'Có lỗi xảy ra khi cập nhật prompt active'
+    })
+  }
+}
+
+export const createPromptController = async (req: Request, res: Response) => {
+  try {
+    const {
+      title,
+      description,
+      feature,
+      feature_type,
+      content,
+      replace_variables,
+      isActive
+    } = req.body
+
+    if (!title || !feature || !feature_type || !content) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Title, Feature, Feature Type và Content là bắt buộc'
+      })
+      return
+    }
+
+    if (!Object.values(PromptFeature).includes(feature)) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Feature không hợp lệ'
+      })
+      return
+    }
+
+    if (!Object.values(PromptFeatureType).includes(feature_type)) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Feature Type không hợp lệ'
+      })
+      return
+    }
+
+    const newPrompt = await promptService.createPrompt({
+      title,
+      description,
+      feature,
+      feature_type,
+      content,
+      replace_variables: normalizeReplaceVars(replace_variables),
+      isActive
+    })
+
+    res.status(HttpStatus.OK).json({
+      status: HttpStatus.OK,
+      message: 'Đã tạo prompt thành công',
+      data: newPrompt
+    })
+  } catch (error: any) {
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: error.message || 'Có lỗi xảy ra khi tạo prompt'
+    })
+  }
+}
+
+export const updatePromptController = async (req: Request, res: Response) => {
+  try {
+    const {
+      promptId,
+      title,
+      description,
+      content,
+      replace_variables,
+      isActive
+    } = req.body
+
+    if (!promptId) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Prompt ID là bắt buộc'
+      })
+      return
+    }
+
+    const updateData: any = {}
+    if (title !== undefined) updateData.title = title
+    if (description !== undefined) updateData.description = description
+    if (content !== undefined) updateData.content = content
+    if (replace_variables !== undefined) {
+      updateData.replace_variables = normalizeReplaceVars(replace_variables)
+    }
+    if (isActive !== undefined) updateData.isActive = isActive
+
+    const updated = await promptService.updatePrompt(
+      new ObjectId(promptId),
+      updateData
+    )
+
+    if (!updated) {
+      res.status(HttpStatus.NOT_FOUND).json({
+        status: HttpStatus.NOT_FOUND,
+        message: 'Prompt không tồn tại'
+      })
+      return
+    }
+
+    res.status(HttpStatus.OK).json({
+      status: HttpStatus.OK,
+      message: 'Đã cập nhật prompt thành công'
+    })
+  } catch (error: any) {
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: error.message || 'Có lỗi xảy ra khi cập nhật prompt'
+    })
+  }
+}
+
+export const deletePromptController = async (req: Request, res: Response) => {
+  try {
+    const { promptId } = req.body
+
+    if (!promptId) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Prompt ID là bắt buộc'
+      })
+      return
+    }
+
+    const deleted = await promptService.deletePrompt(new ObjectId(promptId))
+
+    if (!deleted) {
+      res.status(HttpStatus.NOT_FOUND).json({
+        status: HttpStatus.NOT_FOUND,
+        message: 'Prompt không tồn tại'
+      })
+      return
+    }
+
+    res.status(HttpStatus.OK).json({
+      status: HttpStatus.OK,
+      message: 'Đã xóa prompt thành công'
+    })
+  } catch (error: any) {
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: error.message || 'Có lỗi xảy ra khi xóa prompt'
     })
   }
 }

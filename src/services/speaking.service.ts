@@ -181,18 +181,6 @@ class SpeakingServices {
     }
   }
 
-  async speakingInitChat(
-    userId: string,
-    practiceId: string
-  ): Promise<ResPromptSpeakingInit> {
-    const prompt = await loadPrompt(
-      PromptFeature.SPEAKING,
-      PromptFeatureType.INITIALIZATION
-    )
-    const text = await resetAndInitSession(userId, practiceId, prompt)
-    return JSON.parse(text as string) as ResPromptSpeakingInit
-  }
-
   async speakingEvaluate(
     enSentence: string,
     audio_data: string
@@ -207,18 +195,6 @@ class SpeakingServices {
     })
     const text = await sendMessageOnce(prompt)
     return JSON.parse(text as string) as ResPromptSpeakingSentencePreview
-  }
-
-  async speakingComplete(
-    userId: string,
-    practiceId: string
-  ): Promise<ResPromptSpeakingCompletion> {
-    const prompt = await loadPrompt(
-      PromptFeature.SPEAKING,
-      PromptFeatureType.COMPLETION
-    )
-    const text = await completeAndDeleteSession(userId, practiceId, prompt)
-    return JSON.parse(text as string) as ResPromptSpeakingCompletion
   }
 
   async updateHisSSUser(

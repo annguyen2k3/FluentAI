@@ -6,7 +6,12 @@ import {
   duplicateConfigController,
   deleteConfigController,
   createConfigController,
-  testActiveConfigController
+  testActiveConfigController,
+  renderPromptWritingController,
+  setActivePromptController,
+  createPromptController,
+  updatePromptController,
+  deletePromptController
 } from '~/controllers/admin/ai-llm.controller'
 import { requireAdminAuth } from '~/middlewares/admin.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
@@ -73,6 +78,38 @@ aiLLMRoutes.get(
   '/config/test/:configId',
   requireAdminAuth,
   wrapRequestHandler(testActiveConfigController)
+)
+
+// GET /admin/ai-llm/prompt-writing
+// Description: Render prompt writing page
+aiLLMRoutes.get(
+  '/prompt-writing',
+  requireAdminAuth,
+  wrapRequestHandler(renderPromptWritingController)
+)
+
+aiLLMRoutes.post(
+  '/prompt/set-active',
+  requireAdminAuth,
+  wrapRequestHandler(setActivePromptController)
+)
+
+aiLLMRoutes.post(
+  '/prompt/create',
+  requireAdminAuth,
+  wrapRequestHandler(createPromptController)
+)
+
+aiLLMRoutes.put(
+  '/prompt/update',
+  requireAdminAuth,
+  wrapRequestHandler(updatePromptController)
+)
+
+aiLLMRoutes.delete(
+  '/prompt/delete',
+  requireAdminAuth,
+  wrapRequestHandler(deletePromptController)
 )
 
 export default aiLLMRoutes

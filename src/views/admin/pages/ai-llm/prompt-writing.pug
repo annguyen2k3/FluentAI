@@ -1,0 +1,710 @@
+extends ../../layouts/default.pug
+
+block head
+  style.
+    .prompt-writing__section {
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 12px 12px 4px;
+      margin-bottom: 16px;
+      background: #fff;
+    }
+    .prompt-writing__section-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+    .prompt-writing__table th,
+    .prompt-writing__table td {
+      vertical-align: middle;
+    }
+    .prompt-writing__table {
+      table-layout: fixed;
+      width: 100%;
+    }
+    .prompt-writing__col-title {
+      width: 32%;
+      min-width: 260px;
+      max-width: 380px;
+    }
+    .prompt-writing__col-vars {
+      width: 28%;
+    }
+    .prompt-writing__col-active {
+      width: 12%;
+    }
+    .prompt-writing__col-actions {
+      width: 18%;
+    }
+    .prompt-writing__actions .btn {
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+    }
+    .prompt-writing__monospace {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.85rem;
+    }
+    .prompt-writing__pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #f1f3f5;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .prompt-writing__empty {
+      padding: 12px;
+      color: #6c757d;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border: 1px dashed #dee2e6;
+    }
+    .prompt-writing__title {
+      max-width: 340px;
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
+    }
+    .prompt-writing__title-col {
+      width: 32%;
+      min-width: 260px;
+      max-width: 380px;
+    }
+    .prompt-writing__title-cell {
+      width: 32%;
+      min-width: 260px;
+      max-width: 380px;
+    }
+    .prompt-writing__desc {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-word;
+      max-width: 100%;
+    }
+
+block main-content
+  - const promptTypeLabels = { initialization: 'Initialization', translation: 'Translation', completion: 'Completion', preview_topic: 'Preview topic', preview_content: 'Preview content' }
+  - const sentenceOrder = ['initialization', 'translation', 'completion', 'preview_topic']
+  - const paragraphOrder = ['initialization', 'translation', 'completion', 'preview_topic', 'preview_content']
+  - const groupByType = (list) => list.reduce((acc, item) => { const key = item.feature_type; acc[key] = acc[key] || []; acc[key].push(item); return acc }, {})
+  - const sentenceByType = groupByType(promptWritingSentences || [])
+  - const paragraphByType = groupByType(promptWritingParagraphs || [])
+
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Cấu hình AI/LLM
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Prompt Writing
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card mb-4")
+        div(class="card-header d-flex align-items-center justify-content-between")
+          h4(class="card-title mb-0") Prompt Writing - Sentence
+          button(type="button" class="btn btn-primary btn-sm" data-feature="write_sentence" id="addSentencePromptBtn")
+            i(class="fas fa-plus mr-2")
+            | Thêm prompt
+        div(class="card-body")
+          p(class="text-muted mb-3") Luôn đảm bảo mỗi Feature Type có đúng 1 prompt đang active. Các thay đổi áp dụng cho tính năng viết câu.
+          each type in sentenceOrder
+            - const items = sentenceByType[type] || []
+            div(class="prompt-writing__section")
+              div(class="d-flex align-items-center justify-content-between mb-2")
+                div(class="prompt-writing__section-title") #{promptTypeLabels[type] || type}
+                span(class="prompt-writing__pill") #{items.length} prompt
+              if items.length
+                div(class="table-responsive")
+                  table(class="table table-striped table-hover prompt-writing__table")
+                    thead
+                      tr
+                        th(class="prompt-writing__title-col prompt-writing__col-title") Tiêu đề
+                        th(class="prompt-writing__col-vars") Biến thay thế
+                        th(class="prompt-writing__col-active") Kích hoạt
+                        th(class="prompt-writing__col-actions") Thao tác
+                    tbody
+                      each prompt in items
+                        - const promptId = prompt._id ? prompt._id.toString() : ''
+                        tr(data-prompt-id=promptId data-feature=prompt.feature data-feature-type=prompt.feature_type)
+                          td(class="prompt-writing__title-cell prompt-writing__col-title")
+                            div
+                              strong(class="prompt-writing__title" title=prompt.title || '-') #{prompt.title || '-'}
+                            if prompt.description
+                              div(class="text-muted small mt-1 prompt-writing__desc") #{prompt.description}
+                          td(class="prompt-writing__col-vars")
+                            if prompt.replace_variables && prompt.replace_variables.length
+                              div(class="prompt-writing__monospace")
+                                | #{prompt.replace_variables.join(', ')}
+                            else
+                              span(class="text-muted") -
+                          td(class="prompt-writing__col-active")
+                            input(type="radio" name=`active-${prompt.feature}-${prompt.feature_type}` checked=(prompt.isActive === true) data-action="set-active" data-prompt-id=promptId)
+                          td(class="prompt-writing__col-actions")
+                            div(class="btn-group btn-group-sm prompt-writing__actions")
+                              button(type="button" class="btn btn-info" data-action="view" data-prompt-id=promptId title="Xem chi tiết")
+                                i(class="fas fa-eye")
+                              button(type="button" class="btn btn-primary" data-action="duplicate" data-prompt-id=promptId title="Duplicate")
+                                i(class="fas fa-copy")
+                              if prompt.title !== 'default'
+                                button(type="button" class="btn btn-danger" data-action="delete" data-prompt-id=promptId title="Xóa")
+                                  i(class="fas fa-trash")
+              else
+                div(class="prompt-writing__empty") Chưa có prompt cho loại này.
+
+      div(class="card")
+        div(class="card-header d-flex align-items-center justify-content-between")
+          h4(class="card-title mb-0") Prompt Writing - Paragraph
+          button(type="button" class="btn btn-primary btn-sm" data-feature="write_paragraph" id="addParagraphPromptBtn")
+            i(class="fas fa-plus mr-2")
+            | Thêm prompt
+        div(class="card-body")
+          p(class="text-muted mb-3") Áp dụng cho tính năng viết đoạn văn, đảm bảo luôn có prompt active cho từng Feature Type.
+          each type in paragraphOrder
+            - const items = paragraphByType[type] || []
+            div(class="prompt-writing__section")
+              div(class="d-flex align-items-center justify-content-between mb-2")
+                div(class="prompt-writing__section-title") #{promptTypeLabels[type] || type}
+                span(class="prompt-writing__pill") #{items.length} prompt
+              if items.length
+                div(class="table-responsive")
+                  table(class="table table-striped table-hover prompt-writing__table")
+                    thead
+                      tr
+                        th(class="prompt-writing__title-col prompt-writing__col-title") Tiêu đề
+                        th(class="prompt-writing__col-vars") Biến thay thế
+                        th(class="prompt-writing__col-active") Kích hoạt
+                        th(class="prompt-writing__col-actions") Thao tác
+                    tbody
+                      each prompt in items
+                        - const promptId = prompt._id ? prompt._id.toString() : ''
+                        tr(data-prompt-id=promptId data-feature=prompt.feature data-feature-type=prompt.feature_type)
+                          td(class="prompt-writing__title-cell prompt-writing__col-title")
+                            div
+                              strong(class="prompt-writing__title" title=prompt.title || '-') #{prompt.title || '-'}
+                            if prompt.description
+                              div(class="text-muted small mt-1 prompt-writing__desc") #{prompt.description}
+                          td(class="prompt-writing__col-vars")
+                            if prompt.replace_variables && prompt.replace_variables.length
+                              div(class="prompt-writing__monospace")
+                                | #{prompt.replace_variables.join(', ')}
+                            else
+                              span(class="text-muted") -
+                          td(class="prompt-writing__col-active")
+                            input(type="radio" name=`active-${prompt.feature}-${prompt.feature_type}` checked=(prompt.isActive === true) data-action="set-active" data-prompt-id=promptId)
+                          td(class="prompt-writing__col-actions")
+                            div(class="btn-group btn-group-sm prompt-writing__actions")
+                              button(type="button" class="btn btn-info" data-action="view" data-prompt-id=promptId title="Xem chi tiết")
+                                i(class="fas fa-eye")
+                              button(type="button" class="btn btn-primary" data-action="duplicate" data-prompt-id=promptId title="Duplicate")
+                                i(class="fas fa-copy")
+                              if prompt.title !== 'default'
+                                button(type="button" class="btn btn-danger" data-action="delete" data-prompt-id=promptId title="Xóa")
+                                  i(class="fas fa-trash")
+              else
+                div(class="prompt-writing__empty") Chưa có prompt cho loại này.
+
+  div(class="modal fade" id="promptModal" tabindex="-1" role="dialog" aria-labelledby="promptModalLabel" aria-hidden="true")
+    div(class="modal-dialog modal-lg" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="promptModalLabel") Thêm prompt
+          button(type="button" class="close" aria-label="Close" onclick="$('#promptModal').modal('hide')")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          form(id="promptForm")
+            input(type="hidden" id="promptId")
+            input(type="hidden" id="promptFeature")
+            div(class="form-group")
+              label(class="form-label") Tên prompt
+              input(type="text" class="form-control" id="promptTitle" placeholder="Nhập tên prompt" required)
+            div(class="form-group")
+              label(class="form-label") Mô tả
+              textarea(class="form-control" id="promptDescription" rows="2" placeholder="Mô tả ngắn gọn")
+            div(class="form-group")
+              label(class="form-label") Feature type
+              select(class="form-control" id="promptFeatureType" required)
+            div(class="form-group")
+              label(class="form-label d-flex align-items-center justify-content-between")
+                span Nội dung prompt
+                small(class="text-muted") Hỗ trợ newline
+              textarea(class="form-control" id="promptContent" rows="10" placeholder="Nhập nội dung prompt" required)
+            div(class="form-group")
+              label(class="form-label d-flex align-items-center justify-content-between")
+                span Biến thay thế (phân tách bởi dấu phẩy)
+                small(class="text-muted") Ví dụ: {{sentence_vi}}, {{user_translation}}
+              input(type="text" class="form-control" id="promptReplaceVars" placeholder="{{sentence_vi}}, {{user_translation}}")
+            div(class="form-group form-check")
+              input(type="checkbox" class="form-check-input" id="promptIsActive")
+              label(class="form-check-label" for="promptIsActive") Đặt làm active
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" onclick="$('#promptModal').modal('hide')") Đóng
+          button(type="button" class="btn btn-outline-secondary d-none" id="promptCancelEditBtn") Hủy chỉnh sửa
+          button(type="button" class="btn btn-primary d-none" id="promptSaveBtn") Lưu
+          button(type="button" class="btn btn-primary d-none" id="promptEditBtn") Chỉnh sửa
+
+block scripts
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    const sentenceData = !{JSON.stringify(promptWritingSentences || [])}
+    const paragraphData = !{JSON.stringify(promptWritingParagraphs || [])}
+
+    const featureTypesByFeature = {
+      write_sentence: ['initialization', 'translation', 'completion', 'preview_topic'],
+      write_paragraph: ['initialization', 'translation', 'completion', 'preview_topic', 'preview_content']
+    }
+
+    let currentFeature = 'write_sentence'
+    let editingPromptId = null
+
+    const promptForm = document.getElementById('promptForm')
+    const promptModal = $('#promptModal')
+    const promptModalLabel = document.getElementById('promptModalLabel')
+    const promptTitle = document.getElementById('promptTitle')
+    const promptDescription = document.getElementById('promptDescription')
+    const promptFeature = document.getElementById('promptFeature')
+    const promptFeatureType = document.getElementById('promptFeatureType')
+    const promptContent = document.getElementById('promptContent')
+    const promptReplaceVars = document.getElementById('promptReplaceVars')
+    const promptIsActive = document.getElementById('promptIsActive')
+    const promptEditBtn = document.getElementById('promptEditBtn')
+    const promptSaveBtn = document.getElementById('promptSaveBtn')
+    const promptCancelEditBtn = document.getElementById('promptCancelEditBtn')
+
+    function showNotification(type, message) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+
+    function parseReplaceVars(value) {
+      if (!value) return []
+      return value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    }
+
+    function setPromptFormDisabled(isDisabled) {
+      const fields = [
+        promptTitle,
+        promptDescription,
+        promptFeatureType,
+        promptContent,
+        promptReplaceVars,
+        promptIsActive
+      ]
+      fields.forEach((el) => {
+        if (el) el.disabled = isDisabled
+      })
+    }
+
+    function populatePromptFields(prompt) {
+      promptTitle.value = prompt?.title || ''
+      promptDescription.value = prompt?.description || ''
+      promptFeatureType.value = prompt?.feature_type || (featureTypesByFeature[currentFeature] || [])[0] || ''
+      promptContent.value = prompt?.content || ''
+      promptReplaceVars.value = (prompt?.replace_variables || []).join(', ')
+      promptIsActive.checked = prompt?.isActive === true
+    }
+
+    function fillFeatureTypeOptions(feature) {
+      promptFeatureType.innerHTML = ''
+      const options = featureTypesByFeature[feature] || []
+      options.forEach((type) => {
+        const opt = document.createElement('option')
+        opt.value = type
+        opt.textContent = type
+        promptFeatureType.appendChild(opt)
+      })
+    }
+
+    let selectedPrompt = null
+    let isPromptEditMode = false
+    let isNewPromptMode = false
+
+    function updatePromptEditControls() {
+      const isDefault = selectedPrompt?.title === 'default'
+      if (isNewPromptMode) {
+        promptEditBtn?.classList.add('d-none')
+        promptSaveBtn?.classList.remove('d-none')
+        promptCancelEditBtn?.classList.remove('d-none')
+        promptModalLabel.textContent = 'Thêm prompt'
+      } else if (isPromptEditMode) {
+        promptEditBtn?.classList.add('d-none')
+        promptSaveBtn?.classList.remove('d-none')
+        promptCancelEditBtn?.classList.remove('d-none')
+        promptModalLabel.textContent = 'Chỉnh sửa prompt'
+      } else {
+        promptEditBtn?.classList.toggle('d-none', isDefault)
+        promptSaveBtn?.classList.add('d-none')
+        promptCancelEditBtn?.classList.add('d-none')
+        promptModalLabel.textContent = 'Chi tiết prompt'
+      }
+    }
+
+    function openPromptModal(feature, prompt) {
+      currentFeature = feature
+      selectedPrompt = prompt ? JSON.parse(JSON.stringify(prompt)) : null
+      editingPromptId = prompt ? prompt._id : null
+      isNewPromptMode = !prompt
+      isPromptEditMode = isNewPromptMode
+
+      promptFeature.value = feature
+      fillFeatureTypeOptions(feature)
+      populatePromptFields(prompt || null)
+      setPromptFormDisabled(!isPromptEditMode)
+      updatePromptEditControls()
+
+      promptModal.modal('show')
+      if (isPromptEditMode && promptTitle) {
+        promptTitle.focus()
+      }
+    }
+
+    function getPromptById(id) {
+      return [...sentenceData, ...paragraphData].find((item) => item._id?.toString() === id) || null
+    }
+
+    async function setActivePrompt(promptId, radioEl) {
+      try {
+        const response = await fetch(AdminApiBreakpoint.SET_ACTIVE_PROMPT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ promptId })
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          const errorData = (() => {
+            try {
+              return JSON.parse(errorText)
+            } catch {
+              return { message: errorText }
+            }
+          })()
+          throw new Error(errorData.message || 'Có lỗi xảy ra khi cập nhật prompt active')
+        }
+
+        const result = await response.json()
+        if (result.status === 200) {
+          showNotification('success', result.message || 'Đã cập nhật prompt active')
+          setTimeout(() => window.location.reload(), 800)
+        } else {
+          throw new Error(result.message || 'Có lỗi xảy ra khi cập nhật prompt active')
+        }
+      } catch (error) {
+        console.error(error)
+        showNotification('error', error.message || 'Có lỗi xảy ra khi cập nhật prompt active')
+        if (radioEl) {
+          radioEl.checked = false
+        }
+      }
+    }
+
+    async function savePrompt() {
+      const payload = {
+        title: promptTitle.value.trim(),
+        description: promptDescription.value.trim(),
+        feature: promptFeature.value,
+        feature_type: promptFeatureType.value,
+        content: promptContent.value.trim(),
+        replace_variables: parseReplaceVars(promptReplaceVars.value),
+        isActive: promptIsActive.checked
+      }
+
+      if (!payload.title || !payload.content || !payload.feature_type) {
+        showNotification('error', 'Vui lòng điền đầy đủ thông tin bắt buộc')
+        return
+      }
+
+      const isEditing = Boolean(editingPromptId)
+      const url = isEditing
+        ? AdminApiBreakpoint.UPDATE_PROMPT
+        : AdminApiBreakpoint.CREATE_PROMPT
+      const method = isEditing ? 'PUT' : 'POST'
+
+      const body = isEditing
+        ? { ...payload, promptId: editingPromptId }
+        : payload
+
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          const errorData = (() => {
+            try {
+              return JSON.parse(errorText)
+            } catch {
+              return { message: errorText }
+            }
+          })()
+          throw new Error(errorData.message || 'Có lỗi xảy ra khi lưu prompt')
+        }
+
+        const result = await response.json()
+        if (result.status === 200) {
+          showNotification('success', result.message || 'Thao tác thành công')
+          setTimeout(() => window.location.reload(), 800)
+        } else {
+          throw new Error(result.message || 'Có lỗi xảy ra khi lưu prompt')
+        }
+      } catch (error) {
+        console.error(error)
+        showNotification('error', error.message || 'Có lỗi xảy ra khi lưu prompt')
+      }
+    }
+
+    async function duplicatePrompt(promptId) {
+      const prompt = getPromptById(promptId)
+      if (!prompt) {
+        showNotification('error', 'Không tìm thấy prompt để duplicate')
+        return
+      }
+
+      const confirmed = await (typeof swal !== 'undefined'
+        ? swal({
+            title: 'Duplicate prompt',
+            text: `Tạo bản sao của prompt "${prompt.title}"?`,
+            icon: 'warning',
+            buttons: ['Hủy', 'Duplicate'],
+            dangerMode: false
+          })
+        : Promise.resolve(confirm(`Tạo bản sao của prompt "${prompt.title}"?`)))
+
+      if (!confirmed) return
+
+      try {
+        const response = await fetch(AdminApiBreakpoint.CREATE_PROMPT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: `${prompt.title} Copy`,
+            description: prompt.description,
+            feature: prompt.feature,
+            feature_type: prompt.feature_type,
+            content: prompt.content,
+            replace_variables: prompt.replace_variables || [],
+            isActive: false
+          })
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          const errorData = (() => {
+            try {
+              return JSON.parse(errorText)
+            } catch {
+              return { message: errorText }
+            }
+          })()
+          throw new Error(errorData.message || 'Có lỗi xảy ra khi duplicate prompt')
+        }
+
+        const result = await response.json()
+        if (result.status === 200) {
+          showNotification('success', result.message || 'Đã duplicate prompt')
+          setTimeout(() => window.location.reload(), 800)
+        } else {
+          throw new Error(result.message || 'Có lỗi xảy ra khi duplicate prompt')
+        }
+      } catch (error) {
+        console.error(error)
+        showNotification('error', error.message || 'Có lỗi xảy ra khi duplicate prompt')
+      }
+    }
+
+    async function deletePrompt(promptId) {
+      if (!promptId) return
+
+      const prompt = getPromptById(promptId)
+      if (prompt?.title === 'default') {
+        showNotification('error', 'Không thể xóa prompt default')
+        return
+      }
+
+      const confirmed = await (typeof swal !== 'undefined'
+        ? swal({
+            title: 'Xác nhận',
+            text: 'Bạn chắc chắn muốn xóa prompt này?',
+            icon: 'warning',
+            buttons: ['Hủy', 'Xóa'],
+            dangerMode: true
+          })
+        : Promise.resolve(confirm('Bạn chắc chắn muốn xóa prompt này?')))
+
+      if (!confirmed) return
+
+      try {
+        const response = await fetch(AdminApiBreakpoint.DELETE_PROMPT, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ promptId })
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          const errorData = (() => {
+            try {
+              return JSON.parse(errorText)
+            } catch {
+              return { message: errorText }
+            }
+          })()
+          throw new Error(errorData.message || 'Có lỗi xảy ra khi xóa prompt')
+        }
+
+        const result = await response.json()
+        if (result.status === 200) {
+          showNotification('success', result.message || 'Đã xóa prompt')
+          setTimeout(() => window.location.reload(), 800)
+        } else {
+          throw new Error(result.message || 'Có lỗi xảy ra khi xóa prompt')
+        }
+      } catch (error) {
+        console.error(error)
+        showNotification('error', error.message || 'Có lỗi xảy ra khi xóa prompt')
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const addSentenceBtn = document.getElementById('addSentencePromptBtn')
+      const addParagraphBtn = document.getElementById('addParagraphPromptBtn')
+      const activeRadioByGroup = new Map()
+
+      if (addSentenceBtn) {
+        addSentenceBtn.addEventListener('click', () => {
+          openPromptModal('write_sentence')
+        })
+      }
+
+      if (addParagraphBtn) {
+        addParagraphBtn.addEventListener('click', () => {
+          openPromptModal('write_paragraph')
+        })
+      }
+
+      document.querySelectorAll('input[data-action="set-active"]').forEach((input) => {
+        const groupName = input.getAttribute('name')
+        if (input.checked) {
+          activeRadioByGroup.set(groupName, input)
+        }
+
+        input.addEventListener('change', function() {
+          const promptId = this.getAttribute('data-prompt-id')
+          const currentGroup = this.getAttribute('name')
+          const previousActive = activeRadioByGroup.get(currentGroup)
+
+          const proceed = typeof swal !== 'undefined'
+            ? swal({
+                title: 'Xác nhận',
+                text: 'Đặt prompt này làm active?',
+                icon: 'warning',
+                buttons: ['Hủy', 'Xác nhận'],
+                dangerMode: false
+              })
+            : Promise.resolve(confirm('Đặt prompt này làm active?'))
+
+          Promise.resolve(proceed).then((willSet) => {
+            if (willSet) {
+              setActivePrompt(promptId, this)
+              activeRadioByGroup.set(currentGroup, this)
+            } else if (previousActive) {
+              previousActive.checked = true
+            }
+          })
+        })
+      })
+
+      document.querySelectorAll('button[data-action="edit"]').forEach((btn) => {
+        btn.addEventListener('click', function() {})
+      })
+
+      document.querySelectorAll('button[data-action="delete"]').forEach((btn) => {
+        btn.addEventListener('click', function() {
+          const promptId = this.getAttribute('data-prompt-id')
+          deletePrompt(promptId)
+        })
+      })
+
+      document.querySelectorAll('button[data-action="duplicate"]').forEach((btn) => {
+        btn.addEventListener('click', function() {
+          const promptId = this.getAttribute('data-prompt-id')
+          duplicatePrompt(promptId)
+        })
+      })
+
+      document.querySelectorAll('button[data-action="view"]').forEach((btn) => {
+        btn.addEventListener('click', function() {
+          const promptId = this.getAttribute('data-prompt-id')
+          const prompt = getPromptById(promptId)
+          if (!prompt) {
+            showNotification('error', 'Không tìm thấy prompt')
+            return
+          }
+          openPromptModal(prompt.feature, prompt)
+        })
+      })
+
+      if (promptSaveBtn) {
+        promptSaveBtn.addEventListener('click', savePrompt)
+      }
+
+      if (promptEditBtn) {
+        promptEditBtn.addEventListener('click', () => {
+          if (selectedPrompt?.title === 'default') {
+            showNotification('error', 'Không thể chỉnh sửa prompt default')
+            return
+          }
+          isPromptEditMode = true
+          isNewPromptMode = false
+          setPromptFormDisabled(false)
+          updatePromptEditControls()
+          promptTitle?.focus()
+        })
+      }
+
+      if (promptCancelEditBtn) {
+        promptCancelEditBtn.addEventListener('click', () => {
+          if (isNewPromptMode) {
+            promptModal.modal('hide')
+            return
+          }
+          isPromptEditMode = false
+          populatePromptFields(selectedPrompt)
+          setPromptFormDisabled(true)
+          updatePromptEditControls()
+        })
+      }
+    })
