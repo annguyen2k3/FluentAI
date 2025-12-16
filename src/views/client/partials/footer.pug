@@ -1,9 +1,70 @@
 footer(class="footer")
-    div(class="row align-items-center")
-        div(class="col text-center")
-            p(class="footer__description") Thành thạo tiếng Anh với FluentAI
-            p(class="footer__copyright") © 2025 FluentAI All rights reserved.
-            div(class="footer__links")
-                a(href="#" class="footer__link") Chính sách quyền riêng tư
-                span(class="footer__separator") |
-                a(href="#" class="footer__link") Chính sách bảo mật
+    .container
+        .row.mb-4
+            .col-12.col-md-6.col-lg-3.mb-4.mb-lg-0
+                .footer__column
+                    h3.footer__column-title FluentAI
+                    p.footer__description
+                        | Môi trường học tập tương tác, giúp bạn cải thiện toàn diện các kỹ năng Viết, Nói và Nghe thông qua phản hồi thông minh, tức thì và được cá nhân hóa từ Trí tuệ nhân tạo.
+            
+            .col-12.col-md-6.col-lg-3.mb-4.mb-lg-0
+                .footer__column
+                    h3.footer__column-title Dịch vụ
+                    ul.footer__nav-list
+                        li.footer__nav-item
+                            a.footer__nav-link(href="/writing-sentence/setup")
+                                i.fas.fa-pencil-alt.me-2
+                                | Dịch câu
+                        li.footer__nav-item
+                            a.footer__nav-link(href="/writing-paragraph/setup")
+                                i.fas.fa-file-alt.me-2
+                                | Dịch đoạn văn
+                        li.footer__nav-item
+                            a.footer__nav-link(href="/speaking-sentence")
+                                i.fas.fa-microphone.me-2
+                                | Luyện nói câu
+                        li.footer__nav-item
+                            a.footer__nav-link(href="/speaking-shadowing")
+                                i.fas.fa-comments.me-2
+                                | Luyện nói Shadowing
+                        li.footer__nav-item
+                            a.footer__nav-link(href="/listening-video/")
+                                i.fas.fa-headphones.me-2
+                                | Luyện nghe
+            
+            .col-12.col-md-6.col-lg-3.mb-4.mb-lg-0
+                .footer__column
+                    h3.footer__column-title Chính sách
+                    ul.footer__nav-list
+                        li.footer__nav-item
+                            a.footer__nav-link(href="#")
+                                i.fas.fa-shield-alt.me-2
+                                | Chính sách bảo mật
+                        li.footer__nav-item
+                            a.footer__nav-link(href="#")
+                                i.fas.fa-credit-card.me-2
+                                | Chính sách thanh toán
+                        li.footer__nav-item
+                            a.footer__nav-link(href="#")
+                                i.fas.fa-user-shield.me-2
+                                | Chính sách quyền riêng tư
+            
+            .col-12.col-md-6.col-lg-3.mb-4.mb-lg-0
+                .footer__column
+                    h3.footer__column-title Liên hệ
+                    address.footer__contact
+                        .footer__contact-item
+                            i.fas.fa-phone-alt.me-2(aria-hidden="true")
+                            a.footer__contact-link(href="tel:034351036" rel="nofollow" title="Liên hệ qua điện thoại Zalo") 034351036
+                            span.footer__contact-label (Zalo)
+                        .footer__contact-item
+                            i.fas.fa-envelope.me-2(aria-hidden="true")
+                            a.footer__contact-link(href="mailto:annguyen300243@gmail.com" rel="nofollow" title="Gửi email liên hệ") annguyen300243@gmail.com
+                        .footer__contact-item
+                            i.fas.fa-map-marker-alt.me-2(aria-hidden="true")
+                            span.footer__contact-text 140 Đ.1D, Xã Tân Vĩnh Lộc, Huyện Bình Chánh, TP Hồ Chí Minh
+        
+        .row
+            .col-12
+                .footer__bottom
+                    p.footer__copyright © 2025 FluentAI. Tất cả quyền được bảo lưu.

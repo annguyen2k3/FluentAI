@@ -32,6 +32,26 @@
     justify-content: center;
   }
 
+  .footer__column {
+    text-align: center;
+  }
+
+  .footer__column-title {
+    font-size: var(--font-size-md);
+  }
+
+  .footer__nav-list {
+    text-align: center;
+  }
+
+  .footer__contact {
+    text-align: center;
+  }
+
+  .footer__contact-item {
+    justify-content: center;
+  }
+
   .stats-card__stats {
     flex-direction: column;
     gap: var(--spacing-md);
