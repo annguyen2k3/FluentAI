@@ -12,6 +12,7 @@ import manageSshRoutes from './manage-ssh.routes'
 import manageLvRoutes from './manage-lv.routes'
 import configSystemRoutes from './config-system.routes'
 import aiLLMRoutes from './ai-llm.routes'
+import statisticsReportingRoutes from './statistics-reporting.routes'
 
 export default function (app: Express) {
   const prefixAdmin = process.env.PREFIX_ADMIN
@@ -50,4 +51,6 @@ export default function (app: Express) {
   app.use(prefixAdmin + '/configs', configSystemRoutes)
 
   app.use(prefixAdmin + '/ai-llm', aiLLMRoutes)
+
+  app.use(prefixAdmin + '/statistics-reporting', statisticsReportingRoutes)
 }

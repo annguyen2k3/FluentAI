@@ -8,6 +8,7 @@ src/public/js/api_breakpoint.js
 .env
 gen-lang-client-0058731285-4fd617adb923.json
 .vscode/
+phan_tich/
 .editorconfig
 .prettierignore
 .prettierrc

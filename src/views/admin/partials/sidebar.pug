@@ -92,9 +92,18 @@ div(class="sidebar" data-background-color="dark")
                 a(href=`${prefixAdmin}/ai-llm/prompt-speaking`)
                   span(class="sub-item") Cấu hình prompt Speaking
         li(class="nav-item")
-          a(href="#")
+          a(class="collapsed" data-bs-toggle="collapse" href="#statistics-reporting" aria-expanded="false")
             i(class="fas fa-chart-bar")
             p Thống kê & Báo cáo
+            span(class="caret")
+          div(id="statistics-reporting" class="collapse")
+            ul(class="nav nav-collapse")
+              li
+                a(href=`${prefixAdmin}/statistics-reporting/users-overview`)
+                  span(class="sub-item") Hoạt động người dùng
+              li
+                a(href=`${prefixAdmin}/statistics-reporting/ai-usage`)
+                  span(class="sub-item") Thống kê hiệu suất AI
         li(class="nav-item")
           a(href="#")
             i(class="fas fa-comments")

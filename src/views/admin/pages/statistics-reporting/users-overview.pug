@@ -1,0 +1,294 @@
+extends ../../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs mb-0")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Thống kê báo cáo
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Tổng quan người dùng
+
+  div(class="row statistics-overview__summary-row")
+    div(class="col-md-3")
+      div(class="card statistics-overview__card")
+        div(class="card-body")
+          div(class="d-flex justify-content-between align-items-center mb-2")
+            span(class="text-muted") Tổng số người dùng
+            span(class="badge bg-primary statistics-overview__badge")
+              i(class="fas fa-users")
+          h3(id="totalUsers" class="mb-0") 0
+          small(class="text-muted") Toàn bộ tài khoản
+    div(class="col-md-3")
+      div(class="card statistics-overview__card")
+        div(class="card-body")
+          div(class="d-flex justify-content-between align-items-center mb-2")
+            span(class="text-muted") Tài khoản Active
+            span(class="badge bg-success statistics-overview__badge")
+              i(class="fas fa-user-check")
+          h3(id="activeUsers" class="mb-0") 0
+          small(class="text-muted") Đang hoạt động
+    div(class="col-md-3")
+      div(class="card statistics-overview__card")
+        div(class="card-body")
+          div(class="d-flex justify-content-between align-items-center mb-2")
+            span(class="text-muted") Tài khoản Block
+            span(class="badge bg-danger statistics-overview__badge")
+              i(class="fas fa-user-slash")
+          h3(id="blockedUsers" class="mb-0") 0
+          small(class="text-muted") Bị chặn tạm thời/ vĩnh viễn
+    div(class="col-md-3")
+      div(class="card statistics-overview__card")
+        div(class="card-body")
+          div(class="d-flex justify-content-between align-items-center mb-2")
+            span(class="text-muted") Người dùng mới
+            span(class="badge bg-info statistics-overview__badge")
+              i(class="fas fa-user-plus")
+          h3(id="newUsers" class="mb-0") 0
+          small(class="text-muted") 7 ngày gần nhất
+
+  div(class="card mt-4")
+    div(class="card-header")
+      div(class="d-flex flex-wrap align-items-center justify-content-between gap-3")
+        h4(class="card-title mb-0") Báo cáo và thống kê
+        div(class="d-flex flex-wrap align-items-center gap-2 statistics-overview__filters")
+          div(class="d-flex align-items-center gap-2 statistics-overview__date-range")
+            div(class="input-group")
+              span(class="input-group-text") Từ
+              input(type="date" id="startDate" class="form-control")
+            div(class="input-group")
+              span(class="input-group-text") Đến
+              input(type="date" id="endDate" class="form-control")
+            button(type="button" id="applyFilterBtn" class="btn btn-primary") Áp dụng
+    div(class="card-body")
+      div(class="statistics-overview__chart-container mb-4")
+        div(class="chart-container" style="height: 320px")
+          canvas(id="usersMultipleLineChart")
+      div(class="table-responsive statistics-overview__table")
+        table(class="table table-striped table-hover align-middle")
+          thead
+            tr
+              th Ngày
+              th Người mới
+          tbody(id="statisticsTableBody")
+            tr
+              td(colspan="2" class="text-center text-muted") Đang tải dữ liệu...
+
+block scripts
+  style.
+    .statistics-overview__card {
+      border: 1px solid #eef0f2;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .statistics-overview__badge {
+      font-size: 0.85rem;
+    }
+    .statistics-overview__filters .btn {
+      min-width: 110px;
+    }
+    .statistics-overview__date-range .input-group-text {
+      min-width: 48px;
+    }
+    .statistics-overview__chart-container {
+      position: relative;
+      min-height: 320px;
+    }
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    const prefixAdmin = '#{prefixAdmin}'
+    const apiUsersOverview = AdminApiBreakpoint?.ADMIN_STATISTICS_USERS_OVERVIEW || `${prefixAdmin}/statistics-reporting/users-overview/data`
+
+    const state = {
+      filter: 'new',
+      startDate: '',
+      endDate: ''
+    }
+
+    const elements = {
+      totalUsers: null,
+      activeUsers: null,
+      blockedUsers: null,
+      newUsers: null,
+      startDate: null,
+      endDate: null,
+      applyBtn: null,
+      tableBody: null,
+      chartCanvas: null
+    }
+
+    let lineChartInstance = null
+
+    function cacheElements() {
+      elements.totalUsers = document.getElementById('totalUsers')
+      elements.activeUsers = document.getElementById('activeUsers')
+      elements.blockedUsers = document.getElementById('blockedUsers')
+      elements.newUsers = document.getElementById('newUsers')
+      elements.filterButtons = Array.from(document.querySelectorAll('.statistics-overview__filter-group .btn'))
+      elements.startDate = document.getElementById('startDate')
+      elements.endDate = document.getElementById('endDate')
+      elements.applyBtn = document.getElementById('applyFilterBtn')
+      elements.tableBody = document.getElementById('statisticsTableBody')
+      elements.chartCanvas = document.getElementById('usersMultipleLineChart')
+    }
+
+    function bindEvents() {
+      if (elements.applyBtn) {
+        elements.applyBtn.addEventListener('click', () => {
+          const startVal = elements.startDate?.value || ''
+          const endVal = elements.endDate?.value || ''
+
+          if (startVal && endVal && startVal > endVal) {
+            if (typeof swal !== 'undefined') {
+              swal({
+                title: 'Khoảng thời gian không hợp lệ',
+                text: 'Ngày bắt đầu không được lớn hơn ngày kết thúc. Vui lòng kiểm tra lại.',
+                icon: 'error',
+                button: 'OK'
+              })
+            } else {
+              alert('Ngày bắt đầu không được lớn hơn ngày kết thúc. Vui lòng kiểm tra lại.')
+            }
+            return
+          }
+
+          state.startDate = startVal
+          state.endDate = endVal
+          fetchStatistics()
+        })
+      }
+    }
+
+    async function fetchStatistics() {
+      const params = new URLSearchParams()
+      params.set('type', 'new')
+      if (state.startDate) params.set('startDate', state.startDate)
+      if (state.endDate) params.set('endDate', state.endDate)
+
+      try {
+        const response = await fetch(`${apiUsersOverview}?${params.toString()}`, {
+          credentials: 'same-origin'
+        })
+        if (!response.ok) {
+          throw new Error('Không thể tải dữ liệu thống kê')
+        }
+        const payload = await response.json()
+        const summary = payload.summary || {}
+        const stats = Array.isArray(payload.stats) ? payload.stats : []
+        updateSummaryCards(summary)
+        renderChart(stats)
+        renderTable(stats)
+      } catch (error) {
+        updateSummaryCards({ totalUsers: 0, activeUsers: 0, blockedUsers: 0, newUsers: 0 })
+        renderChart([])
+        renderTable([])
+      }
+    }
+
+    function updateSummaryCards(summary) {
+      elements.totalUsers.textContent = summary.totalUsers ?? 0
+      elements.activeUsers.textContent = summary.activeUsers ?? 0
+      elements.blockedUsers.textContent = summary.blockedUsers ?? 0
+      elements.newUsers.textContent = summary.newUsers ?? 0
+    }
+
+    function renderChart(stats) {
+      if (!elements.chartCanvas) return
+      const ctx = elements.chartCanvas.getContext('2d')
+      const labels = stats.map(item => item.date || '')
+      const news = stats.map(item => item.newUsers || 0)
+
+      if (lineChartInstance) {
+        lineChartInstance.destroy()
+      }
+
+      lineChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Người dùng mới',
+              backgroundColor: 'rgba(253, 175, 75, 0.8)',
+              borderColor: '#fdaf4b',
+              borderWidth: 1,
+              data: news
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          legend: {
+            position: 'top'
+          },
+          tooltips: {
+            mode: 'index',
+            intersect: false
+          },
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: true,
+                  precision: 0
+                }
+              }
+            ]
+          }
+        }
+      })
+    }
+
+    function renderTable(stats) {
+      if (!elements.tableBody) return
+      elements.tableBody.innerHTML = ''
+
+      if (!stats.length) {
+        elements.tableBody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">Không có dữ liệu</td></tr>'
+        return
+      }
+
+      stats.forEach(item => {
+        const row = document.createElement('tr')
+        row.innerHTML = `
+          <td>${item.date || ''}</td>
+          <td>${item.newUsers ?? 0}</td>
+        `
+        elements.tableBody.appendChild(row)
+      })
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      cacheElements()
+
+      const today = new Date()
+      const start = new Date(today)
+      start.setDate(start.getDate() - 6)
+
+      const toDateInput = (d) => {
+        const year = d.getFullYear()
+        const month = String(d.getMonth() + 1).padStart(2, '0')
+        const day = String(d.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
+      }
+
+      const startStr = toDateInput(start)
+      const endStr = toDateInput(today)
+
+      if (elements.startDate) elements.startDate.value = startStr
+      if (elements.endDate) elements.endDate.value = endStr
+
+      state.startDate = startStr
+      state.endDate = endStr
+
+      bindEvents()
+      fetchStatistics()
+    })
+
