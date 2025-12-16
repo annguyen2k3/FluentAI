@@ -1,7 +1,9 @@
 import { Router } from 'express'
 import {
+  getStatisticsReportingRevenueController,
   getStatisticsReportingUsersScoreController,
   getStatisticsReportingUsersController,
+  renderStatisticsReportingRevenueController,
   renderStatisticsReportingUsersController,
   renderStatisticsReportingUsersScoreController
 } from '~/controllers/admin/statistics-reporting.controllers'
@@ -10,8 +12,6 @@ import { wrapRequestHandler } from '~/utils/handlers'
 
 const statisticsReportingRoutes = Router()
 
-// GET /admin/statistics-reporting/users
-// Description: Render page statistics reporting users
 statisticsReportingRoutes.get(
   '/users-overview',
   requireAdminAuth,
@@ -24,8 +24,12 @@ statisticsReportingRoutes.get(
   wrapRequestHandler(renderStatisticsReportingUsersScoreController)
 )
 
-// GET /admin/statistics-reporting/users-overview/data
-// Description: Get statistics overview users
+statisticsReportingRoutes.get(
+  '/revenue',
+  requireAdminAuth,
+  wrapRequestHandler(renderStatisticsReportingRevenueController)
+)
+
 statisticsReportingRoutes.get(
   '/users-overview/data',
   requireAdminAuth,
@@ -36,6 +40,12 @@ statisticsReportingRoutes.get(
   '/users-score/data',
   requireAdminAuth,
   wrapRequestHandler(getStatisticsReportingUsersScoreController)
+)
+
+statisticsReportingRoutes.get(
+  '/revenue/data',
+  requireAdminAuth,
+  wrapRequestHandler(getStatisticsReportingRevenueController)
 )
 
 export default statisticsReportingRoutes

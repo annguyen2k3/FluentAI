@@ -1,8 +1,10 @@
 import { Request, Response } from 'express'
 import { Admin } from 'mongodb'
 import {
+  getRevenueStatisticsService,
   getUsersOverviewService,
   getUsersScoreStatisticsService,
+  RevenueParams,
   UsersOverviewParams,
   UsersScoreParams
 } from '~/services/statistics-reporting.service'
@@ -25,6 +27,17 @@ export const renderStatisticsReportingUsersScoreController = async (
   const admin = req.admin as Admin
   res.render('admin/pages/statistics-reporting/users-score.pug', {
     pageTitle: 'Admin - Thống kê điểm số và hoạt động người dùng',
+    admin
+  })
+}
+
+export const renderStatisticsReportingRevenueController = async (
+  req: Request,
+  res: Response
+) => {
+  const admin = req.admin as Admin
+  res.render('admin/pages/statistics-reporting/revenue.pug', {
+    pageTitle: 'Admin - Thống kê thu nhập và ví hệ thống',
     admin
   })
 }
@@ -54,6 +67,21 @@ export const getStatisticsReportingUsersScoreController = async (
     req.query as Partial<UsersScoreParams>
 
   const data = await getUsersScoreStatisticsService({
+    startDate,
+    endDate
+  })
+
+  res.json(data)
+}
+
+export const getStatisticsReportingRevenueController = async (
+  req: Request,
+  res: Response
+) => {
+  const { startDate = '', endDate = '' } =
+    req.query as Partial<RevenueParams>
+
+  const data = await getRevenueStatisticsService({
     startDate,
     endDate
   })

@@ -1,5 +1,5 @@
 import { Document, Filter } from 'mongodb'
-import { UserScoreType, UserStatus } from '~/constants/enum'
+import { TransactionStatus, UserScoreType, UserStatus } from '~/constants/enum'
 import { databaseService } from './database.service'
 
 export interface UsersOverviewParams {
@@ -51,6 +51,27 @@ export interface UsersScoreResult {
     listeningVideo: number
   }
   stats: UsersScoreDailyStat[]
+}
+
+export interface RevenueParams {
+  startDate?: string
+  endDate?: string
+}
+
+export interface RevenueDailyStat {
+  date: string
+  totalIncome: number
+  totalCredit: number
+  successTransactions: number
+}
+
+export interface RevenueResult {
+  summary: {
+    systemBalance: number
+    totalIncome: number
+    totalCredit: number
+  }
+  stats: RevenueDailyStat[]
 }
 
 function parseDateBoundary(dateStr?: string, isEnd = false): Date | null {
@@ -410,3 +431,93 @@ export async function getUsersScoreStatisticsService(
     stats
   }
 }
+
+export async function getRevenueStatisticsService(
+  params: RevenueParams
+): Promise<RevenueResult> {
+  const walletsCol = databaseService.wallets
+
+  const start = parseDateBoundary(params.startDate)
+  const end = parseDateBoundary(params.endDate, true)
+
+  const matchConditions: Filter<unknown> = {
+    'history_transactions.status': TransactionStatus.SUCCESS
+  }
+
+  if (start || end) {
+    matchConditions['history_transactions.create_at'] = {}
+    if (start) {
+      matchConditions['history_transactions.create_at'].$gte = start
+    }
+    if (end) {
+      matchConditions['history_transactions.create_at'].$lte = end
+    }
+  }
+
+  const dailyPipeline: Document[] = [
+    { $unwind: '$history_transactions' },
+    { $match: matchConditions },
+    {
+      $project: {
+        price: '$history_transactions.price',
+        credit: '$history_transactions.credit',
+        status: '$history_transactions.status',
+        create_at: '$history_transactions.create_at',
+        date: {
+          $dateToString: {
+            format: '%d/%m/%Y',
+            date: '$history_transactions.create_at',
+            timezone: 'UTC'
+          }
+        }
+      }
+    },
+    {
+      $group: {
+        _id: '$date',
+        totalIncome: { $sum: '$price' },
+        totalCredit: { $sum: '$credit' },
+        successTransactions: { $sum: 1 }
+      }
+    },
+    { $sort: { _id: 1 } }
+  ]
+
+  const summaryPipeline: Document[] = [
+    {
+      $group: {
+        _id: null,
+        systemBalance: { $sum: '$balance_credit' }
+      }
+    }
+  ]
+
+  const [summaryBalanceData, statsData] = await Promise.all([
+    walletsCol.aggregate(summaryPipeline).toArray(),
+    walletsCol.aggregate(dailyPipeline).toArray()
+  ])
+
+  const summaryBalanceDoc = summaryBalanceData?.[0] || {
+    systemBalance: 0
+  }
+
+  const stats: RevenueDailyStat[] = statsData.map((item) => ({
+    date: item._id as string,
+    totalIncome: item.totalIncome || 0,
+    totalCredit: item.totalCredit || 0,
+    successTransactions: item.successTransactions || 0
+  }))
+
+  const totalIncome = stats.reduce((sum, item) => sum + item.totalIncome, 0)
+  const totalCredit = stats.reduce((sum, item) => sum + item.totalCredit, 0)
+
+  return {
+    summary: {
+      systemBalance: summaryBalanceDoc.systemBalance || 0,
+      totalIncome,
+      totalCredit
+    },
+    stats
+  }
+}
+
