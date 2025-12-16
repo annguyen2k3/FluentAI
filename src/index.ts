@@ -45,6 +45,13 @@ app.set('views', path.join(__dirname, '/views'))
 
 app.locals.prefixAdmin = process.env.PREFIX_ADMIN
 
+// GET /info-website
+async function getInfoWebsite() {
+  const infoWebsite = await databaseService.infoWebsites.findOne({})
+  app.locals.infoWebsite = infoWebsite
+}
+getInfoWebsite()
+
 // ROUTES
 clientRoutes(app)
 adminRoutes(app)

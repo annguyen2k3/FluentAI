@@ -3,9 +3,9 @@ footer(class="footer")
         .row.mb-4
             .col-12.col-md-6.col-lg-3.mb-4.mb-lg-0
                 .footer__column
-                    h3.footer__column-title FluentAI
+                    h3.footer__column-title #{infoWebsite.name}
                     p.footer__description
-                        | Môi trường học tập tương tác, giúp bạn cải thiện toàn diện các kỹ năng Viết, Nói và Nghe thông qua phản hồi thông minh, tức thì và được cá nhân hóa từ Trí tuệ nhân tạo.
+                        | #{infoWebsite.description}
             
             .col-12.col-md-6.col-lg-3.mb-4.mb-lg-0
                 .footer__column
@@ -55,14 +55,14 @@ footer(class="footer")
                     address.footer__contact
                         .footer__contact-item
                             i.fas.fa-phone-alt.me-2(aria-hidden="true")
-                            a.footer__contact-link(href="tel:034351036" rel="nofollow" title="Liên hệ qua điện thoại Zalo") 034351036
+                            a.footer__contact-link(href="tel:${infoWebsite.phone_number}" rel="nofollow" title="Liên hệ qua điện thoại Zalo") #{infoWebsite.phone_number}
                             span.footer__contact-label (Zalo)
                         .footer__contact-item
                             i.fas.fa-envelope.me-2(aria-hidden="true")
-                            a.footer__contact-link(href="mailto:annguyen300243@gmail.com" rel="nofollow" title="Gửi email liên hệ") annguyen300243@gmail.com
+                            a.footer__contact-link(href="mailto:${infoWebsite.email}" rel="nofollow" title="Gửi email liên hệ") #{infoWebsite.email}
                         .footer__contact-item
                             i.fas.fa-map-marker-alt.me-2(aria-hidden="true")
-                            span.footer__contact-text 140 Đ.1D, Xã Tân Vĩnh Lộc, Huyện Bình Chánh, TP Hồ Chí Minh
+                            span.footer__contact-text #{infoWebsite.address}
         
         .row
             .col-12

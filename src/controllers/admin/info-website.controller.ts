@@ -65,6 +65,10 @@ export const updateInfoWebsiteController = async (
       }
     }
   )
+
+  const infoWebsiteNew = await databaseService.infoWebsites.findOne({})
+  req.app.locals.infoWebsite = infoWebsiteNew
+
   res.status(HttpStatus.OK).json({
     message: 'Cập nhật thông tin website thành công',
     status: HttpStatus.OK

@@ -3,7 +3,7 @@ extend ../../layouts/auth.pug
 block card-body 
   div(class="text-center mb-4")
     a(href="/" class="text-decoration-none")
-      img(src="/img/logo.jpeg" alt="FluentAI" class="login-logo mb-2 w-50")
+      img(src=infoWebsite.url_logo alt=infoWebsite.name class="login-logo mb-2 w-50")
 
   form(id="loginForm", novalidate)
     div(class="mb-3")
