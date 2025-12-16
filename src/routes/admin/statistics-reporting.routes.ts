@@ -1,8 +1,10 @@
 import { Router } from 'express'
 import {
+  getStatisticsReportingGoogleApiController,
   getStatisticsReportingRevenueController,
   getStatisticsReportingUsersScoreController,
   getStatisticsReportingUsersController,
+  renderStatisticsReportingGoogleApiController,
   renderStatisticsReportingRevenueController,
   renderStatisticsReportingUsersController,
   renderStatisticsReportingUsersScoreController
@@ -31,6 +33,12 @@ statisticsReportingRoutes.get(
 )
 
 statisticsReportingRoutes.get(
+  '/google-api',
+  requireAdminAuth,
+  wrapRequestHandler(renderStatisticsReportingGoogleApiController)
+)
+
+statisticsReportingRoutes.get(
   '/users-overview/data',
   requireAdminAuth,
   wrapRequestHandler(getStatisticsReportingUsersController)
@@ -46,6 +54,12 @@ statisticsReportingRoutes.get(
   '/revenue/data',
   requireAdminAuth,
   wrapRequestHandler(getStatisticsReportingRevenueController)
+)
+
+statisticsReportingRoutes.get(
+  '/google-api/data',
+  requireAdminAuth,
+  wrapRequestHandler(getStatisticsReportingGoogleApiController)
 )
 
 export default statisticsReportingRoutes

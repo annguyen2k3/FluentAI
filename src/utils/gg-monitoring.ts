@@ -108,8 +108,8 @@ export async function getApiRequestsMetrics(
       return (
         series.points?.map((point) => {
           const seconds =
-            Number(point.interval?.startTime?.seconds ?? 0) ||
             Number(point.interval?.endTime?.seconds ?? 0) ||
+            Number(point.interval?.startTime?.seconds ?? 0) ||
             0
           const date = new Date(seconds * 1000)
           const latencyMedianMs = latencyP50Map[seconds.toString()]
@@ -175,8 +175,8 @@ export async function getTodayApiRequestsMetrics(
       return (
         series.points?.map((point) => {
           const seconds =
-            Number(point.interval?.startTime?.seconds ?? 0) ||
             Number(point.interval?.endTime?.seconds ?? 0) ||
+            Number(point.interval?.startTime?.seconds ?? 0) ||
             0
           const date = new Date(seconds * 1000)
           const latencyMedianMs = latencyP50Map[seconds.toString()]

@@ -1,9 +1,11 @@
 import { Request, Response } from 'express'
 import { Admin } from 'mongodb'
 import {
+  getGoogleApiRequestStatisticsService,
   getRevenueStatisticsService,
   getUsersOverviewService,
   getUsersScoreStatisticsService,
+  GoogleApiRequestParams,
   RevenueParams,
   UsersOverviewParams,
   UsersScoreParams
@@ -38,6 +40,17 @@ export const renderStatisticsReportingRevenueController = async (
   const admin = req.admin as Admin
   res.render('admin/pages/statistics-reporting/revenue.pug', {
     pageTitle: 'Admin - Thống kê thu nhập và ví hệ thống',
+    admin
+  })
+}
+
+export const renderStatisticsReportingGoogleApiController = async (
+  req: Request,
+  res: Response
+) => {
+  const admin = req.admin as Admin
+  res.render('admin/pages/statistics-reporting/google-api.pug', {
+    pageTitle: 'Admin - Thống kê Request API Google',
     admin
   })
 }
@@ -82,6 +95,21 @@ export const getStatisticsReportingRevenueController = async (
     req.query as Partial<RevenueParams>
 
   const data = await getRevenueStatisticsService({
+    startDate,
+    endDate
+  })
+
+  res.json(data)
+}
+
+export const getStatisticsReportingGoogleApiController = async (
+  req: Request,
+  res: Response
+) => {
+  const { startDate = '', endDate = '' } =
+    req.query as Partial<GoogleApiRequestParams>
+
+  const data = await getGoogleApiRequestStatisticsService({
     startDate,
     endDate
   })

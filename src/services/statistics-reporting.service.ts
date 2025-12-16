@@ -1,6 +1,7 @@
 import { Document, Filter } from 'mongodb'
 import { TransactionStatus, UserScoreType, UserStatus } from '~/constants/enum'
 import { databaseService } from './database.service'
+import { ApiRequestMetric, getApiRequestsMetrics } from '~/utils/gg-monitoring'
 
 export interface UsersOverviewParams {
   type?: 'all' | 'active' | 'blocked' | 'new'
@@ -74,6 +75,37 @@ export interface RevenueResult {
   stats: RevenueDailyStat[]
 }
 
+export interface GoogleApiRequestParams {
+  startDate?: string
+  endDate?: string
+}
+
+export interface GoogleApiServiceSummary {
+  serviceName: string
+  success200: number
+  failed404: number
+  total: number
+}
+
+export interface GoogleApiDailyServiceStat {
+  serviceName: string
+  success200: number
+  failed404: number
+  total: number
+  latencyMedianMs?: number
+  latencyP95Ms?: number
+}
+
+export interface GoogleApiDailyStat {
+  date: string
+  services: GoogleApiDailyServiceStat[]
+}
+
+export interface GoogleApiRequestResult {
+  summary: GoogleApiServiceSummary[]
+  stats: GoogleApiDailyStat[]
+}
+
 function parseDateBoundary(dateStr?: string, isEnd = false): Date | null {
   if (!dateStr) return null
   const date = new Date(dateStr)
@@ -84,6 +116,13 @@ function parseDateBoundary(dateStr?: string, isEnd = false): Date | null {
     date.setHours(0, 0, 0, 0)
   }
   return date
+}
+
+function formatDateLabel(date: Date): string {
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
 }
 
 export async function getUsersOverviewService(
@@ -521,3 +560,172 @@ export async function getRevenueStatisticsService(
   }
 }
 
+const GOOGLE_API_SERVICES = [
+  'generativelanguage.googleapis.com',
+  'speech.googleapis.com',
+  'texttospeech.googleapis.com'
+] as const
+
+type GoogleApiServiceName = (typeof GOOGLE_API_SERVICES)[number]
+
+function aggregateGoogleApiMetricsByDay(
+  metrics: ApiRequestMetric[],
+  start?: Date | null,
+  end?: Date | null
+): {
+  summary: GoogleApiServiceSummary
+  dailyMap: Map<string, GoogleApiDailyServiceStat>
+} {
+  const summary: GoogleApiServiceSummary = {
+    serviceName: '',
+    success200: 0,
+    failed404: 0,
+    total: 0
+  }
+
+  const dailyMap = new Map<string, GoogleApiDailyServiceStat>()
+
+  metrics.forEach((metric) => {
+    if (!(metric.date instanceof Date)) return
+
+    if (start && metric.date.getTime() < start.getTime()) return
+    if (end && metric.date.getTime() > end.getTime()) return
+
+    const label = formatDateLabel(metric.date)
+    const existing = dailyMap.get(label) || {
+      serviceName: '',
+      success200: 0,
+      failed404: 0,
+      total: 0,
+      latencyMedianMs: undefined,
+      latencyP95Ms: undefined
+    }
+
+    const isSuccess = metric.responseCode === '200'
+    const isFailed = metric.responseCode === '404'
+
+    if (isSuccess) {
+      existing.success200 += metric.total
+      summary.success200 += metric.total
+    }
+
+    if (isFailed) {
+      existing.failed404 += metric.total
+      summary.failed404 += metric.total
+    }
+
+    existing.total += metric.total
+    summary.total += metric.total
+
+    if (typeof metric.latencyMedianMs === 'number') {
+      if (typeof existing.latencyMedianMs === 'number') {
+        existing.latencyMedianMs =
+          (existing.latencyMedianMs + metric.latencyMedianMs) / 2
+      } else {
+        existing.latencyMedianMs = metric.latencyMedianMs
+      }
+    }
+
+    if (typeof metric.latencyP95Ms === 'number') {
+      if (typeof existing.latencyP95Ms === 'number') {
+        existing.latencyP95Ms =
+          (existing.latencyP95Ms + metric.latencyP95Ms) / 2
+      } else {
+        existing.latencyP95Ms = metric.latencyP95Ms
+      }
+    }
+
+    dailyMap.set(label, existing)
+  })
+
+  return { summary, dailyMap }
+}
+
+export async function getGoogleApiRequestStatisticsService(
+  params: GoogleApiRequestParams
+): Promise<GoogleApiRequestResult> {
+  const now = new Date()
+
+  let start = parseDateBoundary(params.startDate)
+  let end = parseDateBoundary(params.endDate, true)
+
+  if (!start && !end) {
+    end = new Date(now)
+    start = new Date(end.getTime() - 6 * 24 * 60 * 60 * 1000)
+  }
+
+  if (!end) end = now
+
+  const startForDiff = new Date(
+    (start || new Date(end.getTime() - 6 * 24 * 60 * 60 * 1000)).getTime()
+  )
+  startForDiff.setHours(0, 0, 0, 0)
+
+  const endForDiff = new Date(end.getTime())
+  endForDiff.setHours(23, 59, 59, 999)
+
+  const diffDays = Math.max(
+    1,
+    Math.ceil(
+      (endForDiff.getTime() - startForDiff.getTime()) / (24 * 60 * 60 * 1000)
+    )
+  )
+
+  const serviceMetrics = await Promise.all(
+    GOOGLE_API_SERVICES.map((serviceName) =>
+      getApiRequestsMetrics(serviceName, diffDays).then((metrics) => ({
+        serviceName,
+        metrics
+      }))
+    )
+  )
+
+  const summaryList: GoogleApiServiceSummary[] = []
+  const dateMap = new Map<string, GoogleApiDailyStat>()
+
+  serviceMetrics.forEach(({ serviceName, metrics }) => {
+    const { summary, dailyMap } = aggregateGoogleApiMetricsByDay(
+      metrics,
+      startForDiff,
+      endForDiff
+    )
+
+    summary.serviceName = serviceName
+    summaryList.push(summary)
+
+    dailyMap.forEach((dailyStat, dateLabel) => {
+      const existing = dateMap.get(dateLabel)
+      if (existing) {
+        existing.services.push({
+          ...dailyStat,
+          serviceName
+        })
+      } else {
+        dateMap.set(dateLabel, {
+          date: dateLabel,
+          services: [
+            {
+              ...dailyStat,
+              serviceName
+            }
+          ]
+        })
+      }
+    })
+  })
+
+  const stats: GoogleApiDailyStat[] = Array.from(dateMap.values()).sort(
+    (a, b) => {
+      const [da, ma, ya] = a.date.split('/').map(Number)
+      const [db, mb, yb] = b.date.split('/').map(Number)
+      const timeA = new Date(ya, (ma || 1) - 1, da || 1).getTime()
+      const timeB = new Date(yb, (mb || 1) - 1, db || 1).getTime()
+      return timeA - timeB
+    }
+  )
+
+  return {
+    summary: summaryList,
+    stats
+  }
+}

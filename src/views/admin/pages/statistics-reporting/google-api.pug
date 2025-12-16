@@ -1,0 +1,438 @@
+extends ../../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs mb-0")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Thống kê & Báo cáo
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Thống kê Request API Google
+
+  div(class="row google-api__summary-row")
+    div(class="col-md-4")
+      div(class="card google-api__card")
+        div(class="card-body")
+          div(class="d-flex justify-content-between align-items-center mb-2")
+            div
+              span(class="text-muted d-block") Generative Language API
+              small(class="text-muted") generativelanguage.googleapis.com
+            span(class="badge bg-primary google-api__badge")
+              i(class="fas fa-robot")
+          div(class="d-flex flex-wrap gap-3 align-items-center mt-3 google-api__badge-group")
+            div(class="google-api__stat-badge google-api__stat-badge--success")
+              div(class="google-api__stat-badge-label") Code: 200
+              div(id="genSuccessCount" class="google-api__stat-badge-value") 0
+            div(class="google-api__stat-badge google-api__stat-badge--error")
+              div(class="google-api__stat-badge-label") 404
+              div(id="genFailedCount" class="google-api__stat-badge-value") 0
+            div(class="google-api__stat-badge google-api__stat-badge--total")
+              div(class="google-api__stat-badge-label") Tổng
+              div(id="genTotalCount" class="google-api__stat-badge-value") 0
+
+    div(class="col-md-4")
+      div(class="card google-api__card")
+        div(class="card-body")
+          div(class="d-flex justify-content-between align-items-center mb-2")
+            div
+              span(class="text-muted d-block") Cloud Speech-to-Text API
+              small(class="text-muted") speech.googleapis.com
+            span(class="badge bg-info google-api__badge")
+              i(class="fas fa-microphone-alt")
+          div(class="d-flex flex-wrap gap-3 align-items-center mt-3 google-api__badge-group")
+            div(class="google-api__stat-badge google-api__stat-badge--success")
+              div(class="google-api__stat-badge-label") Code: 200
+              div(id="speechSuccessCount" class="google-api__stat-badge-value") 0
+            div(class="google-api__stat-badge google-api__stat-badge--error")
+              div(class="google-api__stat-badge-label") 404
+              div(id="speechFailedCount" class="google-api__stat-badge-value") 0
+            div(class="google-api__stat-badge google-api__stat-badge--total")
+              div(class="google-api__stat-badge-label") Tổng
+              div(id="speechTotalCount" class="google-api__stat-badge-value") 0
+
+    div(class="col-md-4")
+      div(class="card google-api__card")
+        div(class="card-body")
+          div(class="d-flex justify-content-between align-items-center mb-2")
+            div
+              span(class="text-muted d-block") Cloud Text-to-Speech API
+              small(class="text-muted") texttospeech.googleapis.com
+            span(class="badge bg-warning google-api__badge")
+              i(class="fas fa-volume-up")
+          div(class="d-flex flex-wrap gap-3 align-items-center mt-3 google-api__badge-group")
+            div(class="google-api__stat-badge google-api__stat-badge--success")
+              div(class="google-api__stat-badge-label") Code: 200
+              div(id="ttsSuccessCount" class="google-api__stat-badge-value") 0
+            div(class="google-api__stat-badge google-api__stat-badge--error")
+              div(class="google-api__stat-badge-label") 404
+              div(id="ttsFailedCount" class="google-api__stat-badge-value") 0
+            div(class="google-api__stat-badge google-api__stat-badge--total")
+              div(class="google-api__stat-badge-label") Tổng
+              div(id="ttsTotalCount" class="google-api__stat-badge-value") 0
+
+  div(class="card mt-4")
+    div(class="card-header")
+      div(class="d-flex flex-wrap align-items-center justify-content-between gap-3")
+        h4(class="card-title mb-0") Thống kê Request API theo thời gian
+        div(class="d-flex flex-wrap align-items-center gap-2 google-api__filters")
+          div(class="d-flex align-items-center gap-2 google-api__date-range")
+            div(class="input-group")
+              span(class="input-group-text") Từ
+              input(type="date" id="startDate" class="form-control")
+            div(class="input-group")
+              span(class="input-group-text") Đến
+              input(type="date" id="endDate" class="form-control")
+            button(type="button" id="applyFilterBtn" class="btn btn-primary") Áp dụng
+    div(class="card-body")
+      div(class="google-api__chart-container mb-4")
+        div(class="chart-container" style="height: 320px")
+          canvas(id="googleApiMultipleLineChart")
+      div(class="table-responsive google-api__table")
+        table(class="table table-striped table-hover align-middle")
+          thead
+            tr
+              th Ngày
+              th Service
+              th Thành công (200)
+              th Thất bại (404)
+              th Tổng request
+              th P50 latency (ms)
+              th P95 latency (ms)
+          tbody(id="googleApiStatisticsTableBody")
+            tr
+              td(colspan="7" class="text-center text-muted") Đang tải dữ liệu...
+
+block scripts
+  style.
+    .google-api__card {
+      border: 1px solid #eef0f2;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .google-api__badge {
+      font-size: 0.85rem;
+    }
+    .google-api__badge-group {
+      gap: 1rem;
+    }
+    .google-api__stat-badge {
+      min-width: 90px;
+      padding: 8px 12px 10px;
+      border-radius: 16px;
+      background-color: #ffffff;
+      border: 1px solid #e4e7ec;
+      box-shadow: 0 2px 4px rgba(15, 23, 42, 0.06);
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .google-api__stat-badge-label {
+      font-size: 0.75rem;
+      color: #6c757d;
+    }
+    .google-api__stat-badge-value {
+      font-size: 2.4rem;
+      font-weight: 600;
+      line-height: 1;
+    }
+    .google-api__stat-badge--success .google-api__stat-badge-value {
+      color: #16a34a;
+    }
+    .google-api__stat-badge--error .google-api__stat-badge-value {
+      color: #dc3545;
+    }
+    .google-api__stat-badge--total .google-api__stat-badge-value {
+      color: #4f46e5;
+    }
+    .google-api__filters .btn {
+      min-width: 110px;
+    }
+    .google-api__date-range .input-group-text {
+      min-width: 48px;
+    }
+    .google-api__chart-container {
+      position: relative;
+      min-height: 320px;
+    }
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    const prefixAdmin = '#{prefixAdmin}'
+    const apiGoogleApi = AdminApiBreakpoint?.ADMIN_STATISTICS_GOOGLE_API || `${prefixAdmin}/statistics-reporting/google-api/data`
+
+    const SERVICES = [
+      {
+        id: 'generativelanguage.googleapis.com',
+        label: 'Generative Language API',
+        badgeIds: {
+          success: 'genSuccessCount',
+          failed: 'genFailedCount',
+          total: 'genTotalCount'
+        },
+        color: '#1d7af3'
+      },
+      {
+        id: 'speech.googleapis.com',
+        label: 'Cloud Speech-to-Text API',
+        badgeIds: {
+          success: 'speechSuccessCount',
+          failed: 'speechFailedCount',
+          total: 'speechTotalCount'
+        },
+        color: '#59d05d'
+      },
+      {
+        id: 'texttospeech.googleapis.com',
+        label: 'Cloud Text-to-Speech API',
+        badgeIds: {
+          success: 'ttsSuccessCount',
+          failed: 'ttsFailedCount',
+          total: 'ttsTotalCount'
+        },
+        color: '#f3545d'
+      }
+    ]
+
+    const state = {
+      startDate: '',
+      endDate: ''
+    }
+
+    const elements = {
+      startDate: null,
+      endDate: null,
+      applyBtn: null,
+      tableBody: null,
+      chartCanvas: null
+    }
+
+    let lineChartInstance = null
+
+    function cacheElements() {
+      elements.startDate = document.getElementById('startDate')
+      elements.endDate = document.getElementById('endDate')
+      elements.applyBtn = document.getElementById('applyFilterBtn')
+      elements.tableBody = document.getElementById('googleApiStatisticsTableBody')
+      elements.chartCanvas = document.getElementById('googleApiMultipleLineChart')
+    }
+
+    function bindEvents() {
+      if (elements.applyBtn) {
+        elements.applyBtn.addEventListener('click', () => {
+          const startVal = elements.startDate?.value || ''
+          const endVal = elements.endDate?.value || ''
+
+          if (startVal && endVal && startVal > endVal) {
+            if (typeof swal !== 'undefined') {
+              swal({
+                title: 'Khoảng thời gian không hợp lệ',
+                text: 'Ngày bắt đầu không được lớn hơn ngày kết thúc. Vui lòng kiểm tra lại.',
+                icon: 'error',
+                button: 'OK'
+              })
+            } else {
+              alert('Ngày bắt đầu không được lớn hơn ngày kết thúc. Vui lòng kiểm tra lại.')
+            }
+            return
+          }
+
+          state.startDate = startVal
+          state.endDate = endVal
+          fetchStatistics()
+        })
+      }
+    }
+
+    async function fetchStatistics() {
+      const params = new URLSearchParams()
+      if (state.startDate) params.set('startDate', state.startDate)
+      if (state.endDate) params.set('endDate', state.endDate)
+
+      try {
+        const response = await fetch(`${apiGoogleApi}?${params.toString()}`, {
+          credentials: 'same-origin'
+        })
+        if (!response.ok) {
+          throw new Error('Không thể tải dữ liệu thống kê')
+        }
+        const payload = await response.json()
+        const summary = Array.isArray(payload.summary) ? payload.summary : []
+        const stats = Array.isArray(payload.stats) ? payload.stats : []
+        updateSummaryBadges(summary)
+        renderChart(stats)
+        renderTable(stats)
+      } catch (error) {
+        updateSummaryBadges([])
+        renderChart([])
+        renderTable([])
+      }
+    }
+
+    function updateSummaryBadges(summaryList) {
+      const summaryMap = new Map()
+      summaryList.forEach((item) => {
+        if (item && item.serviceName) {
+          summaryMap.set(item.serviceName, item)
+        }
+      })
+
+      SERVICES.forEach((service) => {
+        const summary = summaryMap.get(service.id) || {
+          success200: 0,
+          failed404: 0,
+          total: 0
+        }
+        const successEl = document.getElementById(service.badgeIds.success)
+        const failedEl = document.getElementById(service.badgeIds.failed)
+        const totalEl = document.getElementById(service.badgeIds.total)
+
+        if (successEl) successEl.textContent = summary.success200 ?? 0
+        if (failedEl) failedEl.textContent = summary.failed404 ?? 0
+        if (totalEl) totalEl.textContent = summary.total ?? 0
+      })
+    }
+
+    function renderChart(stats) {
+      if (!elements.chartCanvas) return
+      const ctx = elements.chartCanvas.getContext('2d')
+
+      const labels = stats.map((item) => item.date || '')
+
+      const datasets = SERVICES.map((service) => {
+        const data = stats.map((item) => {
+          const found = Array.isArray(item.services)
+            ? item.services.find((s) => s.serviceName === service.id)
+            : null
+          return found?.total ?? 0
+        })
+
+        return {
+          label: service.label,
+          borderColor: service.color,
+          backgroundColor: 'transparent',
+          pointBorderColor: '#FFF',
+          pointBackgroundColor: service.color,
+          pointBorderWidth: 2,
+          pointHoverRadius: 4,
+          pointHoverBorderWidth: 1,
+          pointRadius: 3,
+          fill: false,
+          borderWidth: 2,
+          data
+        }
+      })
+
+      if (lineChartInstance) {
+        lineChartInstance.destroy()
+      }
+
+      lineChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          legend: {
+            position: 'top'
+          },
+          tooltips: {
+            mode: 'nearest',
+            intersect: false
+          },
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: true,
+                  precision: 0
+                }
+              }
+            ]
+          }
+        }
+      })
+    }
+
+    function renderTable(stats) {
+      if (!elements.tableBody) return
+      elements.tableBody.innerHTML = ''
+
+      if (!stats.length) {
+        elements.tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Không có dữ liệu</td></tr>'
+        return
+      }
+
+      const serviceLabelMap = SERVICES.reduce((map, service) => {
+        map.set(service.id, service.label)
+        return map
+      }, new Map())
+
+      stats.forEach((item) => {
+        const date = item.date || ''
+        const services = Array.isArray(item.services) ? item.services : []
+
+        services.forEach((svc) => {
+          const row = document.createElement('tr')
+          const label =
+            serviceLabelMap.get(svc.serviceName) || svc.serviceName || ''
+
+          const latencyP50 =
+            typeof svc.latencyMedianMs === 'number'
+              ? svc.latencyMedianMs.toFixed(2)
+              : '-'
+          const latencyP95 =
+            typeof svc.latencyP95Ms === 'number'
+              ? svc.latencyP95Ms.toFixed(2)
+              : '-'
+
+          row.innerHTML = `
+            <td>${date}</td>
+            <td>${label}</td>
+            <td>${svc.success200 ?? 0}</td>
+            <td>${svc.failed404 ?? 0}</td>
+            <td>${svc.total ?? 0}</td>
+            <td>${latencyP50}</td>
+            <td>${latencyP95}</td>
+          `
+          elements.tableBody.appendChild(row)
+        })
+      })
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      cacheElements()
+
+      const today = new Date()
+      const start = new Date(today)
+      start.setDate(start.getDate() - 6)
+
+      const toDateInput = (d) => {
+        const year = d.getFullYear()
+        const month = String(d.getMonth() + 1).padStart(2, '0')
+        const day = String(d.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
+      }
+
+      const startStr = toDateInput(start)
+      const endStr = toDateInput(today)
+
+      if (elements.startDate) elements.startDate.value = startStr
+      if (elements.endDate) elements.endDate.value = endStr
+
+      state.startDate = startStr
+      state.endDate = endStr
+
+      bindEvents()
+      fetchStatistics()
+    })
+
