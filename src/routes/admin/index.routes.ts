@@ -2,7 +2,6 @@ import { Express, Request, Response } from 'express'
 import authRoutes from './auth.routes'
 import { Admin } from 'mongodb'
 import { requireAdminAuth } from '~/middlewares/admin.middleware'
-import { databaseService } from '~/services/database.service'
 import manageUserRoutes from './manage-user.routes'
 import manageCategoryRoutes from './manage-category.routes'
 import manageWsRoutes from './manage-ws.routes'
@@ -13,6 +12,12 @@ import manageLvRoutes from './manage-lv.routes'
 import configSystemRoutes from './config-system.routes'
 import aiLLMRoutes from './ai-llm.routes'
 import statisticsReportingRoutes from './statistics-reporting.routes'
+import {
+  getGoogleApiRequestStatisticsService,
+  getRevenueStatisticsService,
+  getUsersOverviewService,
+  getUsersScoreStatisticsService
+} from '~/services/statistics-reporting.service'
 
 export default function (app: Express) {
   const prefixAdmin = process.env.PREFIX_ADMIN
@@ -25,11 +30,84 @@ export default function (app: Express) {
     requireAdminAuth,
     async function (req: Request, res: Response) {
       const admin = req.admin as Admin
-      const countUsers = await databaseService.users.countDocuments()
+
+      const today = new Date()
+      const start = new Date(today)
+      start.setDate(start.getDate() - 6)
+
+      const toDateInput = (d: Date) => {
+        const year = d.getFullYear()
+        const month = String(d.getMonth() + 1).padStart(2, '0')
+        const day = String(d.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
+      }
+
+      const toLabelDate = (d: Date) => {
+        const day = String(d.getDate()).padStart(2, '0')
+        const month = String(d.getMonth() + 1).padStart(2, '0')
+        const year = d.getFullYear()
+        return `${day}/${month}/${year}`
+      }
+
+      const startDate = toDateInput(start)
+      const endDate = toDateInput(today)
+      const todayLabel = toLabelDate(today)
+
+      const [usersOverview, usersScore, revenue, googleApi] = await Promise.all(
+        [
+          getUsersOverviewService({ type: 'new', startDate, endDate }),
+          getUsersScoreStatisticsService({ startDate, endDate }),
+          getRevenueStatisticsService({ startDate, endDate }),
+          getGoogleApiRequestStatisticsService({ startDate, endDate })
+        ]
+      )
+
+      const usersToday =
+        usersOverview.stats.find((item) => item.date === todayLabel)
+          ?.newUsers ?? 0
+
+      const usersScoreToday =
+        usersScore.stats.find((item) => item.date === todayLabel)?.totalScore ??
+        0
+
+      const revenueToday =
+        revenue.stats.find((item) => item.date === todayLabel)?.totalIncome ?? 0
+
+      const googleApiTodayStat = googleApi.stats.find(
+        (item) => item.date === todayLabel
+      )
+
+      const apiSuccessToday = (googleApiTodayStat?.services || []).reduce(
+        (sum, svc) => sum + (svc.success200 || 0),
+        0
+      )
+
+      const newUsersChart = {
+        labels: usersOverview.stats.map((item) => item.date),
+        data: usersOverview.stats.map((item) => item.newUsers)
+      }
+
+      const apiUsageChart = {
+        labels: googleApi.stats.map((item) => item.date),
+        data: googleApi.stats.map((item) =>
+          (item.services || []).reduce(
+            (sum, svc) => sum + (svc.success200 || 0),
+            0
+          )
+        )
+      }
+
       res.render('admin/pages/dashboard.pug', {
         pageTitle: 'Admin - Dashboard',
         admin,
-        countUsers
+        dashboardSummary: {
+          newUsersToday: usersToday,
+          usersScoreToday,
+          revenueToday,
+          apiSuccessToday
+        },
+        newUsersChart,
+        apiUsageChart
       })
     }
   )

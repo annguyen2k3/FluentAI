@@ -430,6 +430,19 @@ body:not(.login-page__body) {
   transform: translateY(-2px);
 }
 
+/* Dashboard summary badge links */
+.dashboard-summary__badge-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.dashboard-summary__badge-link:hover {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
 /* Table Improvements */
 .table th {
   background-color: #f8f9fa;
