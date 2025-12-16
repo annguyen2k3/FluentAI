@@ -1,4 +1,5 @@
 extends ../../layouts/default.pug
+include ../../mixins/loading.pug
 
 block head
     link(rel="stylesheet" href="/css/style.css")
@@ -73,6 +74,8 @@ block main-content
                         a(href="#", class=("wp-setup__start btn btn-primary px-4 py-2"))
                             | Bắt đầu luyện tập 
                             i(class=("fa-solid fa-arrow-right"))
+
+        +loadingOverlay('wp-preview-loading-overlay', 'Đang tạo danh sách đoạn văn...')
 
         div(class="modal fade" id="wpPreviewModal" tabindex="-1" aria-hidden="true")
             div(class="modal-dialog modal-lg modal-dialog-centered")

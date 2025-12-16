@@ -57,6 +57,25 @@ if (wsSetup) {
       if (topicType === 'custom') {
         const topic = customTopicInput.value || ''
         const level = levelSlug || ''
+        const loadingOverlay = document.getElementById(
+          'ws-preview-loading-overlay'
+        )
+
+        function showLoading() {
+          if (loadingOverlay) {
+            loadingOverlay.style.display = 'flex'
+            document.body.style.overflow = 'hidden'
+          }
+        }
+
+        function hideLoading() {
+          if (loadingOverlay) {
+            loadingOverlay.style.display = 'none'
+            document.body.style.overflow = ''
+          }
+        }
+
+        showLoading()
         const requestUrl = `${ApiBreakpoint.POST_CUSTOM_TOPIC_PREVIEW_WS}`
         fetch(requestUrl, {
           method: 'POST',
@@ -68,6 +87,7 @@ if (wsSetup) {
         })
           .then((response) => response.json())
           .then((data) => {
+            hideLoading()
             if (data.status === 200) {
               const preview = data.previewResult || {}
               const wsListPreview = data.wsListPreview || {}
@@ -112,6 +132,25 @@ if (wsSetup) {
               )
               if (regenerateBtn) {
                 regenerateBtn.onclick = () => {
+                  const loadingOverlay = document.getElementById(
+                    'ws-preview-loading-overlay'
+                  )
+
+                  function showLoading() {
+                    if (loadingOverlay) {
+                      loadingOverlay.style.display = 'flex'
+                      document.body.style.overflow = 'hidden'
+                    }
+                  }
+
+                  function hideLoading() {
+                    if (loadingOverlay) {
+                      loadingOverlay.style.display = 'none'
+                      document.body.style.overflow = ''
+                    }
+                  }
+
+                  showLoading()
                   const reqUrl = `${ApiBreakpoint.POST_CUSTOM_TOPIC_PREVIEW_WS}`
                   fetch(reqUrl, {
                     method: 'POST',
@@ -123,6 +162,7 @@ if (wsSetup) {
                   })
                     .then((r) => r.json())
                     .then((res) => {
+                      hideLoading()
                       if (res.status === 200) {
                         const p = res.previewResult || {}
                         if (statusEl) {
@@ -152,7 +192,10 @@ if (wsSetup) {
                         alertError(res.message)
                       }
                     })
-                    .catch((err) => console.error('Error:', err))
+                    .catch((err) => {
+                      console.error('Error:', err)
+                      hideLoading()
+                    })
                 }
               }
               const startBtn = document.getElementById('wsPreviewStart')
@@ -175,7 +218,10 @@ if (wsSetup) {
               alertError(data.message)
             }
           })
-          .catch((error) => console.error('Error:', error))
+          .catch((error) => {
+            console.error('Error:', error)
+            hideLoading()
+          })
       }
     })
   }

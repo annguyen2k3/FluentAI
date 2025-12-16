@@ -55,6 +55,23 @@ if (wpSetup) {
 
     if (source === 'custom') {
       const content = wpSetup.querySelector('.wp-setup__custom-textarea').value
+      const loadingOverlay = document.getElementById('wp-preview-loading-overlay')
+      
+      function showLoading() {
+        if (loadingOverlay) {
+          loadingOverlay.style.display = 'flex'
+          document.body.style.overflow = 'hidden'
+        }
+      }
+
+      function hideLoading() {
+        if (loadingOverlay) {
+          loadingOverlay.style.display = 'none'
+          document.body.style.overflow = ''
+        }
+      }
+
+      showLoading()
       const requestUrl = `${ApiBreakpoint.POST_PREVIEW_CONTENT_WP}`
       fetch(requestUrl, {
         method: 'POST',
@@ -66,6 +83,7 @@ if (wpSetup) {
       })
         .then((response) => response.json())
         .then((data) => {
+          hideLoading()
           console.log(data)
           if (data.status === 200) {
             const previewResult = data.previewResult || {}
@@ -136,7 +154,10 @@ if (wpSetup) {
             alertError(data.message)
           }
         })
-        .catch((error) => console.error('Error:', error))
+        .catch((error) => {
+          console.error('Error:', error)
+          hideLoading()
+        })
       return
     }
 
@@ -157,6 +178,23 @@ if (wpSetup) {
         const level = wpSetup
           .querySelector('.wp-setup__option--level[active]')
           ?.getAttribute('data-value')
+        const loadingOverlay = document.getElementById('wp-preview-loading-overlay')
+        
+        function showLoading() {
+          if (loadingOverlay) {
+            loadingOverlay.style.display = 'flex'
+            document.body.style.overflow = 'hidden'
+          }
+        }
+
+        function hideLoading() {
+          if (loadingOverlay) {
+            loadingOverlay.style.display = 'none'
+            document.body.style.overflow = ''
+          }
+        }
+
+        showLoading()
         const requestUrl = `${ApiBreakpoint.POST_CUSTOM_TOPIC_PREVIEW_WP}`
         console.log('requestUrl', requestUrl)
         fetch(requestUrl, {
@@ -169,6 +207,7 @@ if (wpSetup) {
         })
           .then((response) => response.json())
           .then((data) => {
+            hideLoading()
             console.log(data)
             if (data.status === 200) {
               const previewResult = data.previewResult || {}
@@ -202,6 +241,23 @@ if (wpSetup) {
               )
               if (regenerateBtn) {
                 regenerateBtn.onclick = () => {
+                  const loadingOverlay = document.getElementById('wp-preview-loading-overlay')
+                  
+                  function showLoading() {
+                    if (loadingOverlay) {
+                      loadingOverlay.style.display = 'flex'
+                      document.body.style.overflow = 'hidden'
+                    }
+                  }
+
+                  function hideLoading() {
+                    if (loadingOverlay) {
+                      loadingOverlay.style.display = 'none'
+                      document.body.style.overflow = ''
+                    }
+                  }
+
+                  showLoading()
                   const reqUrl = `${ApiBreakpoint.POST_CUSTOM_TOPIC_PREVIEW_WP}`
                   fetch(reqUrl, {
                     method: 'POST',
@@ -213,6 +269,7 @@ if (wpSetup) {
                   })
                     .then((r) => r.json())
                     .then((res) => {
+                      hideLoading()
                       if (res.status === 200) {
                         const p = res.previewResult || {}
                         if (statusEl) {
@@ -229,7 +286,10 @@ if (wpSetup) {
                         alertError(res.message)
                       }
                     })
-                    .catch((err) => console.error('Error:', err))
+                    .catch((err) => {
+                      console.error('Error:', err)
+                      hideLoading()
+                    })
                 }
               }
 
@@ -249,7 +309,10 @@ if (wpSetup) {
               alertError(data.message)
             }
           })
-          .catch((error) => console.error('Error:', error))
+          .catch((error) => {
+            console.error('Error:', error)
+            hideLoading()
+          })
       } else {
         window.location.href = `/writing-paragraph/system-list?level=${level}&type=${type}`
       }

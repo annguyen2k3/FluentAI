@@ -1,4 +1,5 @@
 extends ../../layouts/default.pug
+include ../../mixins/loading.pug
 
 block head
     link(rel="stylesheet" href="/css/style.css")
@@ -44,6 +45,8 @@ block main-content
                             | Tiếp tục 
                             i(class="fa-solid fa-arrow-right")
 
+
+        +loadingOverlay('ws-preview-loading-overlay', 'Đang tạo danh sách câu...')
 
         //- Model preview custom topic
         div(class="modal fade" id="wsPreviewModal" tabindex="-1" aria-hidden="true")
