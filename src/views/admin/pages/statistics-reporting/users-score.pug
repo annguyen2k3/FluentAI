@@ -1,0 +1,473 @@
+extends ../../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs mb-0")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Thống kê báo cáo
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Điểm số và nội dung luyện tập
+
+  div(class="card mt-3 users-score__filter-card")
+    div(class="card-header")
+      div(class="d-flex flex-wrap align-items-center justify-content-between gap-3")
+        h4(class="card-title mb-0") Thống kê điểm số và hoạt động người dùng
+        div(class="d-flex flex-wrap align-items-center gap-2 users-score__filters")
+          div(class="d-flex align-items-center gap-2 users-score__date-range")
+            div(class="input-group")
+              span(class="input-group-text") Từ
+              input(type="date" id="usersScoreStartDate" class="form-control")
+            div(class="input-group")
+              span(class="input-group-text") Đến
+              input(type="date" id="usersScoreEndDate" class="form-control")
+            button(type="button" id="usersScoreApplyFilterBtn" class="btn btn-primary") Áp dụng
+    div(class="card-body")
+      div(class="row align-items-stretch gy-3 users-score__summary-row")
+        div(class="col-md-6")
+          div(class="row g-3")
+            div(class="col-sm-6")
+              div(class="card users-score__summary-card users-score__summary-card--total")
+                div(class="card-body")
+                  div(class="d-flex justify-content-between align-items-center mb-2")
+                    span(class="text-muted") Tổng điểm
+                    span(class="badge bg-primary users-score__badge")
+                      i(class="fas fa-layer-group")
+                  h3(id="usersScoreTotal" class="mb-0") 0
+                  small(class="text-muted") Tất cả kỹ năng
+            div(class="col-sm-6")
+              div(class="card users-score__summary-card users-score__summary-card--ws")
+                div(class="card-body")
+                  div(class="d-flex justify-content-between align-items-center mb-2")
+                    span(class="text-muted") Luyện viết câu
+                    span(class="badge bg-success users-score__badge")
+                      i(class="fas fa-pen")
+                  h4(id="usersScoreWritingSentence" class="mb-0") 0
+                  small(class="text-muted") Tổng điểm kỹ năng
+            div(class="col-sm-6")
+              div(class="card users-score__summary-card users-score__summary-card--wp")
+                div(class="card-body")
+                  div(class="d-flex justify-content-between align-items-center mb-2")
+                    span(class="text-muted") Luyện viết đoạn văn
+                    span(class="badge bg-warning users-score__badge")
+                      i(class="fas fa-paragraph")
+                  h4(id="usersScoreWritingParagraph" class="mb-0") 0
+                  small(class="text-muted") Tổng điểm kỹ năng
+            div(class="col-sm-6")
+              div(class="card users-score__summary-card users-score__summary-card--speaking")
+                div(class="card-body")
+                  div(class="d-flex justify-content-between align-items-center mb-2")
+                    span(class="text-muted") Luyện phát âm
+                    span(class="badge bg-primary users-score__badge")
+                      i(class="fas fa-microphone-alt")
+                  h4(id="usersScoreSpeakingSentence" class="mb-0") 0
+                  small(class="text-muted") Luyện phát âm câu
+            div(class="col-sm-6")
+              div(class="card users-score__summary-card users-score__summary-card--shadowing")
+                div(class="card-body")
+                  div(class="d-flex justify-content-between align-items-center mb-2")
+                    span(class="text-muted") Shadowing
+                    span(class="badge bg-secondary text-dark users-score__badge")
+                      i(class="fas fa-headset")
+                  h4(id="usersScoreSpeakingShadowing" class="mb-0") 0
+                  small(class="text-muted") Luyện nói theo đoạn
+            div(class="col-sm-6")
+              div(class="card users-score__summary-card users-score__summary-card--listening")
+                div(class="card-body")
+                  div(class="d-flex justify-content-between align-items-center mb-2")
+                    span(class="text-muted") Luyện nghe
+                    span(class="badge bg-danger users-score__badge")
+                      i(class="fas fa-headphones")
+                  h4(id="usersScoreListeningVideo" class="mb-0") 0
+                  small(class="text-muted") Luyện nghe video
+        div(class="col-md-6")
+          div(class="card h-100 users-score__pie-card")
+            div(class="card-header border-bottom-0 pb-0")
+              h5(class="card-title mb-1") Phân bố điểm theo kỹ năng
+              small(class="text-muted") Tỷ lệ phần trăm từng kỹ năng trong tổng điểm
+            div(class="card-body pt-2")
+              div(class="users-score__chart-container users-score__chart-container--pie")
+                canvas(id="usersScorePieChart")
+
+  div(class="card mt-4")
+    div(class="card-header")
+      div(class="d-flex flex-wrap align-items-center justify-content-between gap-3")
+        h4(class="card-title mb-0") Chi tiết điểm số theo ngày
+    div(class="card-body")
+      div(class="users-score__chart-container mb-4")
+        div(class="chart-container" style="height: 360px")
+          canvas(id="usersScoreMultipleBarChart")
+      div(class="table-responsive users-score__table")
+        table(class="table table-striped table-hover align-middle")
+          thead
+            tr
+              th Ngày
+              th Tổng điểm
+              th Viết câu
+              th Viết đoạn văn
+              th Phát âm câu
+              th Shadowing
+              th Nghe video
+          tbody(id="usersScoreTableBody")
+            tr
+              td(colspan="7" class="text-center text-muted") Đang tải dữ liệu...
+
+block scripts
+  style.
+    .users-score__filters .btn {
+      min-width: 110px;
+    }
+    .users-score__date-range .input-group-text {
+      min-width: 48px;
+    }
+    .users-score__summary-card {
+      border: 1px solid #eef0f2;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .users-score__summary-card--total {
+      background-color: #e6f7ff;
+    }
+    .users-score__badge {
+      font-size: 0.85rem;
+    }
+    .users-score__chart-container {
+      position: relative;
+      min-height: 320px;
+    }
+    .users-score__chart-container--pie {
+      min-height: 260px;
+    }
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    const prefixAdmin = '#{prefixAdmin}'
+    const apiUsersScore = AdminApiBreakpoint?.ADMIN_STATISTICS_USERS_SCORE || `${prefixAdmin}/statistics-reporting/users-score/data`
+
+    const usersScoreState = {
+      startDate: '',
+      endDate: ''
+    }
+
+    const usersScoreElements = {
+      startDate: null,
+      endDate: null,
+      applyBtn: null,
+      total: null,
+      ws: null,
+      wp: null,
+      speakingSentence: null,
+      speakingShadowing: null,
+      listeningVideo: null,
+      pieCanvas: null,
+      barCanvas: null,
+      tableBody: null
+    }
+
+    let usersScorePieChartInstance = null
+    let usersScoreBarChartInstance = null
+
+    function usersScoreCacheElements() {
+      usersScoreElements.startDate = document.getElementById('usersScoreStartDate')
+      usersScoreElements.endDate = document.getElementById('usersScoreEndDate')
+      usersScoreElements.applyBtn = document.getElementById('usersScoreApplyFilterBtn')
+      usersScoreElements.total = document.getElementById('usersScoreTotal')
+      usersScoreElements.ws = document.getElementById('usersScoreWritingSentence')
+      usersScoreElements.wp = document.getElementById('usersScoreWritingParagraph')
+      usersScoreElements.speakingSentence = document.getElementById('usersScoreSpeakingSentence')
+      usersScoreElements.speakingShadowing = document.getElementById('usersScoreSpeakingShadowing')
+      usersScoreElements.listeningVideo = document.getElementById('usersScoreListeningVideo')
+      usersScoreElements.pieCanvas = document.getElementById('usersScorePieChart')
+      usersScoreElements.barCanvas = document.getElementById('usersScoreMultipleBarChart')
+      usersScoreElements.tableBody = document.getElementById('usersScoreTableBody')
+    }
+
+    function usersScoreBindEvents() {
+      if (usersScoreElements.applyBtn) {
+        usersScoreElements.applyBtn.addEventListener('click', () => {
+          const startVal = usersScoreElements.startDate?.value || ''
+          const endVal = usersScoreElements.endDate?.value || ''
+
+          if (startVal && endVal && startVal > endVal) {
+            if (typeof swal !== 'undefined') {
+              swal({
+                title: 'Khoảng thời gian không hợp lệ',
+                text: 'Ngày bắt đầu không được lớn hơn ngày kết thúc. Vui lòng kiểm tra lại.',
+                icon: 'error',
+                button: 'OK'
+              })
+            } else {
+              alert('Ngày bắt đầu không được lớn hơn ngày kết thúc. Vui lòng kiểm tra lại.')
+            }
+            return
+          }
+
+          usersScoreState.startDate = startVal
+          usersScoreState.endDate = endVal
+          usersScoreFetchStatistics()
+        })
+      }
+    }
+
+    async function usersScoreFetchStatistics() {
+      const params = new URLSearchParams()
+      if (usersScoreState.startDate) params.set('startDate', usersScoreState.startDate)
+      if (usersScoreState.endDate) params.set('endDate', usersScoreState.endDate)
+
+      try {
+        const response = await fetch(`${apiUsersScore}?${params.toString()}`, {
+          credentials: 'same-origin'
+        })
+        if (!response.ok) {
+          throw new Error('Không thể tải dữ liệu thống kê điểm số')
+        }
+        const payload = await response.json()
+        const summary = payload.summary || {}
+        const stats = Array.isArray(payload.stats) ? payload.stats : []
+        usersScoreUpdateSummary(summary)
+        usersScoreRenderPieChart(summary)
+        usersScoreRenderBarChart(stats)
+        usersScoreRenderTable(stats)
+      } catch (error) {
+        usersScoreUpdateSummary({
+          totalScore: 0,
+          writingSentence: 0,
+          writingParagraph: 0,
+          speakingSentence: 0,
+          speakingShadowing: 0,
+          listeningVideo: 0
+        })
+        usersScoreRenderPieChart({
+          totalScore: 0,
+          writingSentence: 0,
+          writingParagraph: 0,
+          speakingSentence: 0,
+          speakingShadowing: 0,
+          listeningVideo: 0
+        })
+        usersScoreRenderBarChart([])
+        usersScoreRenderTable([])
+      }
+    }
+
+    function usersScoreUpdateSummary(summary) {
+      if (!usersScoreElements.total) return
+      const totalScore = summary.totalScore ?? 0
+      const ws = summary.writingSentence ?? 0
+      const wp = summary.writingParagraph ?? 0
+      const ss = summary.speakingSentence ?? 0
+      const sh = summary.speakingShadowing ?? 0
+      const lv = summary.listeningVideo ?? 0
+
+      usersScoreElements.total.textContent = totalScore
+      usersScoreElements.ws.textContent = ws
+      usersScoreElements.wp.textContent = wp
+      usersScoreElements.speakingSentence.textContent = ss
+      usersScoreElements.speakingShadowing.textContent = sh
+      usersScoreElements.listeningVideo.textContent = lv
+    }
+
+    function usersScoreRenderPieChart(summary) {
+      if (!usersScoreElements.pieCanvas || typeof Chart === 'undefined') return
+      const ctx = usersScoreElements.pieCanvas.getContext('2d')
+      const ws = summary.writingSentence ?? 0
+      const wp = summary.writingParagraph ?? 0
+      const ss = summary.speakingSentence ?? 0
+      const sh = summary.speakingShadowing ?? 0
+      const lv = summary.listeningVideo ?? 0
+
+      if (usersScorePieChartInstance) {
+        usersScorePieChartInstance.destroy()
+      }
+
+      usersScorePieChartInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          datasets: [
+            {
+              data: [ws, wp, ss, sh, lv],
+              backgroundColor: [
+                '#59d05d', // Viết câu
+                '#fdaf4b', // Viết đoạn văn
+                '#177dff', // Phát âm câu
+                '#716aca', // Shadowing
+                '#f3545d'  // Nghe video
+              ],
+              borderWidth: 0
+            }
+          ],
+          labels: [
+            'Viết câu',
+            'Viết đoạn văn',
+            'Phát âm câu',
+            'Shadowing',
+            'Nghe video'
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          legend: {
+            position: 'bottom',
+            labels: {
+              fontSize: 11,
+              usePointStyle: true,
+              padding: 16
+            }
+          },
+          tooltips: {
+            mode: 'nearest',
+            intersect: false
+          },
+          pieceLabel: {
+            render: 'percentage',
+            fontColor: '#ffffff',
+            fontSize: 12
+          }
+        }
+      })
+    }
+
+    function usersScoreRenderBarChart(stats) {
+      if (!usersScoreElements.barCanvas || typeof Chart === 'undefined') return
+      const ctx = usersScoreElements.barCanvas.getContext('2d')
+
+      const labels = stats.map((item) => item.date || '')
+      const ws = stats.map((item) => item.writingSentence || 0)
+      const wp = stats.map((item) => item.writingParagraph || 0)
+      const ss = stats.map((item) => item.speakingSentence || 0)
+      const sh = stats.map((item) => item.speakingShadowing || 0)
+      const lv = stats.map((item) => item.listeningVideo || 0)
+
+      if (usersScoreBarChartInstance) {
+        usersScoreBarChartInstance.destroy()
+      }
+
+      usersScoreBarChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Viết câu',
+              backgroundColor: '#59d05d',
+              borderColor: '#59d05d',
+              data: ws
+            },
+            {
+              label: 'Viết đoạn văn',
+              backgroundColor: '#fdaf4b',
+              borderColor: '#fdaf4b',
+              data: wp
+            },
+            {
+              label: 'Phát âm câu',
+              backgroundColor: '#177dff',
+              borderColor: '#177dff',
+              data: ss
+            },
+            {
+              label: 'Shadowing',
+              backgroundColor: '#716aca',
+              borderColor: '#716aca',
+              data: sh
+            },
+            {
+              label: 'Nghe video',
+              backgroundColor: '#f3545d',
+              borderColor: '#f3545d',
+              data: lv
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          legend: {
+            position: 'bottom'
+          },
+          title: {
+            display: true,
+            text: 'Thống kê điểm số theo ngày'
+          },
+          tooltips: {
+            mode: 'index',
+            intersect: false
+          },
+          scales: {
+            xAxes: [
+              {
+                stacked: true
+              }
+            ],
+            yAxes: [
+              {
+                stacked: true,
+                ticks: {
+                  beginAtZero: true,
+                  precision: 0
+                }
+              }
+            ]
+          }
+        }
+      })
+    }
+
+    function usersScoreRenderTable(stats) {
+      if (!usersScoreElements.tableBody) return
+      usersScoreElements.tableBody.innerHTML = ''
+
+      if (!stats.length) {
+        usersScoreElements.tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Không có dữ liệu</td></tr>'
+        return
+      }
+
+      stats.forEach((item) => {
+        const row = document.createElement('tr')
+        row.innerHTML = `
+          <td>${item.date || ''}</td>
+          <td>${item.totalScore ?? 0}</td>
+          <td>${item.writingSentence ?? 0}</td>
+          <td>${item.writingParagraph ?? 0}</td>
+          <td>${item.speakingSentence ?? 0}</td>
+          <td>${item.speakingShadowing ?? 0}</td>
+          <td>${item.listeningVideo ?? 0}</td>
+        `
+        usersScoreElements.tableBody.appendChild(row)
+      })
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      usersScoreCacheElements()
+
+      const today = new Date()
+      const start = new Date(today)
+      start.setDate(start.getDate() - 6)
+
+      const toDateInput = (d) => {
+        const year = d.getFullYear()
+        const month = String(d.getMonth() + 1).padStart(2, '0')
+        const day = String(d.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
+      }
+
+      const startStr = toDateInput(start)
+      const endStr = toDateInput(today)
+
+      if (usersScoreElements.startDate) usersScoreElements.startDate.value = startStr
+      if (usersScoreElements.endDate) usersScoreElements.endDate.value = endStr
+
+      usersScoreState.startDate = startStr
+      usersScoreState.endDate = endStr
+
+      usersScoreBindEvents()
+      usersScoreFetchStatistics()
+    })
+
+
