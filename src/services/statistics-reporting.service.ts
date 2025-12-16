@@ -98,7 +98,7 @@ export async function getUsersOverviewService(
         create_at: 1,
         date: {
           $dateToString: {
-            format: '%Y-%m-%d',
+            format: '%d/%m/%Y',
             date: '$create_at',
             timezone: 'UTC'
           }
