@@ -44,7 +44,9 @@ html(lang="vi")
 
           include ../partials/footer.pug
         +loadingOverlay('globalLoading', 'Đang xử lý...')
-        
+
+    button(type="button" class="btn back-to-top__button")
+      i(class="fa-solid fa-arrow-up")
     script(src="/admin/assets/js/core/jquery-3.7.1.min.js")
     script(src="/admin/assets/js/core/popper.min.js")
     script(src="/admin/assets/js/core/bootstrap.min.js")
@@ -55,21 +57,40 @@ html(lang="vi")
     script(src="/admin/assets/js/my-custom.js")
     script.
         document.addEventListener('DOMContentLoaded', function () {
-        const currentPath = window.location.pathname
-        const currentPage = currentPath.split('/').pop()
-        document.querySelectorAll('.nav-item').forEach((item) => {
+          const currentPath = window.location.pathname
+          const currentPage = currentPath.split('/').pop()
+          document.querySelectorAll('.nav-item').forEach((item) => {
             item.classList.remove('active')
-        })
-        if (currentPage === 'dashboard') {
+          })
+
+          if (currentPage === 'dashboard') {
             const dashboardLink = document.querySelector(`.nav-item a[href="${prefixAdmin}/dashboard"]`)
             if (dashboardLink) dashboardLink.parentElement.classList.add('active')
-        } else if (currentPage === 'users.html') {
+          } else if (currentPage === 'users.html') {
             const userLink = document.querySelector('.nav-item a[href="/admin/users.html"]')
             if (userLink) userLink.parentElement.classList.add('active')
-        } else if (currentPage === 'scores.html') {
+          } else if (currentPage === 'scores.html') {
             const scoreLink = document.querySelector('.nav-item a[href="/admin/scores.html"]')
             if (scoreLink) scoreLink.parentElement.classList.add('active')
-        }
+          }
+
+          const backToTopButton = document.querySelector('.back-to-top__button')
+          if (backToTopButton) {
+            window.addEventListener('scroll', function () {
+              if (window.scrollY > 300) {
+                backToTopButton.classList.add('back-to-top__button--visible')
+              } else {
+                backToTopButton.classList.remove('back-to-top__button--visible')
+              }
+            })
+
+            backToTopButton.addEventListener('click', function () {
+              window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+              })
+            })
+          }
         })
     block scripts
       
