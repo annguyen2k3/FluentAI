@@ -1,0 +1,208 @@
+extends ../layouts/default.pug
+
+block head
+  style.
+    .tox-tinymce-aux {
+      z-index: 999999 !important;
+    }
+    .tox-toolbar,
+    .tox-menu,
+    .tox-collection {
+      z-index: 999999 !important;
+    }
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href=`${prefixAdmin}/share-document`) Chia sẻ tài liệu
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") #{isEdit ? 'Chỉnh sửa' : 'Thêm mới'} tài liệu
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card")
+        div(class="card-header")
+          h4(class="card-title") #{isEdit ? 'Chỉnh sửa' : 'Thêm mới'} tài liệu
+        div(class="card-body")
+          form(id="documentForm")
+            input(type="hidden" id="documentId" value=documentId || '')
+            div(class="form-group")
+              label(class="form-label") Tiêu đề
+                span(class="text-danger") *
+              input(type="text" class="form-control" id="documentTitle" placeholder="Nhập tiêu đề" required value=document ? document.title : '')
+            div(class="form-group")
+              label(class="form-label") Tác giả
+              input(type="text" class="form-control" id="documentAuthor" placeholder="Nhập tác giả" value=document ? document.author : '')
+            div(class="form-group")
+              label(class="form-label") Nội dung
+                span(class="text-danger") *
+              textarea(class="form-control" id="documentContent" rows="40" placeholder="Nhập nội dung" required style="min-height: 500px;")= document ? document.content : ''
+            div(class="form-group")
+              div(class="form-check")
+                - var isActiveChecked = document ? (document.isActive !== false) : true
+                input(type="checkbox" class="form-check-input" id="documentIsActive" checked=isActiveChecked)
+                label(class="form-check-label" for="documentIsActive") Đang hoạt động
+            div(class="form-group mt-4")
+              button(type="button" class="btn btn-secondary" onclick="window.history.back()")
+                i(class="fas fa-arrow-left")
+                |  Quay lại
+              button(type="button" class="btn btn-primary ms-2" id="saveDocumentBtn")
+                i(class="fas fa-save")
+                |  Lưu
+
+block scripts
+  script(type="application/javascript").
+    (function() {
+      const script = document.createElement('script')
+      script.src = '/tinymce/tinymce.min.js'
+      script.onload = function() {
+        window.tinymceReady = true
+        if (window.tinymceReadyCallback) {
+          window.tinymceReadyCallback()
+        }
+      }
+      script.onerror = function() {
+        console.error('Failed to load TinyMCE from /tinymce/tinymce.min.js')
+        window.tinymceReady = false
+      }
+      document.head.appendChild(script)
+    })()
+  script(type="application/javascript" src="/js/tinymce-config.js" defer)
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+    
+    const TINYMCE_SELECTOR = 'textarea#documentContent'
+    const prefixAdmin = "#{prefixAdmin}"
+    const isEdit = #{isEdit ? 'true' : 'false'}
+    const documentId = document.getElementById('documentId').value
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const initEditor = () => {
+        if (typeof initTinyMCE === 'function' && typeof tinymce !== 'undefined') {
+          const initialContent = document.getElementById('documentContent').value || ''
+          setTimeout(() => {
+            initTinyMCE(TINYMCE_SELECTOR, initialContent, 600)
+          }, 100)
+        } else if (window.tinymceReady) {
+          setTimeout(initEditor, 50)
+        } else {
+          window.tinymceReadyCallback = initEditor
+        }
+      }
+      initEditor()
+
+      if (typeof $ !== 'undefined') {
+        $(document).on('focusin', function(e) {
+          if ($(e.target).closest('.tox-tinymce-aux, .moxman-window, .tam-assetmanager-root').length) {
+            e.stopImmediatePropagation()
+          }
+        })
+      }
+    })
+
+    const saveDocumentBtn = document.getElementById('saveDocumentBtn')
+    if (saveDocumentBtn) {
+      saveDocumentBtn.addEventListener('click', async function() {
+        await saveDocument()
+      })
+    }
+
+    async function saveDocument() {
+      const title = document.getElementById('documentTitle').value.trim()
+      const author = document.getElementById('documentAuthor').value.trim()
+      
+      let content = ''
+      if (typeof getTinyMCEContent === 'function') {
+        content = getTinyMCEContent(TINYMCE_SELECTOR)
+      } else {
+        const textarea = document.getElementById('documentContent')
+        content = textarea ? textarea.value : ''
+      }
+      
+      content = content.trim()
+      const isActive = document.getElementById('documentIsActive').checked
+
+      if (!title) {
+        showNotification('error', 'Tiêu đề không được để trống!')
+        return
+      }
+
+      if (!content) {
+        showNotification('error', 'Nội dung không được để trống!')
+        return
+      }
+
+      const documentData = {
+        title,
+        author: author || undefined,
+        content,
+        isActive
+      }
+
+      try {
+        let url, method
+        if (isEdit && documentId) {
+          url = AdminApiBreakpoint.UPDATE_SHARE_DOCUMENT
+          method = 'PUT'
+          documentData.documentId = documentId
+        } else {
+          url = AdminApiBreakpoint.CREATE_SHARE_DOCUMENT
+          method = 'POST'
+        }
+
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(documentData)
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          let errorData
+          try {
+            errorData = JSON.parse(errorText)
+          } catch {
+            errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` }
+          }
+          throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        const result = await response.json()
+
+        if (result.status === 200 || result.status === 201) {
+          showNotification('success', result.message || (isEdit ? 'Đã cập nhật tài liệu thành công!' : 'Đã tạo tài liệu thành công!'))
+          setTimeout(() => {
+            window.location.href = `${prefixAdmin}/share-document`
+          }, 1000)
+        } else {
+          showNotification('error', result.message || (isEdit ? 'Có lỗi xảy ra khi cập nhật tài liệu!' : 'Có lỗi xảy ra khi tạo tài liệu!'))
+        }
+      } catch (error) {
+        console.error('Error saving document:', error)
+        showNotification('error', error.message || (isEdit ? 'Có lỗi xảy ra khi cập nhật tài liệu!' : 'Có lỗi xảy ra khi tạo tài liệu!'))
+      }
+    }
+
+    function showNotification(type, message) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+

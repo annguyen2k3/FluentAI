@@ -20,6 +20,7 @@ import Wallet from '~/models/schemas/wallet.schema'
 import SystemConfig from '~/models/schemas/system-config'
 import GeminiConfig from '~/models/schemas/gemini-config.schema'
 import InfoWebsite from '~/models/schemas/info-website.schema'
+import ShareDocument from '~/models/schemas/share-document.schema'
 config()
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.cp2tnzs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
@@ -148,6 +149,10 @@ class DatabaseService {
 
   get infoWebsites(): Collection<InfoWebsite> {
     return this.db.collection('info_website')
+  }
+
+  get shareDocuments(): Collection<ShareDocument> {
+    return this.db.collection('share_documents')
   }
 }
 

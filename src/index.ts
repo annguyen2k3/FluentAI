@@ -39,6 +39,12 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 app.use(cookieParser())
 
+// TINY MCE
+app.use(
+  '/tinymce',
+  express.static(path.join(__dirname, '..', 'node_modules', 'tinymce'))
+)
+
 // View engine setup
 app.set('view engine', 'pug')
 app.set('views', path.join(__dirname, '/views'))

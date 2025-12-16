@@ -1,0 +1,505 @@
+extends ../layouts/default.pug
+
+block head
+  style.
+    .content-preview {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-word;
+      line-height: 1.4;
+      max-width: 400px;
+    }
+    .filter-section {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+    }
+    .pagination-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Chia sẻ tài liệu
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card")
+        div(class="card-header")
+          div(class="d-flex align-items-center justify-content-between")
+            h4(class="card-title") Quản lý tài liệu chia sẻ
+            a(href=`${prefixAdmin}/share-document/form` class="btn btn-primary")
+              i(class="fas fa-plus")
+              |  Thêm tài liệu
+
+        div(class="card-body")
+          div(class="filter-section")
+            div(class="row")
+              div(class="col-md-4")
+                div(class="form-group")
+                  label(class="form-label") Tìm kiếm
+                  input(type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm theo tiêu đề, tác giả, nội dung...")
+              div(class="col-md-3")
+                div(class="form-group")
+                  label(class="form-label") Trạng thái
+                  select(class="form-control" id="statusFilter")
+                    option(value="") Tất cả
+                    option(value="true") Đang hoạt động
+                    option(value="false") Không hoạt động
+              div(class="col-md-3")
+                div(class="form-group")
+                  label(class="form-label") Sắp xếp theo
+                  select(class="form-control" id="sortKeySelect")
+                    option(value="create_at") Ngày tạo
+                    option(value="update_at") Ngày cập nhật
+                    option(value="title") Tiêu đề
+                    option(value="author") Tác giả
+              div(class="col-md-2")
+                div(class="form-group")
+                  label(class="form-label") Thứ tự
+                  select(class="form-control" id="sortOrderSelect")
+                    option(value="desc") Giảm dần
+                    option(value="asc") Tăng dần
+              div(class="col-md-12 mt-2")
+                button(type="button" class="btn btn-primary" id="applyFilterBtn")
+                  i(class="fas fa-filter")
+                  |  Áp dụng bộ lọc
+                button(type="button" class="btn btn-secondary ms-2" id="resetFilterBtn")
+                  i(class="fas fa-redo")
+                  |  Đặt lại
+
+          div(class="table-responsive")
+            table(class="table table-striped" id="documentsTable")
+              thead
+                tr
+                  th Tiêu đề
+                  th Tác giả
+                  th Nội dung
+                  th Trạng thái
+                  th Ngày tạo
+                  th Ngày cập nhật
+                  th Thao tác
+              tbody(id="documentsTableBody")
+                tr
+                  td(colspan="7" class="text-center")
+                    div(class="spinner-border" role="status")
+                      span(class="sr-only") Đang tải...
+
+          div(class="pagination-info")
+            div(id="paginationInfo") Đang tải...
+            nav
+              ul(class="pagination mb-0" id="pagination")
+
+  div(class="modal fade" id="documentDetailModal" tabindex="-1" role="dialog" aria-labelledby="documentDetailModalLabel" aria-hidden="true")
+    div(class="modal-dialog modal-lg" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="documentDetailModalLabel") Chi tiết tài liệu
+          button(type="button" class="close" onclick="$('#documentDetailModal').modal('hide')" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          div(class="form-group")
+            label(class="form-label font-weight-bold") Tiêu đề
+            p(class="form-control-plaintext")#documentTitle
+          div(class="form-group")
+            label(class="form-label font-weight-bold") Tác giả
+            p(class="form-control-plaintext")#documentAuthor
+          div(class="form-group")
+            label(class="form-label font-weight-bold") Nội dung
+            div(class="border rounded p-3" style="min-height: 200px; max-height: 400px; overflow-y: auto;")#documentContent
+          div(class="form-group")
+            label(class="form-label font-weight-bold") Trạng thái
+            div#documentStatus
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-bs-dismiss="modal") Đóng
+          a(class="btn btn-primary" id="editDocumentBtn" href="#")
+            i(class="fas fa-edit")
+            |  Chỉnh sửa
+
+  div(class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true")
+    div(class="modal-dialog" role="document")
+      div(class="modal-content")
+        div(class="modal-header")
+          h5(class="modal-title" id="confirmModalLabel") Xác nhận
+          button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        div(class="modal-body")
+          p(id="confirmMessage") Bạn có chắc chắn muốn thực hiện hành động này?
+        div(class="modal-footer")
+          button(type="button" class="btn btn-secondary" data-dismiss="modal") Hủy
+          button(type="button" class="btn btn-danger" id="confirmAction") Xác nhận
+
+block scripts
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+    
+    const prefixAdmin = "#{prefixAdmin}"
+
+    let selectedDocument = null
+    let currentPage = 1
+    let currentLimit = 10
+    let currentSearch = ''
+    let currentIsActive = undefined
+    let currentSortKey = 'create_at'
+    let currentSortOrder = 'desc'
+    let currentDocuments = []
+
+    const searchInput = document.getElementById('searchInput')
+    const statusFilter = document.getElementById('statusFilter')
+    const sortKeySelect = document.getElementById('sortKeySelect')
+    const sortOrderSelect = document.getElementById('sortOrderSelect')
+    const applyFilterBtn = document.getElementById('applyFilterBtn')
+    const resetFilterBtn = document.getElementById('resetFilterBtn')
+
+    if (applyFilterBtn) {
+      applyFilterBtn.addEventListener('click', function() {
+        currentPage = 1
+        loadDocuments()
+      })
+    }
+
+    if (resetFilterBtn) {
+      resetFilterBtn.addEventListener('click', function() {
+        searchInput.value = ''
+        statusFilter.value = ''
+        sortKeySelect.value = 'create_at'
+        sortOrderSelect.value = 'desc'
+        currentPage = 1
+        currentSearch = ''
+        currentIsActive = undefined
+        currentSortKey = 'create_at'
+        currentSortOrder = 'desc'
+        loadDocuments()
+      })
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadDocuments()
+    })
+
+    async function loadDocuments() {
+      currentSearch = searchInput.value.trim()
+      currentIsActive = statusFilter.value !== '' ? statusFilter.value === 'true' : undefined
+      currentSortKey = sortKeySelect.value
+      currentSortOrder = sortOrderSelect.value
+
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: currentLimit.toString(),
+        sortKey: currentSortKey,
+        sortOrder: currentSortOrder
+      })
+
+      if (currentSearch) {
+        params.append('search', currentSearch)
+      }
+      if (currentIsActive !== undefined) {
+        params.append('isActive', currentIsActive.toString())
+      }
+
+      try {
+        const response = await fetch(`${AdminApiBreakpoint.GET_SHARE_DOCUMENT_LIST}?${params.toString()}`)
+        const result = await response.json()
+
+        if (result.status === 200) {
+          currentDocuments = result.data || []
+          renderDocuments(currentDocuments)
+          renderPagination(result.pagination || {})
+        } else {
+          showNotification('error', result.message || 'Có lỗi xảy ra khi tải danh sách tài liệu!')
+        }
+      } catch (error) {
+        console.error('Error loading documents:', error)
+        showNotification('error', 'Có lỗi xảy ra khi tải danh sách tài liệu!')
+      }
+    }
+
+    function renderDocuments(documents) {
+      const tbody = document.getElementById('documentsTableBody')
+      if (!tbody) return
+
+      if (documents.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Không có dữ liệu</td></tr>'
+        return
+      }
+
+      tbody.innerHTML = documents.map(doc => {
+        const docId = doc._id ? doc._id.toString() : ''
+        const statusBadge = doc.isActive 
+          ? '<span class="badge badge-success">Đang hoạt động</span>'
+          : '<span class="badge badge-secondary">Không hoạt động</span>'
+        const createDate = doc.create_at ? new Date(doc.create_at).toLocaleString('vi-VN') : '-'
+        const updateDate = doc.update_at ? new Date(doc.update_at).toLocaleString('vi-VN') : '-'
+        const contentPreview = doc.content ? (doc.content.length > 100 ? doc.content.substring(0, 100) + '...' : doc.content) : '-'
+
+        return `
+          <tr data-document-id="${docId}">
+            <td><strong>${doc.title || '-'}</strong></td>
+            <td>${doc.author || '-'}</td>
+            <td><div class="content-preview" title="${(doc.content || '').replace(/"/g, '&quot;')}">${contentPreview}</div></td>
+            <td>${statusBadge}</td>
+            <td>${createDate}</td>
+            <td>${updateDate}</td>
+            <td>
+              <div class="btn-group">
+                <button class="btn btn-sm btn-info" data-action="view" data-document-id="${docId}" title="Xem chi tiết">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-primary" data-action="duplicate" data-document-id="${docId}" title="Duplicate">
+                  <i class="fas fa-copy"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" data-action="delete" data-document-id="${docId}" title="Xóa">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `
+      }).join('')
+
+      tbody.querySelectorAll('button[data-action]').forEach(button => {
+        button.addEventListener('click', function() {
+          const action = this.getAttribute('data-action')
+          const documentId = this.getAttribute('data-document-id')
+          switch(action) {
+            case 'view':
+              viewDocument(documentId)
+              break
+            case 'duplicate':
+              duplicateDocument(documentId)
+              break
+            case 'delete':
+              deleteDocument(documentId)
+              break
+          }
+        })
+      })
+    }
+
+    function renderPagination(pagination) {
+      const paginationInfo = document.getElementById('paginationInfo')
+      const paginationEl = document.getElementById('pagination')
+      
+      if (paginationInfo) {
+        paginationInfo.textContent = `Trang ${pagination.page || 1} / ${pagination.totalPages || 1} (Tổng: ${pagination.total || 0} tài liệu)`
+      }
+
+      if (paginationEl) {
+        let html = ''
+        
+        if (pagination.hasPrevPage) {
+          html += `<li class="page-item"><a class="page-link" href="#" data-page="${pagination.page - 1}">Trước</a></li>`
+        }
+
+        for (let i = 1; i <= pagination.totalPages; i++) {
+          if (i === pagination.page) {
+            html += `<li class="page-item active"><span class="page-link">${i}</span></li>`
+          } else if (i === 1 || i === pagination.totalPages || (i >= pagination.page - 2 && i <= pagination.page + 2)) {
+            html += `<li class="page-item"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`
+          } else if (i === pagination.page - 3 || i === pagination.page + 3) {
+            html += `<li class="page-item disabled"><span class="page-link">...</span></li>`
+          }
+        }
+
+        if (pagination.hasNextPage) {
+          html += `<li class="page-item"><a class="page-link" href="#" data-page="${pagination.page + 1}">Sau</a></li>`
+        }
+
+        paginationEl.innerHTML = html
+
+        paginationEl.querySelectorAll('a[data-page]').forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault()
+            currentPage = parseInt(this.getAttribute('data-page'))
+            loadDocuments()
+          })
+        })
+      }
+    }
+
+    function viewDocument(documentId) {
+      const doc = currentDocuments.find(d => d._id && d._id.toString() === documentId)
+      
+      if (!doc) {
+        showNotification('error', 'Không tìm thấy thông tin tài liệu!')
+        return
+      }
+
+      selectedDocument = JSON.parse(JSON.stringify(doc))
+      populateDocumentFields(selectedDocument)
+
+      const editBtn = document.getElementById('editDocumentBtn')
+      if (editBtn) {
+        editBtn.href = `${prefixAdmin}/share-document/form/${documentId}`
+      }
+      
+      $('#documentDetailModal').modal('show')
+    }
+
+    function populateDocumentFields(doc) {
+      const titleEl = document.getElementById('documentTitle')
+      const authorEl = document.getElementById('documentAuthor')
+      const contentEl = document.getElementById('documentContent')
+      const statusEl = document.getElementById('documentStatus')
+      
+      if (titleEl) {
+        titleEl.textContent = doc.title || '-'
+      }
+      if (authorEl) {
+        authorEl.textContent = doc.author || '-'
+      }
+      if (contentEl) {
+        contentEl.innerHTML = doc.content || '-'
+      }
+      if (statusEl) {
+        const statusBadge = doc.isActive 
+          ? '<span class="badge badge-success">Đang hoạt động</span>'
+          : '<span class="badge badge-secondary">Không hoạt động</span>'
+        statusEl.innerHTML = statusBadge
+      }
+    }
+
+    async function duplicateDocument(documentId) {
+      showConfirmModal(
+        'Duplicate tài liệu',
+        'Bạn có chắc chắn muốn duplicate tài liệu này?',
+        async () => {
+          try {
+            const response = await fetch(AdminApiBreakpoint.DUPLICATE_SHARE_DOCUMENT, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ documentId })
+            })
+
+            if (!response.ok) {
+              const errorText = await response.text()
+              let errorData
+              try {
+                errorData = JSON.parse(errorText)
+              } catch {
+                errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` }
+              }
+              throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+            }
+
+            const result = await response.json()
+
+            if (result.status === 200 || result.status === 201) {
+              showNotification('success', result.message || 'Đã duplicate tài liệu thành công!')
+              setTimeout(() => {
+                loadDocuments()
+              }, 500)
+            } else {
+              showNotification('error', result.message || 'Có lỗi xảy ra khi duplicate tài liệu!')
+            }
+          } catch (error) {
+            console.error('Error duplicating document:', error)
+            showNotification('error', error.message || 'Có lỗi xảy ra khi duplicate tài liệu!')
+          }
+        }
+      )
+    }
+
+    async function deleteDocument(documentId) {
+      showConfirmModal(
+        'Xóa tài liệu',
+        'Bạn có chắc chắn muốn xóa tài liệu này? Hành động này không thể hoàn tác!',
+        async () => {
+          try {
+            const response = await fetch(AdminApiBreakpoint.DELETE_SHARE_DOCUMENT, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ documentId })
+            })
+
+            if (!response.ok) {
+              const errorText = await response.text()
+              let errorData
+              try {
+                errorData = JSON.parse(errorText)
+              } catch {
+                errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` }
+              }
+              throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+            }
+
+            const result = await response.json()
+
+            if (result.status === 200) {
+              showNotification('success', result.message || 'Đã xóa tài liệu thành công!')
+              setTimeout(() => {
+                loadDocuments()
+              }, 500)
+            } else {
+              showNotification('error', result.message || 'Có lỗi xảy ra khi xóa tài liệu!')
+            }
+          } catch (error) {
+            console.error('Error deleting document:', error)
+            showNotification('error', error.message || 'Có lỗi xảy ra khi xóa tài liệu!')
+          }
+        }
+      )
+    }
+
+    function showConfirmModal(title, message, callback) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: title,
+          text: message,
+          icon: 'warning',
+          buttons: {
+            cancel: 'Hủy',
+            confirm: 'Xác nhận'
+          },
+          dangerMode: true
+        }).then((willConfirm) => {
+          if (willConfirm) {
+            callback()
+          }
+        })
+      } else {
+        document.getElementById('confirmModalLabel').textContent = title
+        document.getElementById('confirmMessage').textContent = message
+
+        const confirmBtn = document.getElementById('confirmAction')
+        confirmBtn.onclick = () => {
+          $('#confirmModal').modal('hide')
+          callback()
+        }
+
+        $('#confirmModal').modal('show')
+      }
+    }
+
+    function showNotification(type, message) {
+      if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+
+

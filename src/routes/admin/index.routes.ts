@@ -19,6 +19,7 @@ import {
   getUsersScoreStatisticsService
 } from '~/services/statistics-reporting.service'
 import infoWebsiteRoutes from './info-website.routes'
+import shareDocumentRoutes from './share-document.routes'
 
 export default function (app: Express) {
   const prefixAdmin = process.env.PREFIX_ADMIN
@@ -134,4 +135,6 @@ export default function (app: Express) {
   app.use(prefixAdmin + '/statistics-reporting', statisticsReportingRoutes)
 
   app.use(prefixAdmin + '/info-website', infoWebsiteRoutes)
+
+  app.use(prefixAdmin + '/share-document', shareDocumentRoutes)
 }
