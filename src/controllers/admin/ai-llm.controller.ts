@@ -6,6 +6,8 @@ import { config } from 'dotenv'
 import { ObjectId } from 'mongodb'
 import promptService from '~/services/prompt.service'
 import { PromptFeature, PromptFeatureType } from '~/constants/enum'
+import { databaseService } from '~/services/database.service'
+import Prompts from '~/models/schemas/prompts.schema'
 
 config()
 
@@ -317,30 +319,25 @@ export const renderPromptWritingController = async (
   const promptWritingParagraphs = await promptService.getPromptWithFeature(
     PromptFeature.WRITE_PARAGRAPH
   )
+
+  const defaultPrompts = await databaseService.prompts
+    .find<Prompts>({ title: 'default' })
+    .toArray()
+
+  const defaultPromptsMap: Record<string, string[]> = {}
+  for (const prompt of defaultPrompts) {
+    const key = `${prompt.feature}:${prompt.feature_type}`
+    defaultPromptsMap[key] = prompt.replace_variables || []
+  }
+
   res.render('admin/pages/ai-llm/prompt-writing.pug', {
     pageTitle: 'Admin - Cấu hình prompt Writing',
     admin,
     prefixAdmin,
     promptWritingSentences,
-    promptWritingParagraphs
+    promptWritingParagraphs,
+    defaultPromptsMap
   })
-}
-
-const normalizeReplaceVars = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => (typeof item === 'string' ? item.trim() : ''))
-      .filter(Boolean)
-  }
-
-  if (typeof value === 'string') {
-    return value
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean)
-  }
-
-  return []
 }
 
 export const setActivePromptController = async (
@@ -384,15 +381,8 @@ export const setActivePromptController = async (
 
 export const createPromptController = async (req: Request, res: Response) => {
   try {
-    const {
-      title,
-      description,
-      feature,
-      feature_type,
-      content,
-      replace_variables,
-      isActive
-    } = req.body
+    const { title, description, feature, feature_type, content, isActive } =
+      req.body
 
     if (!title || !feature || !feature_type || !content) {
       res.status(HttpStatus.BAD_REQUEST).json({
@@ -424,7 +414,6 @@ export const createPromptController = async (req: Request, res: Response) => {
       feature,
       feature_type,
       content,
-      replace_variables: normalizeReplaceVars(replace_variables),
       isActive
     })
 
@@ -443,14 +432,7 @@ export const createPromptController = async (req: Request, res: Response) => {
 
 export const updatePromptController = async (req: Request, res: Response) => {
   try {
-    const {
-      promptId,
-      title,
-      description,
-      content,
-      replace_variables,
-      isActive
-    } = req.body
+    const { promptId, title, description, content, isActive } = req.body
 
     if (!promptId) {
       res.status(HttpStatus.BAD_REQUEST).json({
@@ -464,9 +446,6 @@ export const updatePromptController = async (req: Request, res: Response) => {
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description
     if (content !== undefined) updateData.content = content
-    if (replace_variables !== undefined) {
-      updateData.replace_variables = normalizeReplaceVars(replace_variables)
-    }
     if (isActive !== undefined) updateData.isActive = isActive
 
     const updated = await promptService.updatePrompt(

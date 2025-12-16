@@ -146,7 +146,7 @@ class PromptService {
   async getPromptWithFeature(feature: PromptFeature): Promise<Prompts[]> {
     return await databaseService.prompts
       .find<Prompts>({ feature })
-      .sort({ create_at: -1 })
+      .sort({ create_at: 1 })
       .toArray()
   }
 
@@ -190,6 +190,54 @@ class PromptService {
     }
   }
 
+  private async getDefaultPromptReplaceVariables(
+    feature: PromptFeature,
+    featureType: PromptFeatureType
+  ): Promise<string[]> {
+    const defaultPrompt = await databaseService.prompts.findOne<Prompts>({
+      feature,
+      feature_type: featureType,
+      title: 'default'
+    })
+
+    if (!defaultPrompt) {
+      return []
+    }
+
+    return defaultPrompt.replace_variables || []
+  }
+
+  private validateContentContainsVariables(
+    content: string,
+    replaceVariables: string[]
+  ): void {
+    if (!replaceVariables || replaceVariables.length === 0) {
+      return
+    }
+
+    const missingVariables: string[] = []
+
+    for (const variable of replaceVariables) {
+      let variablePattern = variable.trim()
+      if (variablePattern.startsWith('{{') && variablePattern.endsWith('}}')) {
+        variablePattern = variablePattern
+      } else {
+        variablePattern = `{{${variablePattern}}}`
+      }
+
+      if (!content.includes(variablePattern)) {
+        missingVariables.push(variablePattern)
+      }
+    }
+
+    if (missingVariables.length > 0) {
+      throw new ErrorWithStatus(
+        `Nội dung prompt phải chứa các biến thay thế sau: ${missingVariables.join(', ')}`,
+        HttpStatus.BAD_REQUEST
+      )
+    }
+  }
+
   async createPrompt(data: {
     title: string
     description?: string
@@ -199,10 +247,17 @@ class PromptService {
     replace_variables?: string[]
     isActive?: boolean
   }): Promise<Prompts> {
+    const replaceVariables = await this.getDefaultPromptReplaceVariables(
+      data.feature,
+      data.feature_type
+    )
+
+    this.validateContentContainsVariables(data.content, replaceVariables)
+
     const now = new Date()
     const newPrompt = new Prompts({
       ...data,
-      replace_variables: data.replace_variables || [],
+      replace_variables: replaceVariables,
       isActive: data.isActive ?? false,
       create_at: now,
       update_at: now
@@ -256,15 +311,25 @@ class PromptService {
       )
     }
 
+    const replaceVariables = await this.getDefaultPromptReplaceVariables(
+      prompt.feature,
+      prompt.feature_type
+    )
+
+    const contentToValidate =
+      data.content !== undefined ? data.content : prompt.content
+    this.validateContentContainsVariables(contentToValidate, replaceVariables)
+
     const now = new Date()
-    const updateFields: Partial<Prompts> = { update_at: now }
+    const updateFields: Partial<Prompts> = {
+      update_at: now,
+      replace_variables: replaceVariables
+    }
 
     if (data.title !== undefined) updateFields.title = data.title
     if (data.description !== undefined)
       updateFields.description = data.description
     if (data.content !== undefined) updateFields.content = data.content
-    if (data.replace_variables !== undefined)
-      updateFields.replace_variables = data.replace_variables
 
     if (data.isActive === true) {
       await databaseService.prompts.updateMany(

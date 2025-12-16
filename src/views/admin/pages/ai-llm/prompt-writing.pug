@@ -27,7 +27,7 @@ block head
       min-width: 260px;
       max-width: 380px;
     }
-    .prompt-writing__col-vars {
+    .prompt-writing__col-content {
       width: 28%;
     }
     .prompt-writing__col-active {
@@ -35,6 +35,18 @@ block head
     }
     .prompt-writing__col-actions {
       width: 18%;
+    }
+    .prompt-writing__content {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-word;
+      max-width: 100%;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      color: #495057;
     }
     .prompt-writing__actions .btn {
       padding: 0.75rem 1rem;
@@ -130,22 +142,22 @@ block main-content
                     thead
                       tr
                         th(class="prompt-writing__title-col prompt-writing__col-title") Tiêu đề
-                        th(class="prompt-writing__col-vars") Biến thay thế
+                        th(class="prompt-writing__col-content") Nội dung Prompt
                         th(class="prompt-writing__col-active") Kích hoạt
                         th(class="prompt-writing__col-actions") Thao tác
                     tbody
                       each prompt in items
                         - const promptId = prompt._id ? prompt._id.toString() : ''
+                        - const promptContent = prompt.content || ''
                         tr(data-prompt-id=promptId data-feature=prompt.feature data-feature-type=prompt.feature_type)
                           td(class="prompt-writing__title-cell prompt-writing__col-title")
                             div
                               strong(class="prompt-writing__title" title=prompt.title || '-') #{prompt.title || '-'}
                             if prompt.description
                               div(class="text-muted small mt-1 prompt-writing__desc") #{prompt.description}
-                          td(class="prompt-writing__col-vars")
-                            if prompt.replace_variables && prompt.replace_variables.length
-                              div(class="prompt-writing__monospace")
-                                | #{prompt.replace_variables.join(', ')}
+                          td(class="prompt-writing__col-content")
+                            if promptContent
+                              div(class="prompt-writing__content" title=promptContent) #{promptContent}
                             else
                               span(class="text-muted") -
                           td(class="prompt-writing__col-active")
@@ -182,22 +194,22 @@ block main-content
                     thead
                       tr
                         th(class="prompt-writing__title-col prompt-writing__col-title") Tiêu đề
-                        th(class="prompt-writing__col-vars") Biến thay thế
+                        th(class="prompt-writing__col-content") Nội dung Prompt
                         th(class="prompt-writing__col-active") Kích hoạt
                         th(class="prompt-writing__col-actions") Thao tác
                     tbody
                       each prompt in items
                         - const promptId = prompt._id ? prompt._id.toString() : ''
+                        - const promptContent = prompt.content || ''
                         tr(data-prompt-id=promptId data-feature=prompt.feature data-feature-type=prompt.feature_type)
                           td(class="prompt-writing__title-cell prompt-writing__col-title")
                             div
                               strong(class="prompt-writing__title" title=prompt.title || '-') #{prompt.title || '-'}
                             if prompt.description
                               div(class="text-muted small mt-1 prompt-writing__desc") #{prompt.description}
-                          td(class="prompt-writing__col-vars")
-                            if prompt.replace_variables && prompt.replace_variables.length
-                              div(class="prompt-writing__monospace")
-                                | #{prompt.replace_variables.join(', ')}
+                          td(class="prompt-writing__col-content")
+                            if promptContent
+                              div(class="prompt-writing__content" title=promptContent) #{promptContent}
                             else
                               span(class="text-muted") -
                           td(class="prompt-writing__col-active")
@@ -237,13 +249,12 @@ block main-content
             div(class="form-group")
               label(class="form-label d-flex align-items-center justify-content-between")
                 span Nội dung prompt
-                small(class="text-muted") Hỗ trợ newline
               textarea(class="form-control" id="promptContent" rows="10" placeholder="Nhập nội dung prompt" required)
             div(class="form-group")
               label(class="form-label d-flex align-items-center justify-content-between")
-                span Biến thay thế (phân tách bởi dấu phẩy)
-                small(class="text-muted") Ví dụ: {{sentence_vi}}, {{user_translation}}
-              input(type="text" class="form-control" id="promptReplaceVars" placeholder="{{sentence_vi}}, {{user_translation}}")
+                span Biến thay thế
+                small(class="text-danger") * Yêu cầu bắt buộc phải chứa các biến thay thế sau
+              input(type="text" class="form-control" id="promptReplaceVars" placeholder="" readonly disabled)
             div(class="form-group form-check")
               input(type="checkbox" class="form-check-input" id="promptIsActive")
               label(class="form-check-label" for="promptIsActive") Đặt làm active
@@ -259,6 +270,7 @@ block scripts
 
     const sentenceData = !{JSON.stringify(promptWritingSentences || [])}
     const paragraphData = !{JSON.stringify(promptWritingParagraphs || [])}
+    const defaultPromptsMap = !{JSON.stringify(defaultPromptsMap || {})}
 
     const featureTypesByFeature = {
       write_sentence: ['initialization', 'translation', 'completion', 'preview_topic'],
@@ -295,14 +307,6 @@ block scripts
       }
     }
 
-    function parseReplaceVars(value) {
-      if (!value) return []
-      return value
-        .split(',')
-        .map((item) => item.trim())
-        .filter(Boolean)
-    }
-
     function setPromptFormDisabled(isDisabled) {
       const fields = [
         promptTitle,
@@ -322,7 +326,7 @@ block scripts
       promptDescription.value = prompt?.description || ''
       promptFeatureType.value = prompt?.feature_type || (featureTypesByFeature[currentFeature] || [])[0] || ''
       promptContent.value = prompt?.content || ''
-      promptReplaceVars.value = (prompt?.replace_variables || []).join(', ')
+      updateReplaceVariablesFromDefault()
       promptIsActive.checked = prompt?.isActive === true
     }
 
@@ -335,6 +339,19 @@ block scripts
         opt.textContent = type
         promptFeatureType.appendChild(opt)
       })
+      updateReplaceVariablesFromDefault()
+    }
+
+    function updateReplaceVariablesFromDefault() {
+      const feature = promptFeature.value
+      const featureType = promptFeatureType.value
+      if (feature && featureType) {
+        const key = `${feature}:${featureType}`
+        const vars = defaultPromptsMap[key] || []
+        promptReplaceVars.value = vars.join(', ')
+      } else {
+        promptReplaceVars.value = ''
+      }
     }
 
     let selectedPrompt = null
@@ -429,7 +446,6 @@ block scripts
         feature: promptFeature.value,
         feature_type: promptFeatureType.value,
         content: promptContent.value.trim(),
-        replace_variables: parseReplaceVars(promptReplaceVars.value),
         isActive: promptIsActive.checked
       }
 
@@ -706,5 +722,9 @@ block scripts
           setPromptFormDisabled(true)
           updatePromptEditControls()
         })
+      }
+
+      if (promptFeatureType) {
+        promptFeatureType.addEventListener('change', updateReplaceVariablesFromDefault)
       }
     })
