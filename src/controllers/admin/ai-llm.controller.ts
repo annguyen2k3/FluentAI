@@ -340,6 +340,35 @@ export const renderPromptWritingController = async (
   })
 }
 
+// GET /admin/ai-llm/prompt-speaking
+export const renderPromptSpeakingController = async (
+  req: Request,
+  res: Response
+) => {
+  const admin = req.admin as Admin
+  const promptSpeaking = await promptService.getPromptWithFeature(
+    PromptFeature.SPEAKING
+  )
+
+  const defaultPrompts = await databaseService.prompts
+    .find<Prompts>({ title: 'default' })
+    .toArray()
+
+  const defaultPromptsMap: Record<string, string[]> = {}
+  for (const prompt of defaultPrompts) {
+    const key = `${prompt.feature}:${prompt.feature_type}`
+    defaultPromptsMap[key] = prompt.replace_variables || []
+  }
+
+  res.render('admin/pages/ai-llm/prompt-speaking.pug', {
+    pageTitle: 'Admin - Cấu hình prompt Speaking',
+    admin,
+    prefixAdmin,
+    promptSpeaking,
+    defaultPromptsMap
+  })
+}
+
 export const setActivePromptController = async (
   req: Request,
   res: Response

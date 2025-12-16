@@ -8,6 +8,7 @@ import {
   createConfigController,
   testActiveConfigController,
   renderPromptWritingController,
+  renderPromptSpeakingController,
   setActivePromptController,
   createPromptController,
   updatePromptController,
@@ -86,6 +87,14 @@ aiLLMRoutes.get(
   '/prompt-writing',
   requireAdminAuth,
   wrapRequestHandler(renderPromptWritingController)
+)
+
+// GET /admin/ai-llm/prompt-speaking
+// Description: Render prompt speaking page
+aiLLMRoutes.get(
+  '/prompt-speaking',
+  requireAdminAuth,
+  wrapRequestHandler(renderPromptSpeakingController)
 )
 
 aiLLMRoutes.post(
