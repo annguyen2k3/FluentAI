@@ -228,6 +228,13 @@ block scripts
       }
     }
 
+    function stripHtmlTags(html) {
+      if (!html) return ''
+      const tmp = document.createElement('div')
+      tmp.innerHTML = html
+      return tmp.textContent || tmp.innerText || ''
+    }
+
     function renderDocuments(documents) {
       const tbody = document.getElementById('documentsTableBody')
       if (!tbody) return
@@ -244,13 +251,16 @@ block scripts
           : '<span class="badge badge-secondary">Không hoạt động</span>'
         const createDate = doc.create_at ? new Date(doc.create_at).toLocaleString('vi-VN') : '-'
         const updateDate = doc.update_at ? new Date(doc.update_at).toLocaleString('vi-VN') : '-'
-        const contentPreview = doc.content ? (doc.content.length > 100 ? doc.content.substring(0, 100) + '...' : doc.content) : '-'
+        
+        const textContent = stripHtmlTags(doc.content || '')
+        const contentPreview = textContent ? (textContent.length > 100 ? textContent.substring(0, 100) + '...' : textContent) : '-'
+        const contentTitle = textContent || '-'
 
         return `
           <tr data-document-id="${docId}">
             <td><strong>${doc.title || '-'}</strong></td>
             <td>${doc.author || '-'}</td>
-            <td><div class="content-preview" title="${(doc.content || '').replace(/"/g, '&quot;')}">${contentPreview}</div></td>
+            <td><div class="content-preview" title="${contentTitle.replace(/"/g, '&quot;')}">${contentPreview}</div></td>
             <td>${statusBadge}</td>
             <td>${createDate}</td>
             <td>${updateDate}</td>
