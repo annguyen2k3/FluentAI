@@ -13,7 +13,7 @@ import mime from 'mime'
 import { CompleteMultipartUploadCommandOutput } from '@aws-sdk/client-s3'
 
 class MediasService {
-  async uploadImage(req: Request) {
+  async uploadImage(req: Request, folderS3: string = '') {
     const file = await handleUploadImage(req)
     const result: Media[] = await Promise.all(
       file.map(async (file) => {
@@ -21,14 +21,22 @@ class MediasService {
         const newFullName = `${newName}.jpg`
         const newPath = path.resolve(UPLOAD_IMAGE_DIR, newFullName)
         await sharp(file.filepath).jpeg().toFile(newPath)
+        const cleanFolder = folderS3.replace(/^\/+|\/+$/g, '')
+        const s3Key = cleanFolder
+          ? `${cleanFolder}/${newFullName}`
+          : newFullName
         const s3Result = await uploadFileToS3({
-          filename: newFullName,
+          filename: s3Key,
           filepath: newPath,
           contentType: mime.getType(newPath) as string
         })
-        await Promise.all([fs.unlinkSync(file.filepath), fs.unlinkSync(newPath)])
+        await Promise.all([
+          fs.unlinkSync(file.filepath),
+          fs.unlinkSync(newPath)
+        ])
         return {
-          url: (s3Result as CompleteMultipartUploadCommandOutput).Location as string,
+          url: (s3Result as CompleteMultipartUploadCommandOutput)
+            .Location as string,
           type: MediaType.Image
         }
       })
