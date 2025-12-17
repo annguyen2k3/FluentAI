@@ -11,6 +11,7 @@ import scoreService from '~/services/score.service'
 import { ObjectId } from 'mongodb'
 import paymentRoutes from './payment.routes'
 import shareDocumentRoutes from './share-document.routes'
+import shareDocumentServices from '~/services/share-document.services'
 
 export default function (app: Express) {
   app.get('/', (req: Request, res: Response) => {
@@ -30,12 +31,20 @@ export default function (app: Express) {
     const userMonthlyScore = await scoreService.getUserMonthlyScore(
       req.user._id
     )
+    const userBookmarks = await shareDocumentServices.getUserBookmarks(
+      req.user,
+      {
+        page: 1,
+        limit: 3
+      }
+    )
 
     res.render('client/pages/dashboard.pug', {
       pageTitle: 'FluentAI - Dashboard',
       user: req.user,
       rankingList,
-      userMonthlyScore
+      userMonthlyScore,
+      userBookmarks
     })
   })
 

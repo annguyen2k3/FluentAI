@@ -1,0 +1,42 @@
+extends ../../layouts/default.pug
+
+block head
+    link(rel="stylesheet" href="/css/style.css")
+    link(rel="stylesheet" href="/css/share-document.css")
+
+block main-content
+    - const bookmarks = user && user.bookmarks ? user.bookmarks.map(id => id.toString()) : []
+    div(class="container py-4" data-user-bookmarks data-has-user= user ? '1' : '0' data-bookmarks=JSON.stringify(bookmarks))
+        nav(class="mb-3")
+            ol(class="breadcrumb mb-0")
+                li(class="breadcrumb-item")
+                    a(href="/" class="text-decoration-none") Trang chủ
+                li(class="breadcrumb-item")
+                    a(href="/users/profile" class="text-decoration-none") Tài khoản
+                li(class="breadcrumb-item active" aria-current="page") Đánh dấu
+
+        div(class="d-flex flex-wrap gap-3 align-items-end justify-content-between mb-3")
+            div
+                div(class="d-flex align-items-center gap-2")
+                    h4(class="m-0") Đánh dấu của tôi
+                div(class="text-muted mt-1") Danh sách tài liệu bạn đã lưu
+            div(class="sd-list__search input-group")
+                span(class="input-group-text")
+                    i(class="fa-solid fa-magnifying-glass")
+                input(type="text" class="form-control" placeholder="Tìm theo tiêu đề, tác giả, nội dung..." sd-search)
+
+        div(class="row g-3" sd-cards)
+            div(class="col-12")
+                p(class="text-center mb-0") Đang tải danh sách tài liệu...
+
+        div(class="d-flex align-items-center justify-content-between mt-4 sd-list__pagination")
+            div(class="sd-list__pagination-info text-muted" sd-pagination-info) Hiển thị 0-0 trên tổng số 0
+            div(class="d-flex align-items-center gap-2" sd-pagination-controls)
+                button(class="btn btn-light" type="button" sd-prev disabled)
+                    i(class="fas fa-angle-left")
+                button(class="btn btn-primary" type="button" disabled sd-current) 1
+                button(class="btn btn-light" type="button" sd-next disabled)
+                    i(class="fas fa-angle-right")
+
+block scripts
+    script(src="/js/share-document.js" type="module")

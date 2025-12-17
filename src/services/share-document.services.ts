@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { databaseService } from './database.service'
 import ShareDocument from '~/models/schemas/share-document.schema'
+import User from '~/models/schemas/users.schema'
 
 class ShareDocumentServices {
   async getList(find: {
@@ -177,6 +178,88 @@ class ShareDocumentServices {
       { $set: { bookmarks: bookmarks } }
     )
     return true
+  }
+
+  async getUserBookmarks(
+    user: User,
+    find: {
+      page?: number
+      limit?: number
+      search?: string
+    }
+  ) {
+    const { page = 1, limit = 10, ...matchQuery } = find
+    const skip = (page - 1) * limit
+
+    const bookmarks = user.bookmarks || []
+    if (bookmarks.length === 0) {
+      return {
+        data: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false
+        }
+      }
+    }
+
+    const bookmarkIds = bookmarks.map((id) => new ObjectId(id))
+    const reversedBookmarkIds = [...bookmarkIds].reverse()
+
+    const matchStage: Record<string, unknown> = {
+      _id: { $in: bookmarkIds },
+      isActive: true
+    }
+
+    if (matchQuery.search) {
+      matchStage.$or = [
+        { title: { $regex: matchQuery.search, $options: 'i' } },
+        { author: { $regex: matchQuery.search, $options: 'i' } },
+        { content: { $regex: matchQuery.search, $options: 'i' } }
+      ]
+    }
+
+    const basePipeline: Record<string, unknown>[] = [
+      { $match: matchStage },
+      {
+        $addFields: {
+          bookmarkOrder: {
+            $indexOfArray: [reversedBookmarkIds, '$_id']
+          }
+        }
+      },
+      {
+        $sort: {
+          bookmarkOrder: 1
+        }
+      }
+    ]
+
+    const dataPipeline = [...basePipeline, { $skip: skip }, { $limit: limit }]
+    const countPipeline = [...basePipeline, { $count: 'total' }]
+
+    const [data, totalResult] = await Promise.all([
+      databaseService.shareDocuments.aggregate(dataPipeline).toArray(),
+      databaseService.shareDocuments.aggregate(countPipeline).toArray()
+    ])
+
+    const total = totalResult[0]?.total || 0
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
+    }
   }
 }
 

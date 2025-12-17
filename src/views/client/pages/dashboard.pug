@@ -55,12 +55,28 @@ block main-content
                         
                 // Favorite Articles Section
                 section(class="articles")
-                    h2(class="articles__title") BÀI VIẾT YÊU THÍCH
+                    h2(class="articles__title") BÀI VIẾT ĐÃ LƯU
                     div(class="articles__list")
-                        div(class="article-item")
-                            h3(class="article-item__title") Các thì cơ bản trong tiếng Anh cho người mới bắt đầu
-                        div(class="article-item")
-                            h3(class="article-item__title") Từ vựng cho dân IT đi làm thực chiến
+                        - const bookmarksData = userBookmarks && userBookmarks.data ? userBookmarks.data : []
+                        if bookmarksData.length > 0
+                            each doc in bookmarksData
+                                - const slug = doc.slug || ''
+                                - const title = doc.title || ''
+                                - const content = doc.content || ''
+                                - const rawDesc = content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+                                - const desc = rawDesc.length > 90 ? rawDesc.slice(0, 90).trim() + '...' : rawDesc
+                                div(class="article-item")
+                                    a(class="article-item__link d-flex align-items-center gap-3 text-decoration-none flex-grow-1" href=`/share-document/${slug}`)
+                                        div(class="article-item__icon")
+                                            i(class="fa-solid fa-file-lines")
+                                        div(class="article-item__content flex-grow-1")
+                                            h3(class="article-item__title")= title
+                                            if desc
+                                                div(class="article-item__desc text-muted")= desc
+                        else
+                            p(class="text-muted mb-0") Bạn chưa lưu bài viết nào.
+                        div(class="articles__footer")
+                            a(href="/users/bookmarks" class="articles__see-more") Xem thêm →
 
             div(class="col-12 col-lg-4")
                 // Stats Card

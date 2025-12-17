@@ -58,14 +58,6 @@
     })
   })
 
-  // Article items click functionality
-  const articleItems = document.querySelectorAll('.article-item__title')
-  articleItems.forEach((item) => {
-    item.addEventListener('click', function () {
-      alert('Tính năng xem bài viết sẽ được tích hợp sau.')
-    })
-  })
-
   // Mobile sidebar toggle (if needed)
   function initMobileSidebar() {
     const sidebar = document.querySelector('.sidebar')

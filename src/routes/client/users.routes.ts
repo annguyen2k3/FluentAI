@@ -20,7 +20,9 @@ import {
   logoutController,
   updateAvatarProfileController,
   getHistoryController,
-  renderWalletPageController
+  renderWalletPageController,
+  renderUserBookmarksController,
+  getUserBookmarksListController
 } from '~/controllers/client/users.controllers'
 import {
   changePasswordValidator,
@@ -206,6 +208,24 @@ userRoutes.get(
   '/wallet',
   requireAuth,
   wrapRequestHandler(renderWalletPageController)
+)
+
+// GET /users/bookmarks
+// Method: GET
+// Description: Render bookmarks page
+userRoutes.get(
+  '/bookmarks',
+  requireAuth,
+  wrapRequestHandler(renderUserBookmarksController)
+)
+
+// GET /users/bookmarks/list
+// Method: GET
+// Query: {page: number, limit: number, search: string}
+userRoutes.get(
+  '/bookmarks/list',
+  requireAuth,
+  wrapRequestHandler(getUserBookmarksListController)
 )
 
 export default userRoutes

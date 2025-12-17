@@ -23,6 +23,7 @@ import mediasService from '~/services/medias.service'
 import { deleteFileFromS3 } from '~/utils/s3'
 import scoreService from '~/services/score.service'
 import systemConfigService from '~/services/system-config.service'
+import shareDocumentServices from '~/services/share-document.services'
 
 // GET /users/login
 export const getLoginController = (req: Request, res: Response) => {
@@ -379,5 +380,39 @@ export const renderWalletPageController = async (
     user: user,
     wallet: wallet,
     pricingCredit: pricingCredit
+  })
+}
+
+// GET /users/bookmarks
+export const renderUserBookmarksController = async (
+  req: Request,
+  res: Response
+) => {
+  const user = req.user as User
+
+  res.render('client/pages/users/bookmarks.pug', {
+    pageTitle: 'FluentAI - Đánh dấu bài viết',
+    user: user
+  })
+}
+
+// GET /users/bookmarks/list
+export const getUserBookmarksListController = async (
+  req: Request,
+  res: Response
+) => {
+  const user = req.user as User
+  const page = Number(req.query.page) || 1
+  const limit = Number(req.query.limit) || 10
+  const search = req.query.search as string | undefined
+  const userBookmarks = await shareDocumentServices.getUserBookmarks(user, {
+    page,
+    limit,
+    search
+  })
+  res.status(HttpStatus.OK).json({
+    message: COMMON_MESSAGES.INFORM_SUCCESS,
+    status: HttpStatus.OK,
+    userBookmarks: userBookmarks
   })
 }

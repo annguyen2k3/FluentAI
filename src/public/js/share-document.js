@@ -4,7 +4,8 @@ async function toggleBookmark(
   button,
   docId,
   bookmarksRef = null,
-  rootEl = null
+  rootEl = null,
+  onUnbookmarkSuccess = null
 ) {
   const icon = button.querySelector('i')
   if (!icon || !docId) {
@@ -52,6 +53,9 @@ async function toggleBookmark(
             bookmarksRef.splice(index, 1)
             rootEl.setAttribute('data-bookmarks', JSON.stringify(bookmarksRef))
           }
+        }
+        if (onUnbookmarkSuccess && typeof onUnbookmarkSuccess === 'function') {
+          onUnbookmarkSuccess(docId)
         }
       } else {
         icon.classList.remove('fa-regular')
@@ -293,10 +297,218 @@ if (root) {
   fetchList()
 }
 
+const bookmarksRoot = document.querySelector('[data-user-bookmarks]')
+
+if (bookmarksRoot) {
+  const hasUser = bookmarksRoot.getAttribute('data-has-user') === '1'
+  const cardsEl = bookmarksRoot.querySelector('[sd-cards]')
+  const searchInput = bookmarksRoot.querySelector('[sd-search]')
+  const infoEl = bookmarksRoot.querySelector('[sd-pagination-info]')
+  const prevBtn = bookmarksRoot.querySelector('[sd-prev]')
+  const nextBtn = bookmarksRoot.querySelector('[sd-next]')
+  const currentBtn = bookmarksRoot.querySelector('[sd-current]')
+
+  let bookmarks = []
+  try {
+    const bookmarksAttr = bookmarksRoot.getAttribute('data-bookmarks')
+    if (bookmarksAttr) {
+      bookmarks = JSON.parse(bookmarksAttr)
+    }
+  } catch (error) {
+    console.error('Error parsing bookmarks:', error)
+    bookmarks = []
+  }
+
+  const state = {
+    page: 1,
+    limit: 10,
+    search: ''
+  }
+
+  function escapeHTML(text = '') {
+    return (text || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+  }
+
+  function stripHtml(html = '') {
+    const div = document.createElement('div')
+    div.innerHTML = html || ''
+    return (div.textContent || div.innerText || '').trim()
+  }
+
+  function truncate(text = '', maxLen = 90) {
+    const s = (text || '').trim()
+    if (s.length <= maxLen) return s
+    return `${s.slice(0, maxLen).trim()}...`
+  }
+
+  function buildQuery() {
+    const params = new URLSearchParams()
+    params.set('page', state.page.toString())
+    params.set('limit', state.limit.toString())
+    if (state.search) params.set('search', state.search)
+    return params.toString()
+  }
+
+  function renderPagination(pagination) {
+    if (!pagination) return
+    const { page, limit, total, hasNextPage, hasPrevPage } = pagination
+    const start = total === 0 ? 0 : (page - 1) * limit + 1
+    const end = Math.min(page * limit, total)
+
+    if (infoEl) {
+      infoEl.textContent = `Hiển thị ${start}-${end} trên tổng số ${total}`
+    }
+
+    if (currentBtn) {
+      currentBtn.textContent = page.toString()
+    }
+    if (prevBtn) prevBtn.disabled = !hasPrevPage
+    if (nextBtn) nextBtn.disabled = !hasNextPage
+  }
+
+  function renderCards(items = []) {
+    if (!cardsEl) return
+
+    if (!items.length) {
+      cardsEl.innerHTML = `
+        <div class="col-12">
+          <p class="text-center text-muted mb-0">Bạn chưa lưu tài liệu nào.</p>
+        </div>
+      `
+      return
+    }
+
+    cardsEl.innerHTML = items
+      .map((doc) => {
+        const title = escapeHTML(doc.title || '')
+        const author = escapeHTML(doc.author || 'Quản trị viên')
+        const slug = encodeURIComponent(doc.slug || '')
+        const docId = (doc._id || '').toString()
+        const rawDesc = stripHtml(doc.content || '')
+        const desc = escapeHTML(truncate(rawDesc, 90))
+
+        const saveBtn = hasUser
+          ? `
+              <button type="button" class="btn sd-list__save" aria-label="Bỏ lưu bài viết" sd-save data-doc-id="${escapeHTML(docId)}">
+                <i class="fa-solid fa-bookmark"></i>
+              </button>
+            `
+          : ''
+
+        return `
+          <div class="col-12" data-bookmark-item="${escapeHTML(docId)}">
+            <div class="sd-list__item d-flex align-items-center justify-content-between gap-3">
+              <a class="sd-list__link d-flex align-items-center gap-3 text-decoration-none flex-grow-1" href="/share-document/${slug}">
+                <div class="sd-list__icon">
+                  <i class="fa-solid fa-file-lines"></i>
+                </div>
+                <div class="sd-list__text">
+                  <div class="sd-list__title">${title}</div>
+                  <div class="sd-list__desc">${desc}</div>
+                  <div class="sd-list__meta">
+                    <span><i class="fa-solid fa-user me-1"></i>${author}</span>
+                  </div>
+                </div>
+              </a>
+              ${saveBtn}
+            </div>
+          </div>
+        `
+      })
+      .join('')
+
+    if (hasUser) {
+      attachBookmarkHandlers()
+    }
+  }
+
+  function attachBookmarkHandlers() {
+    const saveButtons = bookmarksRoot.querySelectorAll('[sd-save]')
+    saveButtons.forEach((btn) => {
+      btn.addEventListener('click', async function (e) {
+        e.preventDefault()
+        e.stopPropagation()
+        const docId = this.getAttribute('data-doc-id')
+        if (docId) {
+          await toggleBookmark(this, docId, bookmarks, bookmarksRoot, () => {
+            fetchBookmarks()
+          })
+        } else {
+          console.error('No docId found on button')
+        }
+      })
+    })
+  }
+
+  async function fetchBookmarks() {
+    if (cardsEl) {
+      cardsEl.innerHTML = `
+        <div class="col-12">
+          <p class="text-center mb-0">Đang tải danh sách tài liệu...</p>
+        </div>
+      `
+    }
+
+    try {
+      const query = buildQuery()
+      const url = `${ApiBreakpoint.GET_USER_BOOKMARKS_LIST}?${query}`
+      const res = await fetch(url, { method: 'GET', credentials: 'include' })
+      const data = await res.json()
+
+      const list = data?.userBookmarks || {}
+      const items = Array.isArray(list.data) ? list.data : []
+      renderCards(items)
+      renderPagination(list.pagination)
+    } catch (error) {
+      console.error('Error fetching user bookmarks:', error)
+      if (cardsEl) {
+        cardsEl.innerHTML = `
+          <div class="col-12">
+            <p class="text-center text-danger mb-0">Có lỗi khi tải danh sách tài liệu.</p>
+          </div>
+        `
+      }
+    }
+  }
+
+  let searchTimeout = null
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      state.search = (this.value || '').trim()
+      state.page = 1
+      if (searchTimeout) clearTimeout(searchTimeout)
+      searchTimeout = setTimeout(fetchBookmarks, 400)
+    })
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', function () {
+      if (state.page > 1) {
+        state.page -= 1
+        fetchBookmarks()
+      }
+    })
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function () {
+      state.page += 1
+      fetchBookmarks()
+    })
+  }
+
+  fetchBookmarks()
+}
+
 const detailRoot = document.querySelector('[data-share-document-detail]')
 if (detailRoot) {
   const hasUser = detailRoot.getAttribute('data-has-user') === '1'
-  const saveBtn = document.querySelector('[sd-save]')
+  const saveBtn = detailRoot.querySelector('[sd-save]')
 
   let detailBookmarks = []
   try {
