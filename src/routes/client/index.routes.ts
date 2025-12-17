@@ -10,6 +10,7 @@ import User from '~/models/schemas/users.schema'
 import scoreService from '~/services/score.service'
 import { ObjectId } from 'mongodb'
 import paymentRoutes from './payment.routes'
+import shareDocumentRoutes from './share-document.routes'
 
 export default function (app: Express) {
   app.get('/', (req: Request, res: Response) => {
@@ -103,4 +104,6 @@ export default function (app: Express) {
   })
 
   app.use('/payment', paymentRoutes)
+
+  app.use('/share-document', shareDocumentRoutes)
 }

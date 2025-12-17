@@ -108,10 +108,75 @@ class ShareDocumentServices {
     return duplicated
   }
 
-  async getById(id: string) {
-    return await databaseService.shareDocuments.findOne({
+  async getById(id: string, active?: boolean) {
+    const filter: Record<string, unknown> = {
       _id: new ObjectId(id)
+    }
+    if (active !== undefined) {
+      filter.isActive = active
+    }
+    return await databaseService.shareDocuments.findOne(filter)
+  }
+
+  async getBySlug(slug: string, active?: boolean) {
+    const filter: Record<string, unknown> = {
+      slug: slug
+    }
+    if (active !== undefined) {
+      filter.isActive = active
+    }
+    return await databaseService.shareDocuments.findOne(filter)
+  }
+
+  async bookmark(userId: string, shareDocumentId: string) {
+    const user = await databaseService.users.findOne({
+      _id: new ObjectId(userId)
     })
+    if (!user) {
+      return false
+    }
+    const shareDocument = await databaseService.shareDocuments.findOne({
+      _id: new ObjectId(shareDocumentId)
+    })
+    if (!shareDocument) {
+      return false
+    }
+    const bookmarks = [...(user.bookmarks || [])]
+    const existingIndex = bookmarks.findIndex(
+      (item) => item.toString() === shareDocumentId
+    )
+    if (existingIndex >= 0) {
+      bookmarks.splice(existingIndex, 1)
+    } else {
+      bookmarks.push(new ObjectId(shareDocumentId))
+    }
+    await databaseService.users.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { bookmarks: bookmarks } }
+    )
+    return true
+  }
+
+  async unbookmark(userId: string, shareDocumentId: string) {
+    const user = await databaseService.users.findOne({
+      _id: new ObjectId(userId)
+    })
+    if (!user) {
+      return false
+    }
+    const bookmarks = [...(user.bookmarks || [])]
+
+    const existingIndex = bookmarks.findIndex(
+      (item) => item.toString() === shareDocumentId
+    )
+    if (existingIndex >= 0) {
+      bookmarks.splice(existingIndex, 1)
+    }
+    await databaseService.users.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { bookmarks: bookmarks } }
+    )
+    return true
   }
 }
 

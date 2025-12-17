@@ -15,6 +15,7 @@ interface UserType {
   phone_number?: string
   gender?: GenderType
   wallet?: ObjectId
+  bookmarks?: ObjectId[]
 }
 
 export default class User {
@@ -30,6 +31,7 @@ export default class User {
   phone_number?: string
   gender?: GenderType
   wallet?: ObjectId
+  bookmarks?: ObjectId[]
 
   constructor(user: UserType) {
     const id = user._id || new ObjectId()
@@ -51,5 +53,6 @@ export default class User {
     this.phone_number = user.phone_number || ''
     this.gender = user.gender || undefined
     this.wallet = wallet._id
+    this.bookmarks = user.bookmarks || []
   }
 }

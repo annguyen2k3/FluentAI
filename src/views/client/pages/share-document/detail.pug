@@ -1,0 +1,42 @@
+extends ../../layouts/default.pug
+
+block head
+    link(rel="stylesheet" href="/css/style.css")
+    link(rel="stylesheet" href="/css/share-document.css")
+
+block main-content
+    - const bookmarks = user && user.bookmarks ? user.bookmarks.map(id => id.toString()) : []
+    - const docId = shareDocument._id.toString()
+    - const isBookmarked = bookmarks.includes(docId)
+    - const bookmarkIconClass = isBookmarked ? 'fa-solid' : 'fa-regular'
+    div(class="container py-4" data-share-document-detail data-has-user= user ? '1' : '0' data-bookmarks=JSON.stringify(bookmarks))
+        nav(class="mb-3")
+            ol(class="breadcrumb mb-0")
+                li(class="breadcrumb-item")
+                    a(href="/" class="text-decoration-none") Trang chủ
+                li(class="breadcrumb-item")
+                    a(href="/share-document" class="text-decoration-none") Tài liệu chia sẻ
+                li(class="breadcrumb-item active" aria-current="page") #{shareDocument.title}
+
+        div(class="card border-0 shadow-sm")
+            div(class="card-body")
+                div(class="d-flex align-items-start justify-content-between gap-3")
+                    div
+                        h2(class="mb-2 sd-detail__title") #{shareDocument.title}
+                        div(class="text-muted d-flex flex-wrap gap-3")
+                            span
+                                i(class="fa-solid fa-user me-1")
+                                | #{shareDocument.author || 'Quản trị viên'}
+                            if shareDocument.create_at
+                                span
+                                    i(class="fa-regular fa-clock me-1")
+                                    | #{new Date(shareDocument.create_at).toLocaleDateString('vi-VN')}
+                    if user
+                        button(type="button" class="btn btn-outline-primary sd-save-btn" aria-label="Lưu bài viết" sd-save data-doc-id=docId)
+                            i(class=`${bookmarkIconClass} fa-bookmark`)
+            div(class="card-body pt-0")
+                div(class="sd-detail__content")
+                    != shareDocument.content
+
+block scripts
+    script(src="/js/share-document.js" type="module")

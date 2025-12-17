@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb'
+import { createSlug } from '~/utils/format'
 
 interface ShareDocumentType {
   _id?: ObjectId
@@ -6,6 +7,7 @@ interface ShareDocumentType {
   author: string
   content: string
   isActive?: boolean
+  slug?: string
   create_at?: Date
   update_at?: Date
 }
@@ -16,6 +18,7 @@ export default class ShareDocument {
   author: string
   content: string
   isActive?: boolean
+  slug?: string
   create_at?: Date
   update_at?: Date
 
@@ -25,6 +28,7 @@ export default class ShareDocument {
     this.author = shareDocument.author || 'Quản trị viên'
     this.content = shareDocument.content
     this.isActive = shareDocument.isActive ?? true
+    this.slug = shareDocument.slug || createSlug(shareDocument.title)
     this.create_at = shareDocument.create_at || new Date()
     this.update_at = shareDocument.update_at || new Date()
   }
