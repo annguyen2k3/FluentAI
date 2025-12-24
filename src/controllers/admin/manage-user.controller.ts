@@ -247,6 +247,9 @@ export const deleteUserController = async (req: Request, res: Response) => {
 
   await Promise.all([
     databaseService.users.deleteOne({ _id: user._id }),
+    databaseService.hisPracticeUsers.deleteMany({ userId: user._id }),
+    databaseService.hisSSUsers.deleteMany({ userId: user._id }),
+    databaseService.wallets.deleteOne({ _id: user.wallet }),
     databaseService.refreshTokens.deleteMany({ user_id: user._id })
   ])
   res.status(HttpStatus.OK).json({
