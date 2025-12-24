@@ -293,8 +293,7 @@ export const updateSVListValidator = validate(
         },
         isLength: {
           options: {
-            min: 1,
-            max: 50
+            min: 1
           },
           errorMessage: SPEAKING_SHADOWING_MESSAGES.SLUG_LENGTH
         },

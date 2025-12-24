@@ -237,8 +237,7 @@ export const updateSSListValidator = validate(
         },
         isLength: {
           options: {
-            min: 1,
-            max: 50
+            min: 1
           },
           errorMessage: SPEAKING_SENTENCE_MESSAGES.SLUG_LENGTH
         },

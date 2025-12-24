@@ -452,8 +452,7 @@ export const updateWPListValidator = validate(
         },
         isLength: {
           options: {
-            min: 1,
-            max: 50
+            min: 1
           },
           errorMessage: WRITING_SENTENCE_MESSAGES.SLUG_LENGTH
         },

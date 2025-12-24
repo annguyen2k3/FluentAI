@@ -67,7 +67,7 @@ export const WRITING_SENTENCE_MESSAGES = {
   SLUG_INVALID:
     'Slug không hợp lệ. Chỉ được chứa chữ cái, số, dấu gạch dưới ( _ ) và dấu gạch ngang ( - )',
   SLUG_EXISTS: 'Slug đã tồn tại',
-  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự và tối đa 50 ký tự',
+  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự',
   RANDOM_WS_NOT_FOUND: 'Không tìm thấy danh sách câu học',
   RANDOM_WS_SUCCESS: 'Danh sách câu học đã lấy thành công'
 } as const
@@ -97,7 +97,7 @@ export const SPEAKING_SENTENCE_MESSAGES = {
   SLUG_INVALID:
     'Slug không hợp lệ. Chỉ được chứa chữ cái, số, dấu gạch dưới ( _ ) và dấu gạch ngang ( - )',
   SLUG_EXISTS: 'Slug đã tồn tại',
-  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự và tối đa 50 ký tự',
+  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự',
   EN_SENTENCE_INVALID: 'Câu tiếng Anh không hợp lệ',
   VI_SENTENCE_INVALID: 'Câu tiếng Việt không hợp lệ'
 } as const
@@ -116,7 +116,7 @@ export const SPEAKING_SHADOWING_MESSAGES = {
   SLUG_INVALID:
     'Slug không hợp lệ. Chỉ được chứa chữ cái, số, dấu gạch dưới ( _ ) và dấu gạch ngang ( - )',
   SLUG_EXISTS: 'Slug đã tồn tại',
-  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự và tối đa 50 ký tự',
+  SLUG_LENGTH: 'Slug phải có ít nhất 1 ký tự',
   START_TIME_INVALID: 'Thời gian bắt đầu không hợp lệ',
   END_TIME_INVALID: 'Thời gian kết thúc không hợp lệ',
   EN_TEXT_INVALID: 'Câu tiếng Anh không hợp lệ',
