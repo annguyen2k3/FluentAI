@@ -3,8 +3,10 @@ dist/
 ADMIN_UI/
 GUI-FluentAI/
 draw_sequence/
+draw_mermaid/
+draw_plantuml/
+plantuml2drawio/
 bao_cao/
-src/public/js/api_breakpoint.js
 .env
 gen-lang-client-0058731285-4fd617adb923.json
 .vscode/

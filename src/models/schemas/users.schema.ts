@@ -1,6 +1,10 @@
 import { ObjectId } from 'mongodb'
 import { GenderType, UserStatus } from '~/constants/enum'
 import Wallet from './wallet.schema'
+import { config } from 'dotenv'
+config()
+
+const url_avatar_default = process.env.URL_AVATAR_DEFAULT
 
 interface UserType {
   _id?: ObjectId
@@ -46,9 +50,7 @@ export default class User {
     this.status = user.status || UserStatus.ACTIVE
     this.create_at = user.create_at || date
     this.update_at = user.update_at || date
-    this.avatar =
-      user.avatar ||
-      'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar_user_default.png'
+    this.avatar = user.avatar || url_avatar_default
     this.date_of_birth = user.date_of_birth || undefined
     this.phone_number = user.phone_number || ''
     this.gender = user.gender || undefined

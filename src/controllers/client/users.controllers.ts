@@ -24,6 +24,8 @@ import { deleteFileFromS3 } from '~/utils/s3'
 import scoreService from '~/services/score.service'
 import systemConfigService from '~/services/system-config.service'
 import shareDocumentServices from '~/services/share-document.services'
+import { config } from 'dotenv'
+config()
 
 // GET /users/login
 export const getLoginController = (req: Request, res: Response) => {
@@ -327,8 +329,11 @@ export const updateAvatarProfileController = async (
 
   const result = await mediasService.uploadImage(req)
 
+  const filename_delete =
+    user.avatar != process.env.URL_AVATAR_DEFAULT ? user.avatar : ''
+
   Promise.all([
-    deleteFileFromS3({ filename: user.avatar as string }),
+    deleteFileFromS3({ filename: filename_delete as string }),
     databaseService.users.updateOne(
       { _id: new ObjectId(user._id) },
       { $set: { avatar: result[0].url } }
