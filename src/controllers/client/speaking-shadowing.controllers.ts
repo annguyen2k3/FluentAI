@@ -11,11 +11,12 @@ import { HttpStatus } from '~/constants/httpStatus'
 import { HisSVUserSentenceType } from '~/models/schemas/his-sv-user.schema'
 import User from '~/models/schemas/users.schema'
 import { databaseService } from '~/services/database.service'
-import otherService from '~/services/other.service'
+import costService from '~/services/cost.service'
 import scoreService from '~/services/score.service'
 import speakingServices from '~/services/speaking.service'
 import { handleUploadAudio } from '~/utils/file'
 import { speechToText } from '~/utils/handle-speech'
+import Wallet from '~/models/schemas/wallet.schema'
 
 // GET /speaking-shadowing
 export const renderSpeakingShadowingController = async (
@@ -121,7 +122,7 @@ export const renderSVPracticeController = async (
     UserScoreType.SPEAKING_SHADOWING
   )
 
-  const practiceCost = await otherService.getPracticeCost(
+  const practiceCost = await costService.getPracticeCost(
     CreditUsageType.speaking_shadowing_evaluate
   )
 
@@ -149,13 +150,13 @@ export const evaluateSVController = async (req: Request, res: Response) => {
     return res.redirect('/speaking-shadowing')
   }
 
-  const practiceCostResult = await otherService.handlePracticeCost({
+  const checkWalletBalance = await costService.checkWalletBalance({
     wallet_id: user.wallet._id?.toString() as string,
     type: CreditUsageType.speaking_shadowing_evaluate
   })
-  if (!practiceCostResult.success) {
+  if (!checkWalletBalance.success) {
     return res.status(HttpStatus.BAD_REQUEST).json({
-      message: practiceCostResult.message,
+      message: checkWalletBalance.message,
       status: HttpStatus.BAD_REQUEST
     })
   }
@@ -191,6 +192,11 @@ export const evaluateSVController = async (req: Request, res: Response) => {
     )) as HisSVUserSentenceType
 
     if (evaluate) {
+      await costService.handlePracticeCost({
+        wallet: checkWalletBalance.wallet as Wallet,
+        costPractice: checkWalletBalance.costPractice as number
+      })
+
       await speakingServices.updateHisSVUser(
         user._id?.toString() as string,
         sv._id?.toString() as string,

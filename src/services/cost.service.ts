@@ -4,22 +4,30 @@ import systemConfigService from './system-config.service'
 import { databaseService } from './database.service'
 import { ObjectId } from 'mongodb'
 import { PracticeCostType } from '~/models/schemas/system-config'
+import Wallet from '~/models/schemas/wallet.schema'
 
-class OtherService {
-  async handlePracticeCost({
+class CostService {
+  async checkWalletBalance({
     wallet_id,
     type
   }: {
     wallet_id: string
     type: CreditUsageType
-  }): Promise<{ success: boolean; message: string }> {
+  }): Promise<{
+    success: boolean
+    message: string
+    wallet: Wallet | null
+    costPractice: number | null
+  }> {
     const wallet = await databaseService.wallets.findOne({
       _id: new ObjectId(wallet_id)
     })
     if (!wallet) {
       return {
         success: false,
-        message: 'Ví không tồn tại'
+        message: 'Ví không tồn tại',
+        wallet: null,
+        costPractice: null
       }
     }
 
@@ -28,7 +36,9 @@ class OtherService {
     if (!practiceCostConfig) {
       return {
         success: false,
-        message: 'Cấu hình chi phí thực hành không tồn tại'
+        message: 'Cấu hình chi phí thực hành không tồn tại',
+        wallet: wallet,
+        costPractice: null
       }
     }
 
@@ -40,7 +50,9 @@ class OtherService {
     if (!costParameter || !costParameter.cost) {
       return {
         success: false,
-        message: 'Không tìm thấy cấu hình chi phí cho loại bài luyện tập này'
+        message: 'Không tìm thấy cấu hình chi phí cho loại bài luyện tập này',
+        wallet: wallet,
+        costPractice: null
       }
     }
 
@@ -49,28 +61,37 @@ class OtherService {
     if (balanceCredit < cost) {
       return {
         success: false,
-        message: `Số dư không đủ. Vui lòng nạp thêm credit.`
+        message: `Số dư không đủ. Vui lòng nạp thêm credit.`,
+        wallet: wallet,
+        costPractice: cost
       }
     }
-
-    const newBalance = balanceCredit - cost
-
-    await databaseService.wallets.updateOne(
-      {
-        _id: new ObjectId(wallet_id)
-      },
-      {
-        $set: {
-          balance_credit: newBalance,
-          update_at: new Date()
-        }
-      }
-    )
 
     return {
       success: true,
-      message: 'Đã trừ chi phí thực hành'
+      message: 'Số dư đủ',
+      wallet: wallet,
+      costPractice: cost
     }
+  }
+
+  async handlePracticeCost({
+    wallet,
+    costPractice = 0
+  }: {
+    wallet: Wallet
+    costPractice: number
+  }): Promise<boolean> {
+    if (!wallet.balance_credit) return false
+    const newBalance = wallet.balance_credit - costPractice
+
+    wallet.balance_credit = newBalance
+    await databaseService.wallets.updateOne(
+      { _id: wallet._id },
+      { $set: wallet }
+    )
+
+    return true
   }
 
   async getPracticeCost(type: CreditUsageType): Promise<number> {
@@ -102,5 +123,5 @@ class OtherService {
   }
 }
 
-const otherService = new OtherService()
-export default otherService
+const costService = new CostService()
+export default costService

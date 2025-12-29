@@ -10,9 +10,10 @@ import User from '~/models/schemas/users.schema'
 import WPParagraph from '~/models/schemas/wp-paragraph.schema'
 import WSList from '~/models/schemas/ws-list.schema'
 import { databaseService } from '~/services/database.service'
-import otherService from '~/services/other.service'
+import costService from '~/services/cost.service'
 import scoreService from '~/services/score.service'
 import writingService from '~/services/writing.service'
+import Wallet from '~/models/schemas/wallet.schema'
 
 // GET /writing-paragraph/setup
 export const getSetupWPController = async (req: Request, res: Response) => {
@@ -181,7 +182,7 @@ export const renderPracticeWPController = async (
     UserScoreType.WRITING_PARAGRAPH
   )
 
-  const practiceCost = await otherService.getPracticeCost(
+  const practiceCost = await costService.getPracticeCost(
     CreditUsageType.writing_paragraph_evaluate
   )
 
@@ -204,13 +205,13 @@ export const postPracticeWPController = async (req: Request, res: Response) => {
   const wp = req.wp as WPParagraph
   const { sentence_vi, user_translation } = req.body
 
-  const practiceCostResult = await otherService.handlePracticeCost({
+  const checkWalletBalance = await costService.checkWalletBalance({
     wallet_id: user.wallet._id?.toString() as string,
     type: CreditUsageType.writing_paragraph_evaluate
   })
-  if (!practiceCostResult.success) {
+  if (!checkWalletBalance.success) {
     return res.status(HttpStatus.BAD_REQUEST).json({
-      message: practiceCostResult.message,
+      message: checkWalletBalance.message,
       status: HttpStatus.BAD_REQUEST
     })
   }
@@ -221,6 +222,13 @@ export const postPracticeWPController = async (req: Request, res: Response) => {
     sentence_vi,
     user_translation
   )
+
+  if (evaluateResult) {
+    await costService.handlePracticeCost({
+      wallet: checkWalletBalance.wallet as Wallet,
+      costPractice: checkWalletBalance.costPractice as number
+    })
+  }
 
   if (evaluateResult.passed) {
     await writingService.updateHisWPUser(
@@ -365,7 +373,7 @@ export const getPracticeCustomTopicWPController = async (
     UserScoreType.WRITING_PARAGRAPH
   )
 
-  const practiceCost = await otherService.getPracticeCost(
+  const practiceCost = await costService.getPracticeCost(
     CreditUsageType.writing_paragraph_evaluate
   )
 

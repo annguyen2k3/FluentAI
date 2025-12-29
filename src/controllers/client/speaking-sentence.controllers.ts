@@ -6,12 +6,13 @@ import { HttpStatus } from '~/constants/httpStatus'
 import SSList from '~/models/schemas/ss-list.schema'
 import User from '~/models/schemas/users.schema'
 import { databaseService } from '~/services/database.service'
-import otherService from '~/services/other.service'
+import costService from '~/services/cost.service'
 import speakingServices from '~/services/speaking.service'
 import { handleUploadAudio } from '~/utils/file'
 import { speechToText, textToSpeech } from '~/utils/handle-speech'
 import { HisSSUserSentenceType } from '~/models/schemas/his-ss-user.schema'
 import scoreService from '~/services/score.service'
+import Wallet from '~/models/schemas/wallet.schema'
 
 // GET /speaking-sentence/
 export const renderSSListController = async (req: Request, res: Response) => {
@@ -117,7 +118,7 @@ export const renderSSPracticeController = async (
     UserScoreType.SPEAKING_SENTENCE
   )
 
-  const practiceCost = await otherService.getPracticeCost(
+  const practiceCost = await costService.getPracticeCost(
     CreditUsageType.speaking_sentence_evaluate
   )
 
@@ -180,13 +181,13 @@ export const evaluateSSController = async (req: Request, res: Response) => {
     return res.redirect('/speaking-sentence')
   }
 
-  const practiceCostResult = await otherService.handlePracticeCost({
+  const checkWalletBalance = await costService.checkWalletBalance({
     wallet_id: user.wallet._id?.toString() as string,
     type: CreditUsageType.speaking_sentence_evaluate
   })
-  if (!practiceCostResult.success) {
+  if (!checkWalletBalance.success) {
     return res.status(HttpStatus.BAD_REQUEST).json({
-      message: practiceCostResult.message,
+      message: checkWalletBalance.message,
       status: HttpStatus.BAD_REQUEST
     })
   }
@@ -222,6 +223,11 @@ export const evaluateSSController = async (req: Request, res: Response) => {
     )) as HisSSUserSentenceType
 
     if (evaluate) {
+      await costService.handlePracticeCost({
+        wallet: checkWalletBalance.wallet as Wallet,
+        costPractice: checkWalletBalance.costPractice as number
+      })
+
       await speakingServices.updateHisSSUser(
         user._id?.toString() as string,
         ss._id?.toString() as string,
@@ -298,7 +304,7 @@ export const renderSSPracticeCustomTopicController = async (
     UserScoreType.SPEAKING_SENTENCE
   )
 
-  const practiceCost = await otherService.getPracticeCost(
+  const practiceCost = await costService.getPracticeCost(
     CreditUsageType.speaking_sentence_evaluate
   )
 
@@ -319,14 +325,13 @@ export const evaluateSSCustomTopicController = async (
   res: Response
 ) => {
   const user = req.user as any
-
-  const practiceCostResult = await otherService.handlePracticeCost({
+  const checkWalletBalance = await costService.checkWalletBalance({
     wallet_id: user.wallet._id?.toString() as string,
     type: CreditUsageType.speaking_sentence_evaluate
   })
-  if (!practiceCostResult.success) {
+  if (!checkWalletBalance.success) {
     return res.status(HttpStatus.BAD_REQUEST).json({
-      message: practiceCostResult.message,
+      message: checkWalletBalance.message,
       status: HttpStatus.BAD_REQUEST
     })
   }
@@ -360,6 +365,13 @@ export const evaluateSSCustomTopicController = async (
       enSentence,
       sttResult.transcript
     )) as HisSSUserSentenceType
+
+    if (evaluate) {
+      await costService.handlePracticeCost({
+        wallet: checkWalletBalance.wallet as Wallet,
+        costPractice: checkWalletBalance.costPractice as number
+      })
+    }
 
     if (evaluate.passed) {
       await scoreService.addScore(
