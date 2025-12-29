@@ -130,7 +130,9 @@ export const getWSListController = async (req: Request, res: Response) => {
 export const getPracticeWSController = async (req: Request, res: Response) => {
   const user = req.user as User
   const ws = req.ws as WSList
-
+  if (!ws) {
+    return res.redirect('/writing-sentence/setup')
+  }
   const initResult = await writingService.wsInitChat(
     user._id?.toString() as string,
     ws._id?.toString() as string

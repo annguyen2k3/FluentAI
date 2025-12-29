@@ -56,14 +56,10 @@ export const renderWSPraticeValidator = validate(
               const wsPreview = await databaseService.wsListPreviews.findOne({
                 slug: value
               })
-              if (!wsPreview) {
-                throw new ErrorWithStatus(
-                  PROPERTY_MESSAGES.SLUG_NOT_FOUND,
-                  HttpStatus.NOT_FOUND
-                )
+              if (wsPreview) {
+                req.ws = wsPreview
+                return true
               }
-              req.ws = wsPreview
-              return true
             }
             req.ws = ws
             return true

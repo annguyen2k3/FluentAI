@@ -158,6 +158,10 @@ export const renderPracticeWPController = async (
   const user = req.user as User
   const wp = req.wp as WPParagraph
 
+  if (!wp) {
+    return res.redirect('/writing-paragraph/setup')
+  }
+
   const hisWPUser = await writingService.getHisWPUser(
     user._id?.toString() as string,
     wp._id?.toString() as string

@@ -165,13 +165,9 @@ export const renderWPPraticeValidator = validate(
                 slug: value
               })
               if (!wpPreview) {
-                throw new ErrorWithStatus(
-                  PROPERTY_MESSAGES.SLUG_NOT_FOUND,
-                  HttpStatus.NOT_FOUND
-                )
+                req.wp = wpPreview
+                return true
               }
-              req.wp = wpPreview
-              return true
             }
             req.wp = wp
             return true
