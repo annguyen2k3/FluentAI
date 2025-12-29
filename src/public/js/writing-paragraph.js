@@ -55,8 +55,10 @@ if (wpSetup) {
 
     if (source === 'custom') {
       const content = wpSetup.querySelector('.wp-setup__custom-textarea').value
-      const loadingOverlay = document.getElementById('wp-preview-loading-overlay')
-      
+      const loadingOverlay = document.getElementById(
+        'wp-preview-loading-overlay'
+      )
+
       function showLoading() {
         if (loadingOverlay) {
           loadingOverlay.style.display = 'flex'
@@ -178,8 +180,10 @@ if (wpSetup) {
         const level = wpSetup
           .querySelector('.wp-setup__option--level[active]')
           ?.getAttribute('data-value')
-        const loadingOverlay = document.getElementById('wp-preview-loading-overlay')
-        
+        const loadingOverlay = document.getElementById(
+          'wp-preview-loading-overlay'
+        )
+
         function showLoading() {
           if (loadingOverlay) {
             loadingOverlay.style.display = 'flex'
@@ -241,8 +245,10 @@ if (wpSetup) {
               )
               if (regenerateBtn) {
                 regenerateBtn.onclick = () => {
-                  const loadingOverlay = document.getElementById('wp-preview-loading-overlay')
-                  
+                  const loadingOverlay = document.getElementById(
+                    'wp-preview-loading-overlay'
+                  )
+
                   function showLoading() {
                     if (loadingOverlay) {
                       loadingOverlay.style.display = 'flex'
@@ -627,7 +633,7 @@ function splitParagraphIntoSentences(paragraph) {
   if (typeof paragraph !== 'string') {
     return []
   }
-  const normalized = paragraph.replace(/\s+/g, ' ').trim()
+  const normalized = paragraph.replace(/[ \t]+/g, ' ').trim()
   if (!normalized) {
     return []
   }
@@ -790,53 +796,110 @@ if (wpPractice) {
 
   let firstInProgressIndex = sentences.length + 1
 
+  const originalContent = wpData.content || ''
+  const normalizedContent = originalContent
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n+/g, '\n')
+    .trim()
+
+  function findSentencePositionInOriginal(sentence, startPos = 0) {
+    const normalizedSentence = sentence.replace(/[ \t]+/g, ' ').trim()
+    const pos = normalizedContent.indexOf(normalizedSentence, startPos)
+    return pos >= 0 ? pos : -1
+  }
+
+  function renderSentencesWithLineBreaks() {
+    let html = ''
+    let currentPos = 0
+    const historyMap = new Map()
+
+    if (
+      hisWPUser &&
+      hisWPUser.content &&
+      Array.isArray(hisWPUser.content.sentences)
+    ) {
+      hisWPUser.content.sentences.forEach((histSentence) => {
+        historyMap.set(histSentence.sentence_original, histSentence)
+      })
+    }
+
+    sentences.forEach((sentence, index) => {
+      const sentenceIndex = index + 1
+      const normalizedSentence = sentence.replace(/[ \t]+/g, ' ').trim()
+      const sentencePos = findSentencePositionInOriginal(
+        normalizedSentence,
+        currentPos
+      )
+
+      if (sentencePos > currentPos && currentPos > 0) {
+        const textBetween = normalizedContent.substring(currentPos, sentencePos)
+        if (textBetween.includes('\n')) {
+          html += '<br>'
+        } else if (textBetween.trim()) {
+          html += ' '
+        }
+      }
+
+      const historySentence = historyMap.get(sentence)
+      let sentenceHtml = ''
+
+      if (historySentence) {
+        sentenceHtml = `<span class="sentence-complete" index=${sentenceIndex}>${historySentence.final_sentence || sentence}</span>`
+      } else {
+        if (firstInProgressIndex > sentenceIndex) {
+          firstInProgressIndex = sentenceIndex
+          sentenceHtml = `<span class="sentence-inprogress" index=${sentenceIndex}>${sentence}</span>`
+        } else {
+          sentenceHtml = `<span index=${sentenceIndex}>${sentence}</span>`
+        }
+      }
+
+      html += sentenceHtml
+      currentPos =
+        sentencePos >= 0 ? sentencePos + normalizedSentence.length : currentPos
+
+      if (index < sentences.length - 1) {
+        const nextSentence = sentences[index + 1]
+        const normalizedNextSentence = nextSentence
+          .replace(/[ \t]+/g, ' ')
+          .trim()
+        const nextPos = findSentencePositionInOriginal(
+          normalizedNextSentence,
+          currentPos
+        )
+
+        if (nextPos > currentPos) {
+          const textBetween = normalizedContent.substring(currentPos, nextPos)
+          if (textBetween.includes('\n')) {
+            html += '<br>'
+          } else {
+            html += ' '
+          }
+        } else {
+          html += ' '
+        }
+      }
+    })
+
+    return html
+  }
+
   if (
     hisWPUser &&
     hisWPUser.content &&
     Array.isArray(hisWPUser.content.sentences)
   ) {
-    const historySentences = hisWPUser.content.sentences
-    const historyMap = new Map()
-    historySentences.forEach((histSentence) => {
-      historyMap.set(histSentence.sentence_original, histSentence)
-    })
-
-    sentences.forEach((sentence, index) => {
-      const sentenceIndex = index + 1
-      const historySentence = historyMap.get(sentence)
-
-      if (historySentence) {
-        sentencesDisplay.innerHTML += `
-          <span class="sentence-complete" index=${sentenceIndex}>${historySentence.final_sentence || sentence}</span>
-        `
-      } else {
-        if (firstInProgressIndex > sentenceIndex) {
-          firstInProgressIndex = sentenceIndex
-          sentencesDisplay.innerHTML += `
-            <span class="sentence-inprogress" index=${sentenceIndex}>${sentence}</span>
-          `
-        } else {
-          sentencesDisplay.innerHTML += `
-            <span index=${sentenceIndex}>${sentence}</span>
-          `
-        }
-      }
-    })
-
     if (firstInProgressIndex <= sentences.length) {
       currentIndex = firstInProgressIndex
     } else {
       currentIndex = sentences.length + 1
     }
   } else {
-    sentences.forEach((sentence, index) => {
-      sentencesDisplay.innerHTML += `
-        <span index=${index + 1}>${sentence}</span>
-      `
-    })
     firstInProgressIndex = 1
     currentIndex = 1
   }
+
+  sentencesDisplay.innerHTML = renderSentencesWithLineBreaks()
 
   function renderSentence(index) {
     const allSentenceElements = sentencesDisplay.querySelectorAll('[index]')

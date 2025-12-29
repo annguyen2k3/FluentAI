@@ -1,5 +1,4 @@
 import { Request, Response } from 'express'
-import md5 from 'md5'
 import { ObjectId } from 'mongodb'
 import { HttpStatus } from '~/constants/httpStatus'
 import { COMMON_MESSAGES, USER_MESSAGES } from '~/constants/message'

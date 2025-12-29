@@ -171,6 +171,7 @@
   color: #1f2937;
   margin: 0;
   text-align: left;
+  white-space: pre-line;
 }
 
 .practice-sidebar {
@@ -798,6 +799,7 @@
 
   .practice-display__text {
     font-size: var(--font-size-base);
+    white-space: pre-line;
   }
 
   .practice-sidebar {
