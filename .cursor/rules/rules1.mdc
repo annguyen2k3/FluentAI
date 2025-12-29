@@ -1,9 +1,0 @@
----
-alwaysApply: false
----
-
-- Code layout with html, css and bootstrap, javascript. Prioritize using the built teamplate, the bootstrap class, and finally the custom css. If you want to customize the style, you must name the new class according to BEM and then css, do not overwrite the existing classes of bootstrap or the template.
-- Make sure you're generating files in right place (folder).
-- Don't generate comments in source code by default.
-- Keep the project code clean, eliminate all redundant code.
-- Summarize what things you done and thing not done yet before you finish the task.
