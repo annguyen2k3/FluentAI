@@ -943,8 +943,6 @@ if (wsPractice) {
         document.querySelector('[sentence_vi]').textContent || ''
       const userTranslation =
         document.querySelector('[user_translation]').value || ''
-      console.log(sentenceVi)
-      console.log(userTranslation)
       if (!userTranslation) {
         alertError('Vui lòng nhập bản dịch của bạn')
         return
@@ -987,7 +985,6 @@ if (wsPractice) {
           buttonSubmit.disabled = false
 
           if (data.status === 200) {
-            console.log(data.evaluateResult)
             feedbackDescription.innerHTML = renderFeedback(data.evaluateResult)
             if (userTranslationInput) {
               userTranslationInput.value = ''

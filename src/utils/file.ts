@@ -16,9 +16,9 @@ export const handleUploadImage = async (req: Request) => {
   const formidable = (await import('formidable')).default
   const form = formidable({
     uploadDir: UPLOAD_TEMP_DIR,
-    maxFileSize: 1024 * 1024 * 5, // 1MB
+    maxFileSize: 1024 * 1024 * 5, // 5MB
     maxFields: 4,
-    maxTotalFileSize: 1024 * 1024 * 20, // 4MB
+    maxTotalFileSize: 1024 * 1024 * 20, // 20MB
     keepExtensions: true,
     filter: function ({ name, originalFilename, mimetype }) {
       const valid = name === 'images' && Boolean(mimetype?.includes('image'))

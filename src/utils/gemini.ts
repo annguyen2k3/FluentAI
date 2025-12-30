@@ -84,10 +84,8 @@ export async function completeAndDeleteSession(
     sessions.delete(key)
     throw new Error('Chat session not initialized or expired')
   }
-  // Giữ nguyên cấu hình responseMimeType từ config cache (thường là JSON)
   const res = await s.chat.sendMessage({ message: completionPrompt })
-  console.log('Session completed:', key)
-  sessions.delete(key) // xóa ngay sau khi hoàn thành
+  sessions.delete(key)
   return res.text
 }
 

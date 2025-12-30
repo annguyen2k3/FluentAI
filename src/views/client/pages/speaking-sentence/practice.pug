@@ -1400,7 +1400,6 @@ block scripts
                             body: formData
                         });
                         const payload = await response.json();
-                        console.log('Kết quả đánh giá speaking:', payload);
                         if (payload && payload.evaluate) {
                             renderAISuggestions(payload.evaluate);
                             updateHisSSUser(payload.evaluate);

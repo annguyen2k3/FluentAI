@@ -49,6 +49,11 @@ export const renderWSPraticeValidator = validate(
                 },
                 {
                   $unwind: '$level'
+                },
+                {
+                  $sort: {
+                    pos: 1
+                  }
                 }
               ])
               .next()

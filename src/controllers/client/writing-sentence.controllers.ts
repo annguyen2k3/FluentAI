@@ -156,6 +156,11 @@ export const getPracticeWSController = async (req: Request, res: Response) => {
     CreditUsageType.writing_sentence_evaluate
   )
 
+  // Sắp xếp list theo pos tăng dần
+  if (ws.list && ws.list.length > 0) {
+    ws.list = [...ws.list].sort((a, b) => (a.pos || 0) - (b.pos || 0))
+  }
+
   res.render('client/pages/writing-sentence/practice.pug', {
     pageTitle: 'Luyện tập câu',
     user: user,
@@ -342,10 +347,16 @@ export const getPracticeCustomTopicWSController = async (
     UserScoreType.WRITING_SENTENCE
   )
 
+  // Sắp xếp list theo pos tăng dần
+  const ws = wsListPreview as WSList
+  if (ws.list && ws.list.length > 0) {
+    ws.list = [...ws.list].sort((a, b) => (a.pos || 0) - (b.pos || 0))
+  }
+
   res.render('client/pages/writing-sentence/practice.pug', {
     pageTitle: 'Luyện tập chủ đề',
     user: user,
-    ws: wsListPreview as WSList,
+    ws: ws,
     scoreInfo: {
       totalScore: userScore.totalScore,
       scorePractice: scorePractice

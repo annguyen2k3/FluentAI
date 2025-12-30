@@ -198,10 +198,11 @@ export const evaluateSSController = async (req: Request, res: Response) => {
     const enSentence = Array.isArray(enSentenceField)
       ? enSentenceField[0]
       : enSentenceField
+
     if (!enSentence || typeof enSentence !== 'string') {
       await fs.unlink(file.filepath).catch(() => undefined)
       return res.status(HttpStatus.BAD_REQUEST).json({
-        message: 'Sentence is required',
+        message: 'Vui lòng gửi đoạn phát âm',
         status: HttpStatus.BAD_REQUEST
       })
     }

@@ -35,7 +35,7 @@ export const uploadFileToS3 = ({
     tags: tags,
     queueSize: 4,
     partSize: 1024 * 1024 * 5, // 5MB
-    leavePartsOnError: false // false: delete the parts that have been uploaded
+    leavePartsOnError: false
   })
 
   return parallelUploads3.done()
