@@ -63,6 +63,43 @@ class DatabaseService {
     }
   }
 
+  async createIndexes() {
+    // Users
+    await this.users.createIndex({ email: 1, password: 1 })
+    await this.users.createIndex({ username: 1 }, { unique: true })
+    await this.users.createIndex({ email: 1 }, { unique: true })
+
+    // Refresh tokens
+    await this.refreshTokens.createIndex({ token: 1 }, { unique: true })
+    await this.refreshTokens.createIndex({ user_id: 1 }) // Tìm token theo user_id
+
+    // OTP Verify Email
+    await this.otpVerifyEmail.createIndex({ email: 1, otp: 1 }) // Tìm OTP theo email và otp
+
+    // Categories
+    await this.levels.createIndex({ slug: 1 }, { unique: true })
+    await this.topics.createIndex({ slug: 1 }, { unique: true })
+    await this.types.createIndex({ slug: 1 }, { unique: true })
+
+    // Practice Lists
+    await this.wsLists.createIndex({ slug: 1 }, { unique: true })
+    await this.ssLists.createIndex({ slug: 1 }, { unique: true })
+    await this.svShadowings.createIndex({ slug: 1 }, { unique: true })
+    await this.wpParagraphs.createIndex({ slug: 1 }, { unique: true })
+    await this.listeningVideos.createIndex({ slug: 1 }, { unique: true })
+
+    // Share Documents
+    await this.shareDocuments.createIndex({ slug: 1 })
+
+    // History Collections
+    await this.hisSSUsers.createIndex({ userId: 1, ssListId: 1 })
+    await this.hisPracticeUsers.createIndex({ userId: 1, type: 1 })
+
+    // User Scores
+    await this.userScores.createIndex({ userId: 1, year: 1, month: 1, day: 1 })
+    await this.userScores.createIndex({ year: 1, month: 1 })
+  }
+
   get users(): Collection<User> {
     return this.db.collection('users')
   }

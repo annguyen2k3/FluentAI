@@ -19,6 +19,8 @@ const port = process.env.PORT || 3000
 
 initFolder()
 databaseService.connect().then(async () => {
+  await databaseService.createIndexes()
+
   await Promise.all([
     systemConfigService.loadCache(),
     geminiService.loadCache(),
