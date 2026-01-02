@@ -56,6 +56,7 @@ export const createLevelValidator = validate(
         trim: true,
         custom: {
           options: async (value, { req }) => {
+            if (!value) return true
             const level = await databaseService.levels.findOne({ slug: value })
             if (level) {
               throw new Error(CATEGORIES_MESSAGES.SLUG_EXISTS)
@@ -178,7 +179,7 @@ export const updateLevelValidator = validate(
         },
         toInt: true,
         custom: {
-          options: (value, { req }) => {
+          options: async (value, { req }) => {
             if (value < 1) {
               throw new Error(CATEGORIES_MESSAGES.POS_INVALID)
             }
@@ -203,6 +204,7 @@ export const deleteLevelValidator = validate(
             if (!level) {
               throw new Error(CATEGORIES_MESSAGES.LEVEL_NOT_FOUND)
             }
+            return true
           }
         }
       }
@@ -262,6 +264,7 @@ export const createTypeValidator = validate(
         trim: true,
         custom: {
           options: async (value, { req }) => {
+            if (!value) return true
             const type = await databaseService.types.findOne({ slug: value })
             if (type) {
               throw new Error(CATEGORIES_MESSAGES.SLUG_EXISTS)

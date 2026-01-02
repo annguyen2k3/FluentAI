@@ -46,6 +46,42 @@ class CategoriesServices {
     return updatedLevel
   }
 
+  async checkCategoryHasItems({
+    type,
+    id
+  }: {
+    type: 'level' | 'type' | 'topic'
+    id: string
+  }) {
+    const countWS = await databaseService.wsLists.countDocuments({
+      [type]: new ObjectId(id)
+    })
+    const countWP = await databaseService.wpParagraphs.countDocuments({
+      [type]: new ObjectId(id)
+    })
+    const countSS = await databaseService.ssLists.countDocuments({
+      [type]: new ObjectId(id)
+    })
+    const countSSh = await databaseService.svShadowings.countDocuments({
+      [type]: new ObjectId(id)
+    })
+    const countLV = await databaseService.listeningVideos.countDocuments({
+      [type]: new ObjectId(id)
+    })
+
+    const count = countWS + countWP + countSS + countSSh + countLV
+    return {
+      totalItems: count,
+      countNumber: {
+        WS: countWS,
+        WP: countWP,
+        SS: countSS,
+        SSh: countSSh,
+        LV: countLV
+      }
+    }
+  }
+
   async deleteLevel(id: string) {
     try {
       await databaseService.levels.deleteOne({ _id: new ObjectId(id) })

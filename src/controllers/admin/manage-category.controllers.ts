@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
-import { Admin } from 'mongodb'
+import { Admin, ObjectId } from 'mongodb'
 import { HttpStatus } from '~/constants/httpStatus'
 import categoriesServices from '~/services/categories.service'
+import { databaseService } from '~/services/database.service'
 
 export const renderLevelsController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
@@ -51,6 +52,25 @@ export const updateLevelController = async (req: Request, res: Response) => {
 export const deleteLevelController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
   const { id } = req.body
+
+  const { totalItems, countNumber } =
+    await categoriesServices.checkCategoryHasItems({
+      type: 'level',
+      id
+    })
+  if (totalItems > 0) {
+    res.status(HttpStatus.BAD_REQUEST).json({
+      status: HttpStatus.BAD_REQUEST,
+      message: `Không thể xoá vì danh mục này có chứa nội dung học tập!\n
+      - Danh sách bài viết câu: ${countNumber.WS} bản ghi.\n
+      - Danh sách bài viết đoạn văn: ${countNumber.WP} bản ghi.\n
+      - Danh sách bài luyện nói câu: ${countNumber.SS} bản ghi.\n
+      - Danh sách bài luyện nói shadowing: ${countNumber.SSh} bản ghi.\n
+      - Danh sách bài luyện nghe video: ${countNumber.LV} bản ghi.`
+    })
+    return
+  }
+
   const result = await categoriesServices.deleteLevel(id)
   if (!result) {
     res.status(HttpStatus.BAD_REQUEST).json({
@@ -113,6 +133,25 @@ export const updateTypeController = async (req: Request, res: Response) => {
 export const deleteTypeController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
   const { id } = req.body
+
+  const { totalItems, countNumber } =
+    await categoriesServices.checkCategoryHasItems({
+      type: 'type',
+      id
+    })
+  if (totalItems > 0) {
+    res.status(HttpStatus.BAD_REQUEST).json({
+      status: HttpStatus.BAD_REQUEST,
+      message: `Không thể xoá vì danh mục này có chứa nội dung học tập!\n
+      - Danh sách bài viết câu: ${countNumber.WS} bản ghi.\n
+      - Danh sách bài viết đoạn văn: ${countNumber.WP} bản ghi.\n
+      - Danh sách bài luyện nói câu: ${countNumber.SS} bản ghi.\n
+      - Danh sách bài luyện nói shadowing: ${countNumber.SSh} bản ghi.\n
+      - Danh sách bài luyện nghe video: ${countNumber.LV} bản ghi.`
+    })
+    return
+  }
+
   const result = await categoriesServices.deleteType(id)
   if (!result) {
     res.status(HttpStatus.BAD_REQUEST).json({
@@ -175,6 +214,25 @@ export const updateTopicController = async (req: Request, res: Response) => {
 export const deleteTopicController = async (req: Request, res: Response) => {
   const admin = req.admin as Admin
   const { id } = req.body
+
+  const { totalItems, countNumber } =
+    await categoriesServices.checkCategoryHasItems({
+      type: 'topic',
+      id
+    })
+  if (totalItems > 0) {
+    res.status(HttpStatus.BAD_REQUEST).json({
+      status: HttpStatus.BAD_REQUEST,
+      message: `Không thể xoá vì danh mục này có chứa nội dung học tập!\n
+      - Danh sách bài viết câu: ${countNumber.WS} bản ghi.\n
+      - Danh sách bài viết đoạn văn: ${countNumber.WP} bản ghi.\n
+      - Danh sách bài luyện nói câu: ${countNumber.SS} bản ghi.\n
+      - Danh sách bài luyện nói shadowing: ${countNumber.SSh} bản ghi.\n
+      - Danh sách bài luyện nghe video: ${countNumber.LV} bản ghi.`
+    })
+    return
+  }
+
   const result = await categoriesServices.deleteTopic(id)
   if (!result) {
     res.status(HttpStatus.BAD_REQUEST).json({
