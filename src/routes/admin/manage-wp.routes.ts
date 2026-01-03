@@ -2,8 +2,12 @@ import { Router } from 'express'
 import {
   createWPListController,
   deleteWPListController,
+  downloadWPTemplateController,
   getListWpController,
+  importWPListController,
+  renderImportWpController,
   renderManageWpController,
+  saveImportedWPListController,
   updateWPListController
 } from '~/controllers/admin/manage-wp.controllers'
 import { requireAdminAuth } from '~/middlewares/admin.middleware'
@@ -45,6 +49,30 @@ manageWpRoutes.delete(
   '/delete',
   requireAdminAuth,
   wrapRequestHandler(deleteWPListController)
+)
+
+manageWpRoutes.get(
+  '/import',
+  requireAdminAuth,
+  wrapRequestHandler(renderImportWpController)
+)
+
+manageWpRoutes.get(
+  '/export-template',
+  requireAdminAuth,
+  wrapRequestHandler(downloadWPTemplateController)
+)
+
+manageWpRoutes.post(
+  '/import',
+  requireAdminAuth,
+  wrapRequestHandler(importWPListController)
+)
+
+manageWpRoutes.post(
+  '/import/save',
+  requireAdminAuth,
+  wrapRequestHandler(saveImportedWPListController)
 )
 
 export default manageWpRoutes

@@ -481,5 +481,19 @@ export const AdminApiBreakpoint = {
   // POST /admin/media/upload-image-to-tiny-mce
   // Description: Upload image to TinyMCE
   // Body: { images: File }
-  UPLOAD_IMAGE_TO_TINY_MCE: `${adminApiUrl}/media/upload-image-to-tiny-mce`
+  UPLOAD_IMAGE_TO_TINY_MCE: `${adminApiUrl}/media/upload-image-to-tiny-mce`,
+
+  // GET /admin/wp/export-template
+  // Description: Download file Excel template
+  DOWNLOAD_WP_TEMPLATE: `${adminApiUrl}/wp/export-template`,
+
+  // POST /admin/wp/import
+  // Description: Import file Excel và parse dữ liệu (chưa lưu vào DB)
+  // Body: FormData with 'excelFile' field
+  IMPORT_WP_LIST: `${adminApiUrl}/wp/import`,
+
+  // POST /admin/wp/import/save
+  // Description: Lưu dữ liệu đã import vào hệ thống
+  // Body: { wpParagraphs: WPParagraph[] }
+  SAVE_IMPORTED_WP_LIST: `${adminApiUrl}/wp/import/save`
 }
