@@ -800,3 +800,72 @@ body:not(.login-page__body) {
 .back-to-top__button:hover {
   background-color: rgba(23, 125, 255, 0.9);
 }
+
+.import-ws__guide {
+  padding: 20px 0;
+}
+
+.import-ws__step {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  height: 100%;
+}
+
+.import-ws__dropzone {
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.import-ws__dropzone:hover {
+  border-color: #177dff;
+  background-color: #e7f3ff;
+}
+
+.import-ws__dropzone--dragover {
+  border-color: #177dff;
+  background-color: #e7f3ff;
+  transform: scale(1.02);
+}
+
+.import-ws__dropzone-content {
+  pointer-events: none;
+}
+
+.import-ws__preview {
+  margin-top: 20px;
+}
+
+.import-ws__preview .table {
+  margin-bottom: 0;
+}
+
+.import-ws__preview-card {
+  border: 1px solid #dee2e6;
+  transition: box-shadow 0.2s ease;
+}
+
+.import-ws__preview-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.import-ws__preview-card .card-header {
+  cursor: pointer;
+}
+
+.import-ws__preview-card .btn[data-bs-toggle="collapse"] {
+  transition: transform 0.3s ease;
+}
+
+.import-ws__preview-card .btn[data-bs-toggle="collapse"][aria-expanded="true"] i {
+  transform: rotate(180deg);
+}

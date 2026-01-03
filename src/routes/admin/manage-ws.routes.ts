@@ -2,8 +2,12 @@ import { Router } from 'express'
 import {
   createWSListController,
   deleteWSListController,
+  downloadWSTemplateController,
   getListWsController,
+  importWSListController,
+  renderImportWsController,
   renderManageWsController,
+  saveImportedWSListController,
   updateWSListController
 } from '~/controllers/admin/manage-ws.controllers'
 import { requireAdminAuth } from '~/middlewares/admin.middleware'
@@ -58,6 +62,40 @@ manageWsRoutes.delete(
   '/delete',
   requireAdminAuth,
   wrapRequestHandler(deleteWSListController)
+)
+
+// GET /admin/ws/import
+// Description: Render page import ws
+manageWsRoutes.get(
+  '/import',
+  requireAdminAuth,
+  wrapRequestHandler(renderImportWsController)
+)
+
+// GET /admin/ws/export-template
+// Description: Download file Excel template
+manageWsRoutes.get(
+  '/export-template',
+  requireAdminAuth,
+  wrapRequestHandler(downloadWSTemplateController)
+)
+
+// POST /admin/ws/import
+// Description: Import file Excel và parse dữ liệu (chưa lưu vào DB)
+// Body: FormData with 'excelFile' field
+manageWsRoutes.post(
+  '/import',
+  requireAdminAuth,
+  wrapRequestHandler(importWSListController)
+)
+
+// POST /admin/ws/import/save
+// Description: Lưu dữ liệu đã import vào hệ thống
+// Body: { wsLists: WSList[] }
+manageWsRoutes.post(
+  '/import/save',
+  requireAdminAuth,
+  wrapRequestHandler(saveImportedWSListController)
 )
 
 export default manageWsRoutes

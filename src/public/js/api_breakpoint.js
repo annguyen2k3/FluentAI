@@ -270,6 +270,20 @@ export const AdminApiBreakpoint = {
   // Body: {id: string}
   DELETE_WS_LIST: `${adminApiUrl}/ws/delete`,
 
+  // GET /admin/ws/export-template
+  // Description: Download file Excel template
+  DOWNLOAD_WS_TEMPLATE: `${adminApiUrl}/ws/export-template`,
+
+  // POST /admin/ws/import
+  // Description: Import file Excel và parse dữ liệu (chưa lưu vào DB)
+  // Body: FormData with 'excelFile' field
+  IMPORT_WS_LIST: `${adminApiUrl}/ws/import`,
+
+  // POST /admin/ws/import/save
+  // Description: Lưu dữ liệu đã import vào hệ thống
+  // Body: { wsLists: WSList[] }
+  SAVE_IMPORTED_WS_LIST: `${adminApiUrl}/ws/import/save`,
+
   // GET /admin/wp/list
   // Description: Get list of wp
   // Query: page, limit, level, topic, type, search, sortKey, sortOrder

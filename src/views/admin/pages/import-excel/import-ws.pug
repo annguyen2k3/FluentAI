@@ -1,0 +1,566 @@
+extends ../../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Quản lý nội dung
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href=`${prefixAdmin}/ws`) Luyện viết câu
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Import file Excel
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card")
+        div(class="card-header")
+          h4(class="card-title") Import file Excel - Luyện viết câu
+        div(class="card-body")
+          div(id="importGuideSection" class="import-ws__guide")
+            div(class="row")
+              div(class="col-md-12 mb-4")
+                div(class="card border-primary")
+                  div(class="card-header bg-primary text-white")
+                    h5(class="mb-0")
+                      i(class="fas fa-info-circle me-2")
+                      | Hướng dẫn import
+                  div(class="card-body")
+                    div(class="row")
+                      div(class="col-md-6 mb-4")
+                        div(class="import-ws__step")
+                          h6(class="text-primary mb-3")
+                            i(class="fas fa-download me-2")
+                            | Bước 1: Tải file mẫu
+                          p(class="text-muted mb-3") Tải file mẫu Excel để chỉnh sửa khớp với dữ liệu hiện tại của hệ thống.
+                          button(type="button" class="btn btn-success" id="downloadTemplateBtn")
+                            i(class="fas fa-file-excel me-2")
+                            | Tải file mẫu Excel
+                      div(class="col-md-6 mb-4")
+                        div(class="import-ws__step")
+                          h6(class="text-primary mb-3")
+                            i(class="fas fa-upload me-2")
+                            | Bước 2: Import file
+                          p(class="text-muted mb-3") Chọn file Excel đã chỉnh sửa hoặc kéo thả vào vùng bên dưới.
+                          div(class="import-ws__dropzone" id="dropzone")
+                            div(class="import-ws__dropzone-content")
+                              i(class="fas fa-cloud-upload-alt fa-3x text-muted mb-3")
+                              p(class="mb-2") Chọn tệp hoặc kéo thả vào đây
+                              p(class="text-muted small mb-0") Chỉ chấp nhận file Excel (.xlsx, .xls)
+                            input(type="file" id="excelFileInput" accept=".xlsx,.xls" class="d-none")
+
+            div(id="importLoading" class="text-center py-5 d-none")
+              div(class="spinner-border text-primary" role="status")
+                span(class="visually-hidden") Đang tải
+              p(class="text-muted mt-3") Đang xử lý file, vui lòng chờ...
+
+          div(id="previewSection" class="import-ws__preview d-none")
+            div(class="card border-success")
+              div(class="card-header bg-success text-white")
+                h5(class="mb-0")
+                  i(class="fas fa-check-circle me-2")
+                  | Preview dữ liệu import
+              div(class="card-body")
+                div(class="alert alert-info")
+                  i(class="fas fa-info-circle me-2")
+                  | Đã import thành công 
+                  strong(id="previewSuccessCount") 0
+                  |  danh sách. 
+                  strong(id="previewFailedCount") 0
+                  |  danh sách thất bại.
+                div(id="previewListContainer")
+                div(class="d-flex justify-content-end gap-2 mt-4")
+                  button(type="button" class="btn btn-secondary" id="cancelImportBtn")
+                    i(class="fas fa-times me-2")
+                    | Hủy dữ liệu
+                  button(type="button" class="btn btn-primary" id="saveImportBtn")
+                    i(class="fas fa-save me-2")
+                    | Lưu
+
+block scripts
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    const prefixAdmin = '#{prefixAdmin}'
+    const topicsData = !{JSON.stringify(topics || [])}
+    const levelsData = !{JSON.stringify(levels || [])}
+    let importedData = null
+
+    const topicIdToTitleMap = new Map()
+    topicsData.forEach(topic => {
+      topicIdToTitleMap.set(topic._id, topic.title)
+    })
+
+    const levelIdToTitleMap = new Map()
+    levelsData.forEach(level => {
+      levelIdToTitleMap.set(level._id, level.title)
+    })
+
+    const elements = {
+      guideSection: document.getElementById('importGuideSection'),
+      previewSection: document.getElementById('previewSection'),
+      dropzone: document.getElementById('dropzone'),
+      excelFileInput: document.getElementById('excelFileInput'),
+      downloadTemplateBtn: document.getElementById('downloadTemplateBtn'),
+      importLoading: document.getElementById('importLoading'),
+      previewSuccessCount: document.getElementById('previewSuccessCount'),
+      previewFailedCount: document.getElementById('previewFailedCount'),
+      cancelImportBtn: document.getElementById('cancelImportBtn'),
+      saveImportBtn: document.getElementById('saveImportBtn')
+    }
+
+    function showNotification(type, message) {
+      if (typeof window.FAdmin !== 'undefined' && window.FAdmin.showNotification) {
+        window.FAdmin.showNotification(type, message)
+      } else if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+
+    function showDetailedError(error) {
+      let errorMessage = 'Không thể import file Excel'
+      let errorDetail = ''
+      let errorStack = ''
+      let httpStatus = ''
+
+      console.log('Raw error object:', error)
+
+      if (error) {
+        if (error.status) {
+          httpStatus = error.status
+        }
+
+        if (error.error) {
+          errorDetail = String(error.error)
+          if (!error.message || error.message === 'Lỗi khi đọc file Excel' || error.message === 'Lỗi khi upload file Excel') {
+            errorMessage = String(error.error)
+          } else {
+            errorMessage = String(error.message)
+          }
+        } else if (error.message) {
+          errorMessage = String(error.message)
+        }
+
+        if (error.stack) {
+          errorStack = String(error.stack)
+        }
+      }
+
+      console.error('Import Error:', {
+        message: errorMessage,
+        error: error,
+        detail: errorDetail,
+        status: httpStatus,
+        stack: errorStack
+      })
+
+      if (typeof swal !== 'undefined') {
+        const contentDiv = document.createElement('div')
+        contentDiv.style.cssText = 'text-align: left; max-width: 600px;'
+        
+        if (httpStatus) {
+          const statusDiv = document.createElement('div')
+          statusDiv.style.cssText = 'margin-bottom: 15px; padding: 8px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;'
+          statusDiv.innerHTML = `<strong style="color: #856404;">HTTP Status:</strong> <span style="color: #856404;">${httpStatus}</span>`
+          contentDiv.appendChild(statusDiv)
+        }
+
+        const messageDiv = document.createElement('div')
+        messageDiv.style.cssText = 'margin-bottom: 15px;'
+        messageDiv.innerHTML = `
+          <p style="font-weight: bold; font-size: 14px; color: #dc3545; margin-bottom: 8px;">Thông báo lỗi:</p>
+          <p style="font-size: 14px; color: #333; line-height: 1.5; margin: 0;">${escapeHtml(errorMessage)}</p>
+        `
+        contentDiv.appendChild(messageDiv)
+
+        if (errorDetail && errorDetail !== errorMessage) {
+          const detailDiv = document.createElement('div')
+          detailDiv.style.cssText = 'margin-top: 15px;'
+          detailDiv.innerHTML = `
+            <p style="font-weight: bold; font-size: 14px; color: #dc3545; margin-bottom: 8px;">Chi tiết lỗi:</p>
+            <div style="background: #f8f9fa; padding: 12px; border-radius: 4px; border-left: 4px solid #dc3545;">
+              <p style="font-size: 13px; color: #212529; margin: 0; white-space: pre-wrap; word-wrap: break-word; font-family: "Courier New", monospace;">${escapeHtml(errorDetail)}</p>
+            </div>
+          `
+          contentDiv.appendChild(detailDiv)
+        }
+
+        swal({
+          title: 'Lỗi Import!',
+          content: contentDiv,
+          icon: 'error',
+          buttons: {
+            confirm: {
+              text: 'Đóng',
+              className: 'btn btn-primary'
+            }
+          }
+        })
+      } else {
+        const fullMessage = errorMessage + (errorDetail ? '\n\nChi tiết: ' + errorDetail : '')
+        alert(fullMessage)
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return ''
+      const div = document.createElement('div')
+      div.textContent = text
+      return div.innerHTML
+    }
+
+    function getTopicTitle(topic) {
+      if (!topic) return '-'
+      if (typeof topic === 'object' && topic.title) {
+        return topic.title
+      }
+      if (typeof topic === 'string') {
+        return topicIdToTitleMap.get(topic) || topic
+      }
+      return '-'
+    }
+
+    function getLevelTitle(level) {
+      if (!level) return '-'
+      if (typeof level === 'object' && level.title) {
+        return level.title
+      }
+      if (typeof level === 'string') {
+        return levelIdToTitleMap.get(level) || level
+      }
+      return '-'
+    }
+
+    function setupDropzone() {
+      const dropzone = elements.dropzone
+      const fileInput = elements.excelFileInput
+
+      dropzone.addEventListener('click', () => {
+        fileInput.click()
+      })
+
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault()
+        dropzone.classList.add('import-ws__dropzone--dragover')
+      })
+
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('import-ws__dropzone--dragover')
+      })
+
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault()
+        dropzone.classList.remove('import-ws__dropzone--dragover')
+        const files = e.dataTransfer.files
+        if (files.length > 0) {
+          handleFileSelect(files[0])
+        }
+      })
+
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handleFileSelect(e.target.files[0])
+        }
+      })
+    }
+
+    function handleFileSelect(file) {
+      if (!file.name.match(/\.(xlsx|xls)$/i)) {
+        showNotification('error', 'Vui lòng chọn file Excel (.xlsx hoặc .xls)')
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('excelFile', file)
+
+      elements.importLoading.classList.remove('d-none')
+      elements.guideSection.classList.add('d-none')
+
+      fetch(AdminApiBreakpoint.IMPORT_WS_LIST, {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+      })
+        .then(async response => {
+          const data = await response.json()
+          if (!response.ok) {
+            const errorObj = {
+              ...data,
+              status: response.status
+            }
+            throw errorObj
+          }
+          return data
+        })
+        .then(data => {
+          importedData = data.data
+          const previewData = data.data.details || { success: [], failed: [] }
+          showPreview(previewData)
+        })
+        .catch(error => {
+          console.log('Caught error in handleFileSelect:', error)
+          showDetailedError(error)
+          elements.importLoading.classList.add('d-none')
+          elements.guideSection.classList.remove('d-none')
+        })
+    }
+
+    function showPreview(data) {
+      elements.importLoading.classList.add('d-none')
+      elements.guideSection.classList.add('d-none')
+      elements.previewSection.classList.remove('d-none')
+
+      const successList = data.success || []
+      const failedList = data.failed || []
+      const successCount = successList.length
+      const failedCount = failedList.length
+
+      elements.previewSuccessCount.textContent = successCount
+      elements.previewFailedCount.textContent = failedCount
+
+      const container = document.getElementById('previewListContainer')
+      container.innerHTML = ''
+
+      if (successList.length > 0) {
+        successList.forEach((item, index) => {
+          const card = document.createElement('div')
+          card.className = 'card mb-3 import-ws__preview-card'
+          card.innerHTML = `
+            <div class="card-header bg-light">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="mb-0">
+                    <strong>Danh sách ${index + 1}:</strong> ${escapeHtml(item.title || '-')}
+                  </h6>
+                  <small class="text-muted">
+                    <span class="me-3">Chủ đề: ${escapeHtml(getTopicTitle(item.topic))}</span>
+                    <span class="me-3">Cấp độ: ${escapeHtml(getLevelTitle(item.level))}</span>
+                    <span class="me-3">Số câu: ${item.list?.length || 0}</span>
+                    <span class="me-3">Slug: ${escapeHtml(item.slug || '-')}</span>
+                    <span class="me-3">Vị trí: ${item.pos || '-'}</span>
+                    <span class="badge ${item.isActive !== false ? 'bg-success' : 'bg-danger'}">
+                      ${item.isActive !== false ? 'Đang hoạt động' : 'Ngưng hoạt động'}
+                    </span>
+                  </small>
+                </div>
+                <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${index}" aria-expanded="false">
+                  <i class="fas fa-chevron-down"></i> Xem chi tiết
+                </button>
+              </div>
+            </div>
+            <div class="collapse" id="collapse-${index}">
+              <div class="card-body">
+                <h6 class="mb-3">Danh sách câu:</h6>
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                      <tr>
+                        <th style="width: 80px;">Vị trí</th>
+                        <th>Nội dung câu</th>
+                        <th>Gợi ý từ vựng</th>
+                      </tr>
+                    </thead>
+                    <tbody id="sentences-${index}">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          `
+          container.appendChild(card)
+
+          if (item.list && item.list.length > 0) {
+            const sentencesTbody = document.getElementById(`sentences-${index}`)
+            item.list.forEach((sentence) => {
+              const sentenceRow = document.createElement('tr')
+              const hints = sentence.hint && Array.isArray(sentence.hint) ? sentence.hint : []
+              
+              let hintsHtml = ''
+              if (hints.length > 0) {
+                hintsHtml = hints.map((hint, hIndex) => {
+                  let hintText = `<strong>Gợi ý ${hIndex + 1}:</strong>\n`
+                  hintText += `  • Từ vựng (EN): ${escapeHtml(hint.vocabulary_en || '-')}\n`
+                  hintText += `  • Dịch (VI): ${escapeHtml(hint.translate || '-')}\n`
+                  hintText += `  • Loại từ: ${escapeHtml(hint.type || '-')}`
+                  if (hint.sentence_example && hint.sentence_example.en && hint.sentence_example.vi) {
+                    hintText += `\n  • Ví dụ (EN): ${escapeHtml(hint.sentence_example.en)}\n`
+                    hintText += `  • Ví dụ (VI): ${escapeHtml(hint.sentence_example.vi)}`
+                  }
+                  return hintText
+                }).join('\n\n')
+              } else {
+                hintsHtml = '<span class="text-muted">Không có gợi ý</span>'
+              }
+              
+              sentenceRow.innerHTML = `
+                <td>${sentence.pos || '-'}</td>
+                <td>${escapeHtml(sentence.content || '-')}</td>
+                <td style="white-space: pre-line; font-size: 12px; line-height: 1.6;">${hintsHtml}</td>
+              `
+              sentencesTbody.appendChild(sentenceRow)
+            })
+          } else {
+            const sentencesTbody = document.getElementById(`sentences-${index}`)
+            const emptyRow = document.createElement('tr')
+            emptyRow.innerHTML = `
+              <td colspan="3" class="text-center text-muted">Không có câu nào</td>
+            `
+            sentencesTbody.appendChild(emptyRow)
+          }
+        })
+      }
+
+      if (failedList.length > 0) {
+        failedList.forEach((item, index) => {
+          const card = document.createElement('div')
+          card.className = 'card mb-3 border-danger'
+          card.innerHTML = `
+            <div class="card-header bg-danger text-white">
+              <h6 class="mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Danh sách ${successCount + index + 1}: ${escapeHtml(item.title || '-')}
+              </h6>
+            </div>
+            <div class="card-body">
+              <p class="text-danger mb-0">
+                <strong>Lỗi:</strong> ${escapeHtml(item.error || 'Lỗi không xác định')}
+              </p>
+            </div>
+          `
+          container.appendChild(card)
+        })
+      }
+
+      if (successList.length === 0 && failedList.length === 0) {
+        const emptyDiv = document.createElement('div')
+        emptyDiv.className = 'text-center text-muted py-5'
+        emptyDiv.textContent = 'Không có dữ liệu để hiển thị'
+        container.appendChild(emptyDiv)
+      }
+    }
+
+    function downloadTemplate() {
+      fetch(AdminApiBreakpoint.DOWNLOAD_WS_TEMPLATE, {
+        method: 'GET',
+        credentials: 'same-origin'
+      })
+        .then(async response => {
+          if (!response.ok) {
+            const error = await response.json()
+            throw error
+          }
+          return response.blob()
+        })
+        .then(blob => {
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `ws-list-template-${Date.now()}.xlsx`
+          document.body.appendChild(a)
+          a.click()
+          window.URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+          showNotification('success', 'Đã tải file mẫu thành công!')
+        })
+        .catch(error => {
+          showDetailedError(error)
+        })
+    }
+
+    function cancelImport() {
+      if (confirm('Bạn có muốn quay lại trang import? Dữ liệu đã import CHƯA ĐƯỢC LƯU trong hệ thống!')) {
+        importedData = null
+        elements.previewSection.classList.add('d-none')
+        elements.guideSection.classList.remove('d-none')
+        elements.excelFileInput.value = ''
+      }
+    }
+
+    function saveImport() {
+      const details = importedData?.details || { success: [], failed: [] }
+      const successList = details.success || []
+      const successCount = successList.length
+
+      if (successCount === 0) {
+        showNotification('error', 'Không có dữ liệu để lưu')
+        return
+      }
+
+      if (!confirm(`Bạn có chắc chắn muốn lưu ${successCount} danh sách vào hệ thống?`)) {
+        return
+      }
+
+      elements.saveImportBtn.disabled = true
+      elements.saveImportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Đang lưu...'
+
+      fetch(AdminApiBreakpoint.SAVE_IMPORTED_WS_LIST, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ wsLists: successList })
+      })
+        .then(async response => {
+          const data = await response.json()
+          if (!response.ok) {
+            throw data
+          }
+          return data
+        })
+        .then(data => {
+          showNotification('success', data.message || `Đã lưu thành công ${successCount} danh sách vào hệ thống!`)
+          setTimeout(() => {
+            window.location.href = `${prefixAdmin}/ws`
+          }, 1500)
+        })
+        .catch(error => {
+          showDetailedError(error)
+          elements.saveImportBtn.disabled = false
+          elements.saveImportBtn.innerHTML = '<i class="fas fa-save me-2"></i> Lưu'
+        })
+    }
+
+    elements.downloadTemplateBtn.addEventListener('click', downloadTemplate)
+    elements.cancelImportBtn.addEventListener('click', cancelImport)
+    elements.saveImportBtn.addEventListener('click', saveImport)
+
+    setupDropzone()
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const currentPath = window.location.pathname
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active')
+      })
+
+      if (currentPath.includes('/ws')) {
+        const wsLink = document.querySelector(`a[href="${prefixAdmin}/ws"]`)
+        if (wsLink && wsLink.parentElement) {
+          wsLink.parentElement.classList.add('active')
+          const parentCollapse = wsLink.closest('.collapse')
+          if (parentCollapse) {
+            parentCollapse.classList.add('show')
+            const parentLink = parentCollapse.previousElementSibling
+            if (parentLink) {
+              parentLink.classList.remove('collapsed')
+              parentLink.setAttribute('aria-expanded', 'true')
+            }
+          }
+        }
+      }
+    })

@@ -84,3 +84,59 @@ export const getNameFromFullName = (fullName: string) => {
   nameArr.pop()
   return nameArr.join('')
 }
+
+export const handleUploadExcel = async (req: Request) => {
+  const formidable = (await import('formidable')).default
+  const form = formidable({
+    maxFileSize: 1024 * 1024 * 10, // 10MB
+    maxFields: 1,
+    keepExtensions: true,
+    filter: function ({ name, mimetype }) {
+      const allowedMimes = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+        'application/vnd.ms-excel' // .xls
+      ]
+      const valid =
+        name === 'excelFile' &&
+        Boolean(mimetype && allowedMimes.includes(mimetype))
+      if (!valid) {
+        form.emit(
+          'error' as any,
+          new Error(
+            'Chỉ chấp nhận file Excel (.xlsx, .xls) với key là excelFile'
+          ) as any
+        )
+      }
+      return valid
+    }
+  })
+
+  return new Promise<Buffer>((resolve, reject) => {
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        return reject(err)
+      }
+      const excelFile = files.excelFile
+      if (!excelFile) {
+        return reject(new Error('Không có file Excel upload'))
+      }
+
+      const file = Array.isArray(excelFile) ? excelFile[0] : excelFile
+      const filePath = file.filepath
+
+      try {
+        // Đọc file vào buffer
+        const buffer = await fs.promises.readFile(filePath)
+        // Xóa file tạm
+        await fs.promises.unlink(filePath)
+        resolve(buffer)
+      } catch (error) {
+        // Xóa file tạm nếu có lỗi
+        try {
+          await fs.promises.unlink(filePath)
+        } catch {}
+        reject(error)
+      }
+    })
+  })
+}

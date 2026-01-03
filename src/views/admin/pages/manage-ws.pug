@@ -21,9 +21,13 @@ block main-content
         div(class="card-header")
           div(class="d-flex align-items-center justify-content-between")
             h4(class="card-title") Danh sách nội dung viết câu
-            button(class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#writingSentenceModal" onclick="openAddModal()")
-              i(class="fas fa-plus")
-              |  Thêm nội dung mới
+            div(class="d-flex gap-2")
+              a(class="btn btn-success" href=`${prefixAdmin}/ws/import`)
+                i(class="fas fa-file-excel")
+                |  Import file Excel
+              button(class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#writingSentenceModal" onclick="openAddModal()")
+                i(class="fas fa-plus")
+                |  Thêm nội dung mới
         div(class="card-body")
           div(class="writing-sentence__filters row g-3 mb-3 align-items-end")
             div(class="col-lg-2 col-md-4 col-sm-6")
