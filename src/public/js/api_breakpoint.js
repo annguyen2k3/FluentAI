@@ -523,5 +523,19 @@ export const AdminApiBreakpoint = {
   // POST /admin/speaking-shadowing/import/save
   // Description: Lưu dữ liệu đã import vào hệ thống
   // Body: { svShadowings: SVShadowing[] }
-  SAVE_IMPORTED_SV_LIST: `${adminApiUrl}/speaking-shadowing/import/save`
+  SAVE_IMPORTED_SV_LIST: `${adminApiUrl}/speaking-shadowing/import/save`,
+
+  // GET /admin/listening-video/export-template
+  // Description: Download file Excel template
+  DOWNLOAD_LV_TEMPLATE: `${adminApiUrl}/listening-video/export-template`,
+
+  // POST /admin/listening-video/import
+  // Description: Import file Excel và parse dữ liệu (chưa lưu vào DB)
+  // Body: FormData with 'excelFile' field
+  IMPORT_LV_LIST: `${adminApiUrl}/listening-video/import`,
+
+  // POST /admin/listening-video/import/save
+  // Description: Lưu dữ liệu đã import vào hệ thống
+  // Body: { lvVideos: ListeningVideo[] }
+  SAVE_IMPORTED_LV_LIST: `${adminApiUrl}/listening-video/import/save`
 }

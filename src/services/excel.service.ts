@@ -6,6 +6,10 @@ import SSList, { SentenceSpeakingType } from '~/models/schemas/ss-list.schema'
 import SVShadowing, {
   ShadowingSentenceType
 } from '~/models/schemas/sv-shadowing.schema'
+import ListeningVideo, {
+  TranscriptSentenceType,
+  QuestionType
+} from '~/models/schemas/lv-video.schemas'
 import { VocabularyHintType } from '~/models/Other'
 import { PartOfSpeech } from '~/constants/enum'
 import categoriesServices from '~/services/categories.service'
@@ -1420,6 +1424,445 @@ class ExcelService {
     })
 
     return svShadowings
+  }
+
+  async createLVTemplate(): Promise<Buffer | ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook()
+
+    const setupSheet = workbook.addWorksheet('SETUP')
+
+    const topics = await categoriesServices.getTopics()
+    const levels = await categoriesServices.getLevels()
+
+    setupSheet.getCell('A1').value = 'TOPIC_ID'
+    setupSheet.getCell('B1').value = 'TOPIC_TITLE'
+    topics.forEach((topic, index) => {
+      setupSheet.getCell(`A${index + 2}`).value = topic._id?.toString() || ''
+      setupSheet.getCell(`B${index + 2}`).value = topic.title || ''
+    })
+
+    setupSheet.getCell('D1').value = 'LEVEL_ID'
+    setupSheet.getCell('E1').value = 'LEVEL_TITLE'
+    levels.forEach((level, index) => {
+      setupSheet.getCell(`D${index + 2}`).value = level._id?.toString() || ''
+      setupSheet.getCell(`E${index + 2}`).value = level.title || ''
+    })
+
+    setupSheet.getRow(1).font = { bold: true }
+    setupSheet.columns.forEach((col) => {
+      col.width = 20
+    })
+    setupSheet.state = 'hidden'
+
+    const worksheet = workbook.addWorksheet('Template')
+
+    worksheet.addRow([
+      'TITLE',
+      'LEVEL',
+      'TOPICS',
+      'VIDEO_URL',
+      'THUMBNAIL_URL',
+      'TIME',
+      'DESCRIPTION',
+      'SLUG',
+      'POS',
+      'IS_ACTIVE'
+    ])
+    worksheet.addRow([
+      'Bài nghe về chào hỏi',
+      levels[0]?.title || '',
+      topics[0]?.title || '',
+      'https://www.youtube.com/watch?v=VIDEO_ID',
+      '',
+      '5',
+      'Bài nghe về cách chào hỏi cơ bản',
+      'bai-nghe-ve-chao-hoi',
+      '1',
+      'true'
+    ])
+
+    worksheet.addRow([])
+
+    worksheet.addRow([
+      'TRANSCRIPT_POS',
+      'START_TIME',
+      'END_TIME',
+      'EN_TEXT',
+      'VI_TEXT'
+    ])
+
+    worksheet.addRow([
+      '1',
+      '0',
+      '5',
+      'Hello, how are you?',
+      'Xin chào, bạn khỏe không?'
+    ])
+
+    worksheet.addRow(['2', '5', '10', 'What is your name?', 'Tên bạn là gì?'])
+
+    worksheet.addRow([])
+
+    worksheet.addRow([
+      'QUESTION_POS',
+      'QUESTION',
+      'OPTION_A',
+      'OPTION_B',
+      'OPTION_C',
+      'OPTION_D',
+      'ANSWER',
+      'EXPLANATION'
+    ])
+
+    worksheet.addRow([
+      '1',
+      'What did the person say?',
+      'Hello',
+      'Goodbye',
+      'Thank you',
+      'Please',
+      'A',
+      'The person said hello'
+    ])
+
+    worksheet.getRow(1).font = { bold: true }
+    worksheet.getRow(4).font = { bold: true }
+    worksheet.getRow(8).font = { bold: true }
+
+    const levelRange = `SETUP!$E$2:$E$${levels.length + 1}`
+    worksheet.getCell('B2').dataValidation = {
+      type: 'list',
+      allowBlank: false,
+      formulae: [levelRange],
+      showErrorMessage: true,
+      errorStyle: 'stop',
+      errorTitle: 'Lỗi',
+      error: 'Vui lòng chọn từ danh sách cấp độ'
+    }
+
+    worksheet.columns.forEach((column) => {
+      column.width = 20
+    })
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    return Buffer.from(buffer)
+  }
+
+  async importLVList(
+    fileBuffer: Buffer | ArrayBuffer
+  ): Promise<ListeningVideo[]> {
+    const workbook = new ExcelJS.Workbook()
+    let buffer: Buffer
+    if (Buffer.isBuffer(fileBuffer)) {
+      buffer = fileBuffer
+    } else {
+      buffer = Buffer.from(new Uint8Array(fileBuffer as ArrayBuffer))
+    }
+    await workbook.xlsx.load(buffer as any)
+
+    const listeningVideos: ListeningVideo[] = []
+
+    const setupSheet = workbook.getWorksheet('SETUP')
+    if (!setupSheet) {
+      throw new Error('Không tìm thấy sheet SETUP trong file Excel')
+    }
+
+    const topicIdToTitleMap = new Map<string, string>()
+    const topicTitleToIdMap = new Map<string, string>()
+    const levelIdToTitleMap = new Map<string, string>()
+    const levelTitleToIdMap = new Map<string, string>()
+
+    let row = 2
+    while (setupSheet.getCell(`A${row}`).value) {
+      const topicId = String(setupSheet.getCell(`A${row}`).value || '').trim()
+      const topicTitle = String(
+        setupSheet.getCell(`B${row}`).value || ''
+      ).trim()
+      if (topicId && topicTitle) {
+        topicIdToTitleMap.set(topicId, topicTitle)
+        topicTitleToIdMap.set(topicTitle, topicId)
+      }
+      row++
+    }
+
+    row = 2
+    while (setupSheet.getCell(`D${row}`).value) {
+      const levelId = String(setupSheet.getCell(`D${row}`).value || '').trim()
+      const levelTitle = String(
+        setupSheet.getCell(`E${row}`).value || ''
+      ).trim()
+      if (levelId && levelTitle) {
+        levelIdToTitleMap.set(levelId, levelTitle)
+        levelTitleToIdMap.set(levelTitle, levelId)
+      }
+      row++
+    }
+
+    workbook.eachSheet((worksheet) => {
+      if (worksheet.name === 'SETUP') {
+        return
+      }
+
+      const rows = worksheet.getSheetValues() as any[][]
+      if (rows.length < 8) {
+        return
+      }
+
+      const headerRow = rows[1] || []
+      const dataRow = rows[2] || []
+
+      if (
+        headerRow[1] !== 'TITLE' ||
+        headerRow[2] !== 'LEVEL' ||
+        headerRow[3] !== 'TOPICS' ||
+        headerRow[4] !== 'VIDEO_URL'
+      ) {
+        throw new Error(
+          `Sheet "${worksheet.name}": Định dạng file không đúng. Vui lòng sử dụng file template mới nhất.`
+        )
+      }
+
+      const title = String(dataRow[1] || '').trim()
+      const levelTitle = String(dataRow[2] || '').trim()
+      const topicsStr = String(dataRow[3] || '').trim()
+      const videoUrlRaw = this.extractUrlFromCell(dataRow[4])
+      const videoUrl = normalizeYouTubeUrl(videoUrlRaw)
+      const thumbnailUrlRaw = this.extractUrlFromCell(dataRow[5])
+      const thumbnailUrl = thumbnailUrlRaw ? thumbnailUrlRaw.trim() : ''
+      const time = dataRow[6] ? Number(dataRow[6]) : undefined
+      const description = String(dataRow[7] || '').trim() || undefined
+      const slug = String(dataRow[8] || '').trim()
+      const pos = Number(dataRow[9]) || 1
+
+      let isActive = true
+      const isActiveValue = dataRow[10]
+      if (
+        isActiveValue !== undefined &&
+        isActiveValue !== null &&
+        isActiveValue !== ''
+      ) {
+        if (typeof isActiveValue === 'boolean') {
+          isActive = isActiveValue
+        } else {
+          const isActiveStr = String(isActiveValue).trim().toLowerCase()
+          isActive = isActiveStr === 'true' || isActiveStr === '1'
+        }
+      }
+
+      if (!title || !levelTitle || !topicsStr || !videoUrl) {
+        throw new Error(
+          `Sheet "${worksheet.name}": Thiếu thông tin bắt buộc (TITLE, LEVEL, TOPICS, VIDEO_URL)`
+        )
+      }
+
+      const levelId = levelTitleToIdMap.get(levelTitle)
+      if (!levelId) {
+        throw new Error(
+          `Sheet "${worksheet.name}": Không tìm thấy cấp độ "${levelTitle}" trong bảng lookup`
+        )
+      }
+
+      if (!ObjectId.isValid(levelId)) {
+        throw new Error(
+          `Sheet "${worksheet.name}": LEVEL_ID không hợp lệ: ${levelId}`
+        )
+      }
+
+      const topicsArray = topicsStr
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+      const topicIds: ObjectId[] = []
+      for (const topicTitle of topicsArray) {
+        const topicId = topicTitleToIdMap.get(topicTitle)
+        if (!topicId) {
+          throw new Error(
+            `Sheet "${worksheet.name}": Không tìm thấy chủ đề "${topicTitle}" trong bảng lookup`
+          )
+        }
+        if (!ObjectId.isValid(topicId)) {
+          throw new Error(
+            `Sheet "${worksheet.name}": TOPIC_ID không hợp lệ: ${topicId}`
+          )
+        }
+        topicIds.push(new ObjectId(topicId))
+      }
+
+      if (topicIds.length === 0) {
+        throw new Error(`Sheet "${worksheet.name}": Phải có ít nhất một chủ đề`)
+      }
+
+      function parseTimeToSeconds(timeValue: any): number {
+        if (typeof timeValue === 'number') {
+          return timeValue
+        }
+        const timeStr = String(timeValue || '').trim()
+        if (!timeStr) return 0
+
+        if (timeStr.includes(':')) {
+          const parts = timeStr.split(':')
+          if (parts.length === 2) {
+            const minutes = parseInt(parts[0], 10) || 0
+            const seconds = parseFloat(parts[1]) || 0
+            return minutes * 60 + seconds
+          }
+        }
+
+        const numValue = parseFloat(timeStr)
+        return isNaN(numValue) ? 0 : numValue
+      }
+
+      const transcript: TranscriptSentenceType[] = []
+      let transcriptHeaderRow = -1
+      let questionHeaderRow = -1
+
+      for (let i = 3; i <= rows.length; i++) {
+        const row = rows[i] || []
+        if (!row || row.length === 0) continue
+
+        const firstCell = String(row[1] || '').trim()
+        if (firstCell === 'TRANSCRIPT_POS') {
+          transcriptHeaderRow = i
+        } else if (firstCell === 'QUESTION_POS') {
+          questionHeaderRow = i
+          break
+        }
+      }
+
+      if (transcriptHeaderRow === -1) {
+        throw new Error(
+          `Sheet "${worksheet.name}": Không tìm thấy header TRANSCRIPT_POS`
+        )
+      }
+
+      const transcriptEndRow =
+        questionHeaderRow !== -1 ? questionHeaderRow : rows.length + 1
+
+      for (let i = transcriptHeaderRow + 1; i < transcriptEndRow; i++) {
+        const row = rows[i] || []
+        if (!row || row.length === 0) continue
+
+        const firstCell = String(row[1] || '').trim()
+        if (firstCell === 'TRANSCRIPT_POS' || firstCell === 'QUESTION_POS') {
+          continue
+        }
+
+        const transcriptPos = Number(row[1] || 0)
+        const startTimeValue = row[2]
+        const endTimeValue = row[3]
+        const enText = String(row[4] || '').trim()
+        const viText = String(row[5] || '').trim()
+
+        if (!enText) {
+          continue
+        }
+
+        const startTime = parseTimeToSeconds(startTimeValue)
+        const endTime = parseTimeToSeconds(endTimeValue)
+
+        transcript.push({
+          pos: transcriptPos || transcript.length + 1,
+          startTime: startTime,
+          endTime: endTime,
+          enText: enText,
+          viText: viText || undefined
+        })
+      }
+
+      if (transcript.length === 0) {
+        throw new Error(
+          `Sheet "${worksheet.name}": Không có câu transcript nào`
+        )
+      }
+
+      const questions: QuestionType[] = []
+
+      if (questionHeaderRow === -1) {
+        throw new Error(
+          `Sheet "${worksheet.name}": Không tìm thấy header QUESTION_POS`
+        )
+      }
+
+      for (let i = questionHeaderRow + 1; i <= rows.length; i++) {
+        const row = rows[i] || []
+        if (!row || row.length === 0) continue
+
+        const firstCell = String(row[1] || '').trim()
+        if (firstCell === 'QUESTION_POS' || firstCell === 'TRANSCRIPT_POS') {
+          continue
+        }
+
+        const questionPos = Number(row[1] || 0)
+        const question = String(row[2] || '').trim()
+        const optionA = String(row[3] || '').trim()
+        const optionB = String(row[4] || '').trim()
+        const optionC = String(row[5] || '').trim()
+        const optionD = String(row[6] || '').trim()
+        const answer = String(row[7] || '')
+          .trim()
+          .toUpperCase()
+        const explanation = String(row[8] || '').trim()
+
+        if (
+          !question ||
+          !optionA ||
+          !optionB ||
+          !optionC ||
+          !optionD ||
+          !answer
+        ) {
+          continue
+        }
+
+        if (!['A', 'B', 'C', 'D'].includes(answer)) {
+          throw new Error(
+            `Sheet "${worksheet.name}": Đáp án đúng phải là A, B, C hoặc D (dòng ${i + 1})`
+          )
+        }
+
+        questions.push({
+          _id: new ObjectId(),
+          pos: questionPos || questions.length + 1,
+          question: question,
+          options: {
+            A: optionA,
+            B: optionB,
+            C: optionC,
+            D: optionD
+          },
+          answer: answer as 'A' | 'B' | 'C' | 'D',
+          explanation: explanation || ''
+        })
+      }
+
+      if (questions.length === 0) {
+        throw new Error(`Sheet "${worksheet.name}": Không có câu hỏi nào`)
+      }
+
+      let finalThumbnailUrl = thumbnailUrl || undefined
+      if (!finalThumbnailUrl && videoUrl) {
+        finalThumbnailUrl = this.generateYouTubeThumbnailUrl(videoUrl)
+      }
+
+      const listeningVideo = new ListeningVideo({
+        title,
+        level: new ObjectId(levelId),
+        topics: topicIds,
+        videoUrl,
+        thumbnailUrl: finalThumbnailUrl,
+        transcript,
+        questions,
+        time,
+        description,
+        slug: slug || undefined,
+        pos,
+        isActive
+      })
+
+      listeningVideos.push(listeningVideo)
+    })
+
+    return listeningVideos
   }
 }
 

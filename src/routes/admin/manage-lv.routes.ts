@@ -2,8 +2,12 @@ import { Router } from 'express'
 import {
   createLVListController,
   deleteLVListController,
+  downloadLVTemplateController,
   getListLvController,
+  importLVListController,
+  renderImportLvController,
   renderManageLvController,
+  saveImportedLVListController,
   updateLVListController
 } from '~/controllers/admin/manage-lv.controllers'
 import { requireAdminAuth } from '~/middlewares/admin.middleware'
@@ -45,6 +49,30 @@ manageLvRoutes.delete(
   '/delete',
   requireAdminAuth,
   wrapRequestHandler(deleteLVListController)
+)
+
+manageLvRoutes.get(
+  '/import',
+  requireAdminAuth,
+  wrapRequestHandler(renderImportLvController)
+)
+
+manageLvRoutes.get(
+  '/export-template',
+  requireAdminAuth,
+  wrapRequestHandler(downloadLVTemplateController)
+)
+
+manageLvRoutes.post(
+  '/import',
+  requireAdminAuth,
+  wrapRequestHandler(importLVListController)
+)
+
+manageLvRoutes.post(
+  '/import/save',
+  requireAdminAuth,
+  wrapRequestHandler(saveImportedLVListController)
 )
 
 export default manageLvRoutes
