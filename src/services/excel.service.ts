@@ -2,6 +2,7 @@ import ExcelJS from 'exceljs'
 import { ObjectId } from 'mongodb'
 import WSList, { SentenceWriteType } from '~/models/schemas/ws-list.schema'
 import WPParagraph from '~/models/schemas/wp-paragraph.schema'
+import SSList, { SentenceSpeakingType } from '~/models/schemas/ss-list.schema'
 import { VocabularyHintType } from '~/models/Other'
 import { PartOfSpeech } from '~/constants/enum'
 import categoriesServices from '~/services/categories.service'
@@ -764,6 +765,277 @@ class ExcelService {
     })
 
     return wpParagraphs
+  }
+
+  async createSSTemplate(): Promise<Buffer | ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook()
+
+    const setupSheet = workbook.addWorksheet('SETUP')
+
+    const topics = await categoriesServices.getTopics()
+    const levels = await categoriesServices.getLevels()
+
+    setupSheet.getCell('A1').value = 'TOPIC_ID'
+    setupSheet.getCell('B1').value = 'TOPIC_TITLE'
+    topics.forEach((topic, index) => {
+      setupSheet.getCell(`A${index + 2}`).value = topic._id?.toString() || ''
+      setupSheet.getCell(`B${index + 2}`).value = topic.title || ''
+    })
+
+    setupSheet.getCell('D1').value = 'LEVEL_ID'
+    setupSheet.getCell('E1').value = 'LEVEL_TITLE'
+    levels.forEach((level, index) => {
+      setupSheet.getCell(`D${index + 2}`).value = level._id?.toString() || ''
+      setupSheet.getCell(`E${index + 2}`).value = level.title || ''
+    })
+
+    setupSheet.getRow(1).font = { bold: true }
+    setupSheet.columns.forEach((col) => {
+      col.width = 20
+    })
+    setupSheet.state = 'hidden'
+
+    const worksheet = workbook.addWorksheet('Template')
+
+    worksheet.addRow(['TITLE', 'TOPIC', 'LEVEL', 'SLUG', 'POS', 'IS_ACTIVE'])
+    worksheet.addRow([
+      'Chào hỏi cơ bản',
+      topics[0]?.title || '',
+      levels[0]?.title || '',
+      'chao-hoi-co-ban',
+      '1',
+      'true'
+    ])
+
+    worksheet.addRow([])
+
+    worksheet.addRow([
+      'SENTENCE_POS',
+      'SENTENCE_EN',
+      'SENTENCE_VI',
+      'PHONETICS',
+      'AUDIO_URL'
+    ])
+
+    worksheet.addRow([
+      '1',
+      'Hello, how are you?',
+      'Xin chào, bạn khỏe không?',
+      '/həˈloʊ haʊ ɑr ju/',
+      'https://example.com/audio/hello.mp3'
+    ])
+
+    worksheet.addRow([
+      '2',
+      'What is your name?',
+      'Tên bạn là gì?',
+      '/wʌt ɪz jʊr neɪm/',
+      'https://example.com/audio/what-name.mp3'
+    ])
+
+    worksheet.getRow(1).font = { bold: true }
+    worksheet.getRow(4).font = { bold: true }
+
+    const topicRange = `SETUP!$B$2:$B$${topics.length + 1}`
+    worksheet.getCell('B2').dataValidation = {
+      type: 'list',
+      allowBlank: false,
+      formulae: [topicRange],
+      showErrorMessage: true,
+      errorStyle: 'stop',
+      errorTitle: 'Lỗi',
+      error: 'Vui lòng chọn từ danh sách chủ đề'
+    }
+
+    const levelRange = `SETUP!$E$2:$E$${levels.length + 1}`
+    worksheet.getCell('C2').dataValidation = {
+      type: 'list',
+      allowBlank: false,
+      formulae: [levelRange],
+      showErrorMessage: true,
+      errorStyle: 'stop',
+      errorTitle: 'Lỗi',
+      error: 'Vui lòng chọn từ danh sách cấp độ'
+    }
+
+    worksheet.columns.forEach((column) => {
+      column.width = 20
+    })
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    return Buffer.from(buffer)
+  }
+
+  async importSSList(fileBuffer: Buffer | ArrayBuffer): Promise<SSList[]> {
+    const workbook = new ExcelJS.Workbook()
+    let buffer: Buffer
+    if (Buffer.isBuffer(fileBuffer)) {
+      buffer = fileBuffer
+    } else {
+      buffer = Buffer.from(new Uint8Array(fileBuffer as ArrayBuffer))
+    }
+    await workbook.xlsx.load(buffer as any)
+
+    const ssLists: SSList[] = []
+
+    const setupSheet = workbook.getWorksheet('SETUP')
+    if (!setupSheet) {
+      throw new Error('Không tìm thấy sheet SETUP trong file Excel')
+    }
+
+    const topicIdToTitleMap = new Map<string, string>()
+    const topicTitleToIdMap = new Map<string, string>()
+    const levelIdToTitleMap = new Map<string, string>()
+    const levelTitleToIdMap = new Map<string, string>()
+
+    let row = 2
+    while (setupSheet.getCell(`A${row}`).value) {
+      const topicId = String(setupSheet.getCell(`A${row}`).value || '').trim()
+      const topicTitle = String(
+        setupSheet.getCell(`B${row}`).value || ''
+      ).trim()
+      if (topicId && topicTitle) {
+        topicIdToTitleMap.set(topicId, topicTitle)
+        topicTitleToIdMap.set(topicTitle, topicId)
+      }
+      row++
+    }
+
+    row = 2
+    while (setupSheet.getCell(`D${row}`).value) {
+      const levelId = String(setupSheet.getCell(`D${row}`).value || '').trim()
+      const levelTitle = String(
+        setupSheet.getCell(`E${row}`).value || ''
+      ).trim()
+      if (levelId && levelTitle) {
+        levelIdToTitleMap.set(levelId, levelTitle)
+        levelTitleToIdMap.set(levelTitle, levelId)
+      }
+      row++
+    }
+
+    workbook.eachSheet((worksheet) => {
+      if (worksheet.name === 'SETUP') {
+        return
+      }
+
+      const rows = worksheet.getSheetValues() as any[][]
+      if (rows.length < 5) {
+        return
+      }
+
+      const headerRow = rows[1] || []
+      const dataRow = rows[2] || []
+
+      if (
+        headerRow[1] !== 'TITLE' ||
+        headerRow[2] !== 'TOPIC' ||
+        headerRow[3] !== 'LEVEL'
+      ) {
+        throw new Error(
+          `Sheet "${worksheet.name}": Định dạng file không đúng. Vui lòng sử dụng file template mới nhất.`
+        )
+      }
+
+      const title = String(dataRow[1] || '').trim()
+      const topicTitle = String(dataRow[2] || '').trim()
+      const levelTitle = String(dataRow[3] || '').trim()
+      const slug = String(dataRow[4] || '').trim()
+      const pos = Number(dataRow[5]) || 1
+
+      let isActive = true
+      const isActiveValue = dataRow[6]
+      if (
+        isActiveValue !== undefined &&
+        isActiveValue !== null &&
+        isActiveValue !== ''
+      ) {
+        if (typeof isActiveValue === 'boolean') {
+          isActive = isActiveValue
+        } else {
+          const isActiveStr = String(isActiveValue).trim().toLowerCase()
+          isActive = isActiveStr === 'true' || isActiveStr === '1'
+        }
+      }
+
+      if (!title || !topicTitle || !levelTitle) {
+        throw new Error(
+          `Sheet "${worksheet.name}": Thiếu thông tin bắt buộc (TITLE, TOPIC, LEVEL)`
+        )
+      }
+
+      const topicId = topicTitleToIdMap.get(topicTitle)
+      const levelId = levelTitleToIdMap.get(levelTitle)
+
+      if (!topicId) {
+        throw new Error(
+          `Sheet "${worksheet.name}": Không tìm thấy chủ đề "${topicTitle}" trong bảng lookup`
+        )
+      }
+
+      if (!levelId) {
+        throw new Error(
+          `Sheet "${worksheet.name}": Không tìm thấy cấp độ "${levelTitle}" trong bảng lookup`
+        )
+      }
+
+      if (!ObjectId.isValid(topicId)) {
+        throw new Error(
+          `Sheet "${worksheet.name}": TOPIC_ID không hợp lệ: ${topicId}`
+        )
+      }
+
+      if (!ObjectId.isValid(levelId)) {
+        throw new Error(
+          `Sheet "${worksheet.name}": LEVEL_ID không hợp lệ: ${levelId}`
+        )
+      }
+
+      const sentences: SentenceSpeakingType[] = []
+
+      for (let i = 5; i <= rows.length; i++) {
+        const row = rows[i] || []
+        if (!row || row.length === 0) continue
+
+        const sentencePos = Number(row[1] || 0)
+        const sentenceEn = String(row[2] || '').trim()
+        const sentenceVi = String(row[3] || '').trim()
+        const phonetics = String(row[4] || '').trim()
+        const audioUrl = String(row[5] || '').trim()
+
+        if (!sentenceEn || !sentenceVi) continue
+
+        sentences.push({
+          pos: sentencePos,
+          enSentence: sentenceEn,
+          viSentence: sentenceVi,
+          phonetics: phonetics || '',
+          audioUrl: audioUrl || ''
+        })
+      }
+
+      const list = sentences.sort((a, b) => a.pos - b.pos)
+
+      if (list.length === 0) {
+        throw new Error(
+          `Sheet "${worksheet.name}": Không có câu nào trong danh sách`
+        )
+      }
+
+      const ssList = new SSList({
+        title,
+        topic: new ObjectId(topicId),
+        level: new ObjectId(levelId),
+        slug: slug || undefined,
+        pos,
+        isActive,
+        list
+      })
+
+      ssLists.push(ssList)
+    })
+
+    return ssLists
   }
 }
 

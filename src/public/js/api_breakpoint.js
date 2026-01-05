@@ -339,6 +339,20 @@ export const AdminApiBreakpoint = {
   // Body: {id: string}
   DELETE_SS_LIST: `${adminApiUrl}/speaking-sentence/delete`,
 
+  // GET /admin/speaking-sentence/export-template
+  // Description: Download file Excel template
+  DOWNLOAD_SS_TEMPLATE: `${adminApiUrl}/speaking-sentence/export-template`,
+
+  // POST /admin/speaking-sentence/import
+  // Description: Import file Excel và parse dữ liệu (chưa lưu vào DB)
+  // Body: FormData with 'excelFile' field
+  IMPORT_SS_LIST: `${adminApiUrl}/speaking-sentence/import`,
+
+  // POST /admin/speaking-sentence/import/save
+  // Description: Lưu dữ liệu đã import vào hệ thống
+  // Body: { ssLists: SSList[] }
+  SAVE_IMPORTED_SS_LIST: `${adminApiUrl}/speaking-sentence/import/save`,
+
   // GET /admin/speaking-shadowing/list
   // Description: Get list of sv shadowing
   // Query: page, limit, level, topic, search, sortKey, sortOrder, isActive
