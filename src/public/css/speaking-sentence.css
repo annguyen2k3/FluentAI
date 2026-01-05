@@ -255,6 +255,11 @@
   transition: all var(--transition-fast);
 }
 
+.speaking-card__actions {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
 .speaking-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
@@ -264,6 +269,14 @@
   font-weight: 700;
   color: #1f2937;
   margin: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  min-height: calc(1.4em * 2);
+  max-height: calc(1.4em * 2);
 }
 
 .speaking-card__badge {
@@ -303,9 +316,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-md);
-  align-items: center;
+  align-items: flex-start;
   color: #334155;
   font-size: 0.95rem;
+  line-height: 1.5;
+  min-height: calc(1.5em * 2);
+  max-height: calc(1.5em * 2);
+  overflow: hidden;
+  align-content: flex-start;
 }
 
 .speaking-card__attempt {
@@ -335,15 +353,18 @@
   -webkit-line-clamp: 3;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.5;
+  min-height: calc(1.5em * 3);
+  max-height: calc(1.5em * 3);
 }
 
 .lv-card__time {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-left: auto;
   color: #475467;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .lv-topic-badge {
@@ -759,10 +780,24 @@
 
 .sv-card .speaking-card__title {
   display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  min-height: calc(1.4em * 2);
+  max-height: calc(1.4em * 2);
+}
+
+.sv-card .speaking-card__title {
+  display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.4;
+  min-height: calc(1.4em * 2);
+  max-height: calc(1.4em * 2);
 }
 
 .speaking-choose__pagination {

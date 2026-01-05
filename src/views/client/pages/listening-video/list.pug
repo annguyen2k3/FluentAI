@@ -253,20 +253,20 @@ block scripts
                                     <span class="speaking-card__badge" data-status="${status.key}">${status.label}</span>
                                 </div>
                                 <div class="d-flex flex-wrap gap-3 align-items-center speaking-card__meta">
-                                    <span><i class="${levelIcon} me-1"></i>${levelTitle}</span>
-                                    ${topicsHtml}
                                     ${
                                         timeText
-                                            ? `<span class="lv-card__time ms-auto"><i class="far fa-clock"></i>${timeText}</span>`
+                                            ? `<span class="lv-card__time"><i class="far fa-clock"></i>${timeText}</span>`
                                             : ''
                                     }
+                                    <span><i class="${levelIcon} me-1"></i>${levelTitle}</span>
+                                    ${topicsHtml}
                                 </div>
                                 ${
                                     description
                                         ? `<p class="lv-card__description" title="${description}">${description}</p>`
                                         : ''
                                 }
-                                <div class="d-flex flex-column gap-2 mt-3">
+                                <div class="d-flex flex-column gap-2 mt-3 speaking-card__actions">
                                     <a href="/listening-video/comprehensible-input/${slug}" class="btn btn-outline-primary speaking-card__btn speaking-card__btn--small w-100 text-start">
                                         <span class="fw-medium">Phương pháp:</span>
                                         &nbsp;Comprehensible Input
