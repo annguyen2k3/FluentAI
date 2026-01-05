@@ -43,3 +43,32 @@ export function createSlug(text: string): string {
     new Date().getTime()
   )
 }
+
+// Normalize YouTube URL to full URL format
+export function normalizeYouTubeUrl(url: string): string {
+  if (!url || typeof url !== 'string') return url
+  
+  const trimmedUrl = url.trim()
+  if (!trimmedUrl) return trimmedUrl
+  
+  if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+    return trimmedUrl
+  }
+  
+  if (trimmedUrl.startsWith('//')) {
+    return `https:${trimmedUrl}`
+  }
+  
+  if (trimmedUrl.startsWith('/watch') || trimmedUrl.startsWith('watch')) {
+    if (trimmedUrl.startsWith('/')) {
+      return `https://www.youtube.com${trimmedUrl}`
+    }
+    return `https://www.youtube.com/${trimmedUrl}`
+  }
+  
+  if (trimmedUrl.includes('youtube.com') || trimmedUrl.includes('youtu.be')) {
+    return `https://${trimmedUrl.replace(/^https?:\/\//, '')}`
+  }
+  
+  return trimmedUrl
+}

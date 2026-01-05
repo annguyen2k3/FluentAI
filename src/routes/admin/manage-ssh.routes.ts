@@ -2,8 +2,12 @@ import { Router } from 'express'
 import {
   createSVListController,
   deleteSVListController,
+  downloadSVTemplateController,
   getListSvController,
+  importSVListController,
+  renderImportSshController,
   renderManageSshController,
+  saveImportedSVListController,
   updateSVListController
 } from '~/controllers/admin/manage-ssh.controllers'
 import { requireAdminAuth } from '~/middlewares/admin.middleware'
@@ -45,6 +49,30 @@ manageSshRoutes.delete(
   '/delete',
   requireAdminAuth,
   wrapRequestHandler(deleteSVListController)
+)
+
+manageSshRoutes.get(
+  '/import',
+  requireAdminAuth,
+  wrapRequestHandler(renderImportSshController)
+)
+
+manageSshRoutes.get(
+  '/export-template',
+  requireAdminAuth,
+  wrapRequestHandler(downloadSVTemplateController)
+)
+
+manageSshRoutes.post(
+  '/import',
+  requireAdminAuth,
+  wrapRequestHandler(importSVListController)
+)
+
+manageSshRoutes.post(
+  '/import/save',
+  requireAdminAuth,
+  wrapRequestHandler(saveImportedSVListController)
 )
 
 export default manageSshRoutes

@@ -1,0 +1,682 @@
+extends ../../layouts/default.pug
+
+block main-content
+  div(class="page-header")
+    ul(class="breadcrumbs")
+      li(class="nav-home")
+        a(href=`${prefixAdmin}/dashboard`)
+          i(class="fas fa-home")
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Quản lý nội dung
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href=`${prefixAdmin}/speaking-shadowing`) Luyện phát âm (Shadowing)
+      li(class="separator")
+        i(class="fas fa-angle-right")
+      li(class="nav-item")
+        a(href="#") Import file Excel
+
+  div(class="row")
+    div(class="col-md-12")
+      div(class="card")
+        div(class="card-header")
+          h4(class="card-title") Import file Excel - Luyện phát âm Shadowing
+        div(class="card-body")
+          div(id="importGuideSection" class="import-ssh__guide")
+            div(class="row")
+              div(class="col-md-12 mb-4")
+                div(class="card border-primary")
+                  div(class="card-header bg-primary text-white")
+                    h5(class="mb-0")
+                      i(class="fas fa-info-circle me-2")
+                      | Hướng dẫn import
+                  div(class="card-body")
+                    div(class="row")
+                      div(class="col-md-6 mb-4")
+                        div(class="import-ssh__step")
+                          h6(class="text-primary mb-3")
+                            i(class="fas fa-download me-2")
+                            | Bước 1: Tải file mẫu
+                          p(class="text-muted mb-3") Tải file mẫu Excel để chỉnh sửa khớp với dữ liệu hiện tại của hệ thống.
+                          button(type="button" class="btn btn-success" id="downloadTemplateBtn")
+                            i(class="fas fa-file-excel me-2")
+                            | Tải file mẫu Excel
+                      div(class="col-md-6 mb-4")
+                        div(class="import-ssh__step")
+                          h6(class="text-primary mb-3")
+                            i(class="fas fa-upload me-2")
+                            | Bước 2: Import file
+                          p(class="text-muted mb-3") Chọn file Excel đã chỉnh sửa hoặc kéo thả vào vùng bên dưới.
+                          div(class="import-ssh__dropzone" id="dropzone")
+                            div(class="import-ssh__dropzone-content")
+                              i(class="fas fa-cloud-upload-alt fa-3x text-muted mb-3")
+                              p(class="mb-2") Chọn tệp hoặc kéo thả vào đây
+                              p(class="text-muted small mb-0") Chỉ chấp nhận file Excel (.xlsx, .xls)
+                            input(type="file" id="excelFileInput" accept=".xlsx,.xls" class="d-none")
+
+            div(id="importLoading" class="text-center py-5 d-none")
+              div(class="spinner-border text-primary" role="status")
+                span(class="visually-hidden") Đang tải
+              p(class="text-muted mt-3") Đang xử lý file, vui lòng chờ...
+
+          div(id="previewSection" class="import-ssh__preview d-none")
+            div(class="card border-success")
+              div(class="card-header bg-success text-white")
+                h5(class="mb-0")
+                  i(class="fas fa-check-circle me-2")
+                  | Preview dữ liệu import
+              div(class="card-body")
+                div(class="alert alert-info")
+                  i(class="fas fa-info-circle me-2")
+                  | Đã import thành công 
+                  strong(id="previewSuccessCount") 0
+                  |  bài nghe. 
+                  strong(id="previewFailedCount") 0
+                  |  bài nghe thất bại.
+                div(id="previewListContainer")
+                div(class="d-flex justify-content-end gap-2 mt-4")
+                  button(type="button" class="btn btn-secondary" id="cancelImportBtn")
+                    i(class="fas fa-times me-2")
+                    | Hủy dữ liệu
+                  button(type="button" class="btn btn-primary" id="saveImportBtn")
+                    i(class="fas fa-save me-2")
+                    | Lưu
+
+block scripts
+  script(type="module").
+    import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
+
+    const prefixAdmin = '#{prefixAdmin}'
+    const topicsData = !{JSON.stringify(topics || [])}
+    const levelsData = !{JSON.stringify(levels || [])}
+    let importedData = null
+
+    const topicIdToTitleMap = new Map()
+    topicsData.forEach(topic => {
+      topicIdToTitleMap.set(topic._id, topic.title)
+    })
+
+    const levelIdToTitleMap = new Map()
+    levelsData.forEach(level => {
+      levelIdToTitleMap.set(level._id, level.title)
+    })
+
+    const elements = {
+      guideSection: document.getElementById('importGuideSection'),
+      previewSection: document.getElementById('previewSection'),
+      dropzone: document.getElementById('dropzone'),
+      excelFileInput: document.getElementById('excelFileInput'),
+      downloadTemplateBtn: document.getElementById('downloadTemplateBtn'),
+      importLoading: document.getElementById('importLoading'),
+      previewSuccessCount: document.getElementById('previewSuccessCount'),
+      previewFailedCount: document.getElementById('previewFailedCount'),
+      cancelImportBtn: document.getElementById('cancelImportBtn'),
+      saveImportBtn: document.getElementById('saveImportBtn')
+    }
+
+    function showNotification(type, message) {
+      if (typeof window.FAdmin !== 'undefined' && window.FAdmin.showNotification) {
+        window.FAdmin.showNotification(type, message)
+      } else if (typeof swal !== 'undefined') {
+        swal({
+          title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+          text: message,
+          icon: type,
+          button: 'OK'
+        })
+      } else {
+        alert(message)
+      }
+    }
+
+    function showDetailedError(error) {
+      let errorMessage = 'Không thể import file Excel'
+      let errorDetail = ''
+      let errorStack = ''
+      let httpStatus = ''
+
+      console.log('Raw error object:', error)
+
+      if (error) {
+        if (error.status) {
+          httpStatus = error.status
+        }
+
+        if (error.error) {
+          errorDetail = String(error.error)
+          if (!error.message || error.message === 'Lỗi khi đọc file Excel' || error.message === 'Lỗi khi upload file Excel') {
+            errorMessage = String(error.error)
+          } else {
+            errorMessage = String(error.message)
+          }
+        } else if (error.message) {
+          errorMessage = String(error.message)
+        }
+
+        if (error.stack) {
+          errorStack = String(error.stack)
+        }
+      }
+
+      console.error('Import Error:', {
+        message: errorMessage,
+        error: error,
+        detail: errorDetail,
+        status: httpStatus,
+        stack: errorStack
+      })
+
+      if (typeof swal !== 'undefined') {
+        const contentDiv = document.createElement('div')
+        contentDiv.style.cssText = 'text-align: left; max-width: 600px;'
+        
+        if (httpStatus) {
+          const statusDiv = document.createElement('div')
+          statusDiv.style.cssText = 'margin-bottom: 15px; padding: 8px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;'
+          statusDiv.innerHTML = `<strong style="color: #856404;">HTTP Status:</strong> <span style="color: #856404;">${httpStatus}</span>`
+          contentDiv.appendChild(statusDiv)
+        }
+
+        const messageDiv = document.createElement('div')
+        messageDiv.style.cssText = 'margin-bottom: 15px;'
+        messageDiv.innerHTML = `
+          <p style="font-weight: bold; font-size: 14px; color: #dc3545; margin-bottom: 8px;">Thông báo lỗi:</p>
+          <p style="font-size: 14px; color: #333; line-height: 1.5; margin: 0;">${escapeHtml(errorMessage)}</p>
+        `
+        contentDiv.appendChild(messageDiv)
+
+        if (errorDetail && errorDetail !== errorMessage) {
+          const detailDiv = document.createElement('div')
+          detailDiv.style.cssText = 'margin-top: 15px;'
+          detailDiv.innerHTML = `
+            <p style="font-weight: bold; font-size: 14px; color: #dc3545; margin-bottom: 8px;">Chi tiết lỗi:</p>
+            <div style="background: #f8f9fa; padding: 12px; border-radius: 4px; border-left: 4px solid #dc3545;">
+              <p style="font-size: 13px; color: #212529; margin: 0; white-space: pre-wrap; word-wrap: break-word; font-family: "Courier New", monospace;">${escapeHtml(errorDetail)}</p>
+            </div>
+          `
+          contentDiv.appendChild(detailDiv)
+        }
+
+        swal({
+          title: 'Lỗi Import!',
+          content: contentDiv,
+          icon: 'error',
+          buttons: {
+            confirm: {
+              text: 'Đóng',
+              className: 'btn btn-primary'
+            }
+          }
+        })
+      } else {
+        const fullMessage = errorMessage + (errorDetail ? '\n\nChi tiết: ' + errorDetail : '')
+        alert(fullMessage)
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return ''
+      const div = document.createElement('div')
+      div.textContent = text
+      return div.innerHTML
+    }
+
+    function getTopicTitle(topic) {
+      if (!topic) return '-'
+      if (typeof topic === 'object' && topic.title) {
+        return topic.title
+      }
+      if (typeof topic === 'string') {
+        return topicIdToTitleMap.get(topic) || topic
+      }
+      return '-'
+    }
+
+    function getLevelTitle(level) {
+      if (!level) return '-'
+      if (typeof level === 'object' && level.title) {
+        return level.title
+      }
+      if (typeof level === 'string') {
+        return levelIdToTitleMap.get(level) || level
+      }
+      return '-'
+    }
+
+    function formatTime(seconds) {
+      if (typeof seconds !== 'number' || isNaN(seconds)) {
+        return '-'
+      }
+      return seconds.toString()
+    }
+
+    function extractYouTubeVideoId(url) {
+      if (!url || typeof url !== 'string') return null
+      
+      if (url.includes('youtube.com/embed/')) {
+        const match = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/)
+        return match ? match[1] : null
+      }
+      
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
+      const match = url.match(regExp)
+      return match && match[2].length === 11 ? match[2] : null
+    }
+
+    function normalizeYouTubeUrl(url) {
+      if (!url || typeof url !== 'string') return url
+      
+      const trimmedUrl = url.trim()
+      if (!trimmedUrl) return trimmedUrl
+      
+      if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+        return trimmedUrl
+      }
+      
+      if (trimmedUrl.startsWith('//')) {
+        return `https:${trimmedUrl}`
+      }
+      
+      if (trimmedUrl.startsWith('/watch') || trimmedUrl.startsWith('watch')) {
+        if (trimmedUrl.startsWith('/')) {
+          return `https://www.youtube.com${trimmedUrl}`
+        }
+        return `https://www.youtube.com/${trimmedUrl}`
+      }
+      
+      if (trimmedUrl.includes('youtube.com') || trimmedUrl.includes('youtu.be')) {
+        return `https://${trimmedUrl.replace(/^https?:\/\//, '')}`
+      }
+      
+      return trimmedUrl
+    }
+
+    function getYouTubeEmbedUrl(url) {
+      if (!url || typeof url !== 'string') return ''
+      
+      const normalizedUrl = normalizeYouTubeUrl(url)
+      
+      if (normalizedUrl.includes('youtube.com/embed/')) {
+        try {
+          const urlObj = new URL(normalizedUrl)
+          return `${urlObj.origin}${urlObj.pathname}${urlObj.search}`
+        } catch (e) {
+          return normalizedUrl
+        }
+      }
+      
+      const videoId = extractYouTubeVideoId(normalizedUrl)
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`
+      }
+      return ''
+    }
+
+    function setupDropzone() {
+      const dropzone = elements.dropzone
+      const fileInput = elements.excelFileInput
+
+      dropzone.addEventListener('click', () => {
+        fileInput.click()
+      })
+
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault()
+        dropzone.classList.add('import-ssh__dropzone--dragover')
+      })
+
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('import-ssh__dropzone--dragover')
+      })
+
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault()
+        dropzone.classList.remove('import-ssh__dropzone--dragover')
+        const files = e.dataTransfer.files
+        if (files.length > 0) {
+          handleFileSelect(files[0])
+        }
+      })
+
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handleFileSelect(e.target.files[0])
+        }
+      })
+    }
+
+    function handleFileSelect(file) {
+      if (!file.name.match(/\.(xlsx|xls)$/i)) {
+        showNotification('error', 'Vui lòng chọn file Excel (.xlsx hoặc .xls)')
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('excelFile', file)
+
+      elements.importLoading.classList.remove('d-none')
+      elements.guideSection.classList.add('d-none')
+
+      fetch(AdminApiBreakpoint.IMPORT_SV_LIST, {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+      })
+        .then(async response => {
+          const data = await response.json()
+          if (!response.ok) {
+            const errorObj = {
+              ...data,
+              status: response.status
+            }
+            throw errorObj
+          }
+          return data
+        })
+        .then(data => {
+          importedData = data.data
+          const previewData = data.data.details || { success: [], failed: [] }
+          showPreview(previewData)
+        })
+        .catch(error => {
+          console.log('Caught error in handleFileSelect:', error)
+          showDetailedError(error)
+          elements.importLoading.classList.add('d-none')
+          elements.guideSection.classList.remove('d-none')
+        })
+    }
+
+    function showPreview(data) {
+      elements.importLoading.classList.add('d-none')
+      elements.guideSection.classList.add('d-none')
+      elements.previewSection.classList.remove('d-none')
+
+      const successList = data.success || []
+      const failedList = data.failed || []
+      const successCount = successList.length
+      const failedCount = failedList.length
+
+      elements.previewSuccessCount.textContent = successCount
+      elements.previewFailedCount.textContent = failedCount
+
+      const container = document.getElementById('previewListContainer')
+      container.innerHTML = ''
+
+      if (successList.length > 0) {
+        successList.forEach((item, index) => {
+          let videoUrlStr = ''
+          if (item.videoUrl) {
+            if (typeof item.videoUrl === 'string') {
+              videoUrlStr = item.videoUrl.trim()
+            } else if (item.videoUrl && typeof item.videoUrl === 'object') {
+              videoUrlStr = item.videoUrl.toString ? item.videoUrl.toString() : JSON.stringify(item.videoUrl)
+            } else {
+              videoUrlStr = String(item.videoUrl).trim()
+            }
+          }
+          
+          if (!videoUrlStr || videoUrlStr === '[object Object]' || videoUrlStr === 'null' || videoUrlStr === 'undefined') {
+            videoUrlStr = ''
+          }
+          
+          if (videoUrlStr) {
+            videoUrlStr = normalizeYouTubeUrl(videoUrlStr)
+          }
+          
+          const embedUrl = getYouTubeEmbedUrl(videoUrlStr)
+          
+          let thumbnailUrlStr = ''
+          if (item.thumbnailUrl) {
+            if (typeof item.thumbnailUrl === 'string') {
+              thumbnailUrlStr = item.thumbnailUrl.trim()
+            } else if (item.thumbnailUrl && typeof item.thumbnailUrl === 'object') {
+              thumbnailUrlStr = item.thumbnailUrl.toString ? item.thumbnailUrl.toString() : JSON.stringify(item.thumbnailUrl)
+            } else {
+              thumbnailUrlStr = String(item.thumbnailUrl).trim()
+            }
+          }
+          
+          if (!thumbnailUrlStr || thumbnailUrlStr === '[object Object]' || thumbnailUrlStr === 'null' || thumbnailUrlStr === 'undefined') {
+            thumbnailUrlStr = ''
+          }
+          
+          if (!thumbnailUrlStr && videoUrlStr) {
+            const videoId = extractYouTubeVideoId(videoUrlStr)
+            if (videoId) {
+              thumbnailUrlStr = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+            }
+          }
+          
+          const card = document.createElement('div')
+          card.className = 'card mb-3 import-ssh__preview-card'
+          card.innerHTML = `
+            <div class="card-header bg-light">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="mb-0">
+                    <strong>Bài nghe ${index + 1}:</strong> ${escapeHtml(item.title || '-')}
+                  </h6>
+                  <small class="text-muted">
+                    <span class="me-3">Chủ đề: ${escapeHtml(getTopicTitle(item.topic))}</span>
+                    <span class="me-3">Cấp độ: ${escapeHtml(getLevelTitle(item.level))}</span>
+                    <span class="me-3">Số câu transcript: ${item.transcript?.length || 0}</span>
+                    <span class="me-3">Slug: ${escapeHtml(item.slug || '-')}</span>
+                    <span class="me-3">Vị trí: ${item.pos || '-'}</span>
+                    <span class="badge ${item.isActive !== false ? 'bg-success' : 'bg-danger'}">
+                      ${item.isActive !== false ? 'Đang hoạt động' : 'Ngưng hoạt động'}
+                    </span>
+                  </small>
+                </div>
+                <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${index}" aria-expanded="false">
+                  <i class="fas fa-chevron-down"></i> Xem chi tiết
+                </button>
+              </div>
+            </div>
+            <div class="collapse" id="collapse-${index}">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <h6 class="mb-2">Video URL:</h6>
+                    <p class="text-muted">
+                      ${videoUrlStr ? `<a href="${escapeHtml(videoUrlStr)}" target="_blank" class="text-break">${escapeHtml(videoUrlStr)}</a>` : '<span class="text-muted">-</span>'}
+                    </p>
+                    ${embedUrl ? `
+                      <div class="mt-3 shadowing__video-preview">
+                        <h6 class="mb-2">Video Preview:</h6>
+                        <div class="ratio ratio-16x9">
+                          <iframe class="shadowing__video-iframe" src="${escapeHtml(embedUrl)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                      </div>
+                    ` : ''}
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <h6 class="mb-2">Thumbnail URL:</h6>
+                    <p class="text-muted">
+                      ${thumbnailUrlStr ? `<a href="${escapeHtml(thumbnailUrlStr)}" target="_blank" class="text-break">${escapeHtml(thumbnailUrlStr)}</a>` : '<span class="text-muted">-</span>'}
+                    </p>
+                    ${thumbnailUrlStr ? `
+                      <div class="mt-3 shadowing__thumbnail-preview">
+                        <h6 class="mb-2">Thumbnail Preview:</h6>
+                        <img src="${escapeHtml(thumbnailUrlStr)}" alt="Thumbnail preview" class="img-fluid rounded shadowing__thumbnail-img" style="max-height: 200px; width: 100%; object-fit: contain;">
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+                ${item.transcript && item.transcript.length > 0 ? `
+                  <h6 class="mb-3">Transcript:</h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                      <thead class="table-light">
+                        <tr>
+                          <th>Thời gian bắt đầu (s)</th>
+                          <th>Thời gian kết thúc (s)</th>
+                          <th>Câu tiếng Anh</th>
+                          <th>Câu tiếng Việt</th>
+                          <th>Phát âm</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${item.transcript.map(transcript => `
+                          <tr>
+                            <td>${formatTime(transcript.startTime || 0)}</td>
+                            <td>${formatTime(transcript.endTime || 0)}</td>
+                            <td>${escapeHtml(transcript.enText || '-')}</td>
+                            <td>${escapeHtml(transcript.viText || '-')}</td>
+                            <td>${escapeHtml(transcript.phonetics || '-')}</td>
+                          </tr>
+                        `).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                ` : '<p class="text-muted">Không có transcript</p>'}
+              </div>
+            </div>
+          `
+          container.appendChild(card)
+        })
+      }
+
+      if (failedList.length > 0) {
+        failedList.forEach((item, index) => {
+          const card = document.createElement('div')
+          card.className = 'card mb-3 border-danger'
+          card.innerHTML = `
+            <div class="card-header bg-danger text-white">
+              <h6 class="mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Bài nghe ${successCount + index + 1}: ${escapeHtml(item.title || '-')}
+              </h6>
+            </div>
+            <div class="card-body">
+              <p class="text-danger mb-0">
+                <strong>Lỗi:</strong> ${escapeHtml(item.error || 'Lỗi không xác định')}
+              </p>
+            </div>
+          `
+          container.appendChild(card)
+        })
+      }
+
+      if (successList.length === 0 && failedList.length === 0) {
+        const emptyDiv = document.createElement('div')
+        emptyDiv.className = 'text-center text-muted py-5'
+        emptyDiv.textContent = 'Không có dữ liệu để hiển thị'
+        container.appendChild(emptyDiv)
+      }
+    }
+
+    function downloadTemplate() {
+      fetch(AdminApiBreakpoint.DOWNLOAD_SV_TEMPLATE, {
+        method: 'GET',
+        credentials: 'same-origin'
+      })
+        .then(async response => {
+          if (!response.ok) {
+            const error = await response.json()
+            throw error
+          }
+          return response.blob()
+        })
+        .then(blob => {
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `sv-list-template-${Date.now()}.xlsx`
+          document.body.appendChild(a)
+          a.click()
+          window.URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+          showNotification('success', 'Đã tải file mẫu thành công!')
+        })
+        .catch(error => {
+          showDetailedError(error)
+        })
+    }
+
+    function cancelImport() {
+      if (confirm('Bạn có muốn quay lại trang import? Dữ liệu đã import CHƯA ĐƯỢC LƯU trong hệ thống!')) {
+        importedData = null
+        elements.previewSection.classList.add('d-none')
+        elements.guideSection.classList.remove('d-none')
+        elements.excelFileInput.value = ''
+      }
+    }
+
+    function saveImport() {
+      const details = importedData?.details || { success: [], failed: [] }
+      const successList = details.success || []
+      const successCount = successList.length
+
+      if (successCount === 0) {
+        showNotification('error', 'Không có dữ liệu để lưu')
+        return
+      }
+
+      if (!confirm(`Bạn có chắc chắn muốn lưu ${successCount} bài nghe vào hệ thống?`)) {
+        return
+      }
+
+      elements.saveImportBtn.disabled = true
+      elements.saveImportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Đang lưu...'
+
+      fetch(AdminApiBreakpoint.SAVE_IMPORTED_SV_LIST, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ svShadowings: successList })
+      })
+        .then(async response => {
+          const data = await response.json()
+          if (!response.ok) {
+            throw data
+          }
+          return data
+        })
+        .then(data => {
+          showNotification('success', data.message || `Đã lưu thành công ${successCount} bài nghe vào hệ thống!`)
+          setTimeout(() => {
+            window.location.href = `${prefixAdmin}/speaking-shadowing`
+          }, 1500)
+        })
+        .catch(error => {
+          showDetailedError(error)
+          elements.saveImportBtn.disabled = false
+          elements.saveImportBtn.innerHTML = '<i class="fas fa-save me-2"></i> Lưu'
+        })
+    }
+
+    elements.downloadTemplateBtn.addEventListener('click', downloadTemplate)
+    elements.cancelImportBtn.addEventListener('click', cancelImport)
+    elements.saveImportBtn.addEventListener('click', saveImport)
+
+    setupDropzone()
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const currentPath = window.location.pathname
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active')
+      })
+
+      if (currentPath.includes('/speaking-shadowing')) {
+        const sshLink = document.querySelector(`a[href="${prefixAdmin}/speaking-shadowing"]`)
+        if (sshLink && sshLink.parentElement) {
+          sshLink.parentElement.classList.add('active')
+          const parentCollapse = sshLink.closest('.collapse')
+          if (parentCollapse) {
+            parentCollapse.classList.add('show')
+            const parentLink = parentCollapse.previousElementSibling
+            if (parentLink) {
+              parentLink.classList.remove('collapsed')
+              parentLink.setAttribute('aria-expanded', 'true')
+            }
+          }
+        }
+      }
+    })
+
+

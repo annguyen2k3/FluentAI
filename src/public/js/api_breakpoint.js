@@ -509,5 +509,19 @@ export const AdminApiBreakpoint = {
   // POST /admin/wp/import/save
   // Description: Lưu dữ liệu đã import vào hệ thống
   // Body: { wpParagraphs: WPParagraph[] }
-  SAVE_IMPORTED_WP_LIST: `${adminApiUrl}/wp/import/save`
+  SAVE_IMPORTED_WP_LIST: `${adminApiUrl}/wp/import/save`,
+
+  // GET /admin/speaking-shadowing/export-template
+  // Description: Download file Excel template
+  DOWNLOAD_SV_TEMPLATE: `${adminApiUrl}/speaking-shadowing/export-template`,
+
+  // POST /admin/speaking-shadowing/import
+  // Description: Import file Excel và parse dữ liệu (chưa lưu vào DB)
+  // Body: FormData with 'excelFile' field
+  IMPORT_SV_LIST: `${adminApiUrl}/speaking-shadowing/import`,
+
+  // POST /admin/speaking-shadowing/import/save
+  // Description: Lưu dữ liệu đã import vào hệ thống
+  // Body: { svShadowings: SVShadowing[] }
+  SAVE_IMPORTED_SV_LIST: `${adminApiUrl}/speaking-shadowing/import/save`
 }

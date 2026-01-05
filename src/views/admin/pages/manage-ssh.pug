@@ -21,9 +21,13 @@ block main-content
         div(class="card-header")
           div(class="d-flex align-items-center justify-content-between")
             h4(class="card-title") Danh sách bài nghe Shadowing
-            button(class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#shadowingModal" onclick="openAddModal()")
-              i(class="fas fa-plus")
-              |  Thêm bài mới
+            div(class="d-flex gap-2")
+              a(class="btn btn-success" href=`${prefixAdmin}/speaking-shadowing/import`)
+                i(class="fas fa-file-excel")
+                |  Import file Excel
+              button(class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#shadowingModal" onclick="openAddModal()")
+                i(class="fas fa-plus")
+                |  Thêm bài mới
         div(class="card-body")
           div(class="shadowing__filters row g-3 mb-3 align-items-end")
             div(class="col-lg-2 col-md-4 col-sm-6")
@@ -919,9 +923,30 @@ block scripts
 
     function extractYouTubeVideoId(url) {
       if (!url) return null
+      
+      if (url.includes('youtube.com/embed/')) {
+        const match = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/)
+        return match ? match[1] : null
+      }
+      
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
       const match = url.match(regExp)
       return match && match[2].length === 11 ? match[2] : null
+    }
+
+    function getYouTubeEmbedUrl(url) {
+      if (!url) return ''
+      
+      if (url.includes('youtube.com/embed/')) {
+        const urlObj = new URL(url)
+        return `${urlObj.origin}${urlObj.pathname}${urlObj.search}`
+      }
+      
+      const videoId = extractYouTubeVideoId(url)
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`
+      }
+      return ''
     }
 
     function updateVideoPreview() {
@@ -934,9 +959,8 @@ block scripts
         return
       }
 
-      const videoId = extractYouTubeVideoId(videoUrl)
-      if (videoId) {
-        const embedUrl = `https://www.youtube.com/embed/${videoId}`
+      const embedUrl = getYouTubeEmbedUrl(videoUrl)
+      if (embedUrl) {
         previewIframe.src = embedUrl
         previewContainer.style.display = 'block'
       } else {
