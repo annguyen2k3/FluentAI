@@ -259,7 +259,21 @@ class ExcelService {
       const levelTitle = String(dataRow[3] || '').trim()
       const slug = String(dataRow[4] || '').trim()
       const pos = Number(dataRow[5]) || 1
-      const isActive = String(dataRow[6] || 'true').toLowerCase() === 'true'
+
+      let isActive = true
+      const isActiveValue = dataRow[6]
+      if (
+        isActiveValue !== undefined &&
+        isActiveValue !== null &&
+        isActiveValue !== ''
+      ) {
+        if (typeof isActiveValue === 'boolean') {
+          isActive = isActiveValue
+        } else {
+          const isActiveStr = String(isActiveValue).trim().toLowerCase()
+          isActive = isActiveStr === 'true' || isActiveStr === '1'
+        }
+      }
 
       if (!title || !topicTitle || !levelTitle) {
         throw new Error(
@@ -439,7 +453,7 @@ class ExcelService {
       topics[0]?.title || '',
       levels[0]?.title || '',
       types[0]?.title || '',
-      'My name is John. I am 25 years old. I work as a teacher.',
+      'Tôi tên là John. Tôi 25 tuổi. Tôi là giáo viên.',
       'gioi-thieu-ban-than',
       '1',
       'true'
