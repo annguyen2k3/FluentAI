@@ -258,7 +258,8 @@ class WritingService {
       description_level
     })
     const text = await sendMessageOnce(prompt)
-    return JSON.parse(text as string) as ResPromptWSPreviewTopic
+    const result = JSON.parse(text as string) as ResPromptWSPreviewTopic
+    return result
   }
 
   async createWSList(wsList: WSList) {

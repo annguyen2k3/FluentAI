@@ -8,6 +8,30 @@
   height: var(--header-height);
 }
 
+.header__container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  height: 100%;
+  width: 100%;
+}
+
+.header__logo {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: var(--spacing-xs) 0;
+}
+
+.header__logo .login-logo {
+  height: 100%;
+  width: auto;
+  max-width: 100px;
+  max-height: 50px;
+  object-fit: contain;
+}
+
 .logo {
   font-size: var(--font-size-xxl);
   font-weight: bold;
@@ -25,8 +49,10 @@
 }
 
 .header__navbar {
+  flex: 1;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  min-width: 0;
 }
 
 .header__navbar .navbar-nav {
@@ -37,8 +63,8 @@
 
 .header__navbar .nav-link {
   color: #374151;
-  font-weight: 500;
-  font-size: var(--font-size-base);
+  font-weight: 400;
+  font-size: var(--font-size-md);
   text-decoration: none;
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius);
@@ -48,8 +74,11 @@
   gap: var(--spacing-xs);
 }
 
-.nav-item {
-  padding: 0 var(--spacing-md);
+@media (min-width: 992px) {
+  .navbar-expand-lg .navbar-nav .nav-link {
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+  }
 }
 
 .nav-item:hover > .nav-link {
@@ -111,6 +140,7 @@
   align-items: center;
   gap: var(--spacing-md);
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .header__icon {
