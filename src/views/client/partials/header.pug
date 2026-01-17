@@ -1,6 +1,8 @@
 header(class="header")
     div(class="container-fluid h-100")
         div(class="header__container")
+            button(class="header__hamburger" type="button" aria-label="Mở menu" id="headerHamburger")
+                i(class="fas fa-bars")
             a(href="/" class="header__logo")
                 img(src=infoWebsite.url_logo alt=infoWebsite.name class="login-logo")
             nav(class="navbar navbar-expand-lg header__navbar")
@@ -71,3 +73,29 @@ header(class="header")
                 else
                     a(href="/users/login" class="btn btn-primary") Đăng nhập
                     a(href="/users/register" class="btn btn-secondary") Đăng ký
+        nav(class="header__mobile-menu" id="headerMobileMenu")
+            div(class="header__mobile-menu__content")
+                a(class="header__mobile-menu__item" href="/writing-sentence/setup")
+                    i(class="fas fa-pencil-alt")
+                    |  Dịch câu
+                a(class="header__mobile-menu__item" href="/writing-paragraph/setup")
+                    i(class="fas fa-pencil-alt")
+                    |  Dịch đoạn văn
+                a(class="header__mobile-menu__item" href="/speaking-sentence")
+                    i(class="fas fa-microphone")
+                    |  Luyện nói câu
+                a(class="header__mobile-menu__item" href="/speaking-shadowing")
+                    i(class="fas fa-microphone")
+                    |  Luyện nói Shadowing
+                a(class="header__mobile-menu__item" href="/listening-video/")
+                    i(class="fas fa-headphones")
+                    |  Luyện nghe
+                a(class="header__mobile-menu__item" href="/introduction")
+                    i(class="fas fa-info-circle")
+                    |  Về chúng tôi
+                a(class="header__mobile-menu__item" href="/ranking")
+                    i(class="fas fa-trophy")
+                    |  Xếp hạng
+                a(class="header__mobile-menu__item" href="/share-document")
+                    i(class="fas fa-share-alt")
+                    |  Tài liệu chia sẻ

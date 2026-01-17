@@ -1,3 +1,56 @@
+// Header mobile menu functionality
+;(function () {
+  const hamburgerBtn = document.getElementById('headerHamburger')
+  const mobileMenu = document.getElementById('headerMobileMenu')
+
+  if (hamburgerBtn && mobileMenu) {
+    hamburgerBtn.addEventListener('click', function (e) {
+      e.stopPropagation()
+      e.preventDefault()
+      mobileMenu.classList.toggle('header__mobile-menu--active')
+      const isActive = mobileMenu.classList.contains(
+        'header__mobile-menu--active'
+      )
+
+      if (isActive) {
+        hamburgerBtn.innerHTML = '<i class="fas fa-times"></i>'
+        hamburgerBtn.setAttribute('aria-label', 'Đóng menu')
+      } else {
+        hamburgerBtn.innerHTML = '<i class="fas fa-bars"></i>'
+        hamburgerBtn.setAttribute('aria-label', 'Mở menu')
+      }
+    })
+
+    document.addEventListener('click', function (e) {
+      if (!hamburgerBtn || !mobileMenu) return
+
+      const isClickInsideMenu = mobileMenu.contains(e.target)
+      const isClickOnHamburger = hamburgerBtn.contains(e.target)
+
+      if (
+        !isClickInsideMenu &&
+        !isClickOnHamburger &&
+        mobileMenu.classList.contains('header__mobile-menu--active')
+      ) {
+        mobileMenu.classList.remove('header__mobile-menu--active')
+        hamburgerBtn.innerHTML = '<i class="fas fa-bars"></i>'
+        hamburgerBtn.setAttribute('aria-label', 'Mở menu')
+      }
+    })
+
+    const mobileMenuItems = mobileMenu.querySelectorAll(
+      '.header__mobile-menu__item'
+    )
+    mobileMenuItems.forEach((item) => {
+      item.addEventListener('click', function () {
+        mobileMenu.classList.remove('header__mobile-menu--active')
+        hamburgerBtn.innerHTML = '<i class="fas fa-bars"></i>'
+        hamburgerBtn.setAttribute('aria-label', 'Mở menu')
+      })
+    })
+  }
+})()
+
 // Home page functionality
 ;(function () {
   // Sidebar navigation functionality
@@ -61,6 +114,8 @@
   // Mobile sidebar toggle (if needed)
   function initMobileSidebar() {
     const sidebar = document.querySelector('.sidebar')
+    if (!sidebar) return
+
     const toggleBtn = document.createElement('button')
     toggleBtn.className = 'btn btn-primary d-md-none position-fixed'
     toggleBtn.style.cssText = 'top: 1rem; left: 1rem; z-index: 1001;'
@@ -68,13 +123,18 @@
 
     document.body.appendChild(toggleBtn)
 
-    toggleBtn.addEventListener('click', function () {
+    toggleBtn.addEventListener('click', function (e) {
+      e.stopPropagation()
       sidebar.classList.toggle('show')
     })
 
     // Close sidebar when clicking outside
     document.addEventListener('click', function (e) {
-      if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+      if (
+        sidebar &&
+        !sidebar.contains(e.target) &&
+        !toggleBtn.contains(e.target)
+      ) {
         sidebar.classList.remove('show')
       }
     })

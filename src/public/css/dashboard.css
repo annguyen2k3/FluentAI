@@ -589,28 +589,6 @@
   .ranking-item__points {
     order: 2;
   }
-
-  .avatar-modal {
-    min-width: 250px;
-    right: -10px;
-  }
-
-  .avatar-modal__header {
-    padding: var(--spacing-md);
-  }
-
-  .avatar-modal__avatar {
-    width: 40px;
-    height: 40px;
-  }
-
-  .avatar-modal__name {
-    font-size: var(--font-size-base);
-  }
-
-  .avatar-modal__email {
-    font-size: var(--font-size-xs);
-  }
 }
 
 @media (max-width: 576px) {
@@ -651,39 +629,6 @@
   }
 
   .calendar__day {
-    font-size: var(--font-size-xs);
-  }
-
-  .avatar-modal {
-    min-width: 220px;
-    right: -20px;
-  }
-
-  .avatar-modal__header {
-    padding: var(--spacing-sm);
-    gap: var(--spacing-sm);
-  }
-
-  .avatar-modal__avatar {
-    width: 36px;
-    height: 36px;
-  }
-
-  .avatar-modal__name {
-    font-size: var(--font-size-sm);
-  }
-
-  .avatar-modal__email {
-    font-size: var(--font-size-xs);
-  }
-
-  .avatar-modal__item {
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-size: var(--font-size-sm);
-  }
-
-  .avatar-modal__icon {
-    width: 14px;
     font-size: var(--font-size-xs);
   }
 }

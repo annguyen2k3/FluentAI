@@ -5,6 +5,10 @@ body {
   scroll-behavior: smooth;
 }
 
+body {
+  padding-top: var(--header-height);
+}
+
 /* Utilities */
 .bg-gradient-light {
   background:
