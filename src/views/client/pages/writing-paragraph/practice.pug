@@ -61,7 +61,7 @@ block main-content
                     i(class="fas fa-redo-alt")
                     |  Luyện tập lại từ đầu
             
-            div(class="practice-shortcuts mt-4 pt-3 border-top")
+            div(class="practice-shortcuts mt-4 pt-3 border-top d-none d-lg-block")
                 p(class="practice-shortcuts__title mb-2 text-muted small fw-semibold d-flex align-items-center" id="practice-shortcuts-toggle" style="cursor: pointer;")
                     i(class="fas fa-keyboard me-2")
                     | Phím tắt
@@ -83,7 +83,7 @@ block main-content
             div(class="practice-sidebar")
                 // AI Evaluation Section
                 div(class="practice-sidebar__section")
-                    div(class="practice-sidebar__evaluation")
+                    div(class="practice-sidebar__evaluation" id="practice-evaluation")
                         h3(class="practice-feedback__title")
                             i(class="fa-solid fa-robot p-2" style="color: #2107e9;")
                             | Đánh giá từ AI
