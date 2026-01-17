@@ -537,6 +537,12 @@
     white-space: nowrap;
     width: max-content;
   }
+
+  .speaking-choose__cards .col-md-6 {
+    width: 100%;
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -646,6 +652,14 @@
 
   .practice-sidebar__toggle-icon--expanded {
     transform: rotate(180deg);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .speaking-choose__cards .col-md-6 {
+    width: 50%;
+    flex: 0 0 50%;
+    max-width: 50%;
   }
 }
 

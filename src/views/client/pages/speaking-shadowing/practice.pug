@@ -142,9 +142,10 @@ block main-content
 
         .col-lg-4
             .practice-sidebar#sv-sentence-sidebar
-                .practice-sidebar__header
+                .practice-sidebar__header(id="sv-sidebar-toggle")
                     h3.practice-sidebar__title Danh sách câu
-                .practice-sidebar__content
+                    i.fas.fa-chevron-down.practice-sidebar__toggle-icon.d-lg-none
+                .practice-sidebar__content.d-lg-block(id="sv-sidebar-content")
                     .practice-sidebar__list#sv-sidebar-list
                         p.mb-0 Chưa có dữ liệu câu luyện tập
                 .practice-sidebar__actions
@@ -1536,6 +1537,35 @@ block scripts
                         }
                     });
                 };
+            }
+
+            const sidebarToggle = document.getElementById('sv-sidebar-toggle');
+            const sidebarContent = document.getElementById('sv-sidebar-content');
+            const sidebarToggleIcon = document.querySelector('.practice-sidebar__toggle-icon');
+
+            if (sidebarToggle && sidebarContent && sidebarToggleIcon) {
+                const handleToggle = function() {
+                    if (window.innerWidth > 1024) {
+                        return;
+                    }
+                    const isExpanded = sidebarContent.classList.contains('practice-sidebar__content--expanded');
+                    if (isExpanded) {
+                        sidebarContent.classList.remove('practice-sidebar__content--expanded');
+                        sidebarToggleIcon.classList.remove('practice-sidebar__toggle-icon--expanded');
+                    } else {
+                        sidebarContent.classList.add('practice-sidebar__content--expanded');
+                        sidebarToggleIcon.classList.add('practice-sidebar__toggle-icon--expanded');
+                    }
+                };
+
+                sidebarToggle.addEventListener('click', handleToggle);
+
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 1024) {
+                        sidebarContent.classList.remove('practice-sidebar__content--expanded');
+                        sidebarToggleIcon.classList.remove('practice-sidebar__toggle-icon--expanded');
+                    }
+                });
             }
 
             renderSentence();

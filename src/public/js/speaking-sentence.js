@@ -78,7 +78,7 @@ if (cardsContainer) {
         const sentenceCount = item.list?.length || 0
         const badge = resolveHistoryBadge(item.history)
         return `
-          <div class="col-12 col-lg-4">
+          <div class="col-12 col-md-6 col-lg-4">
             <div class="speaking-card">
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="speaking-card__title m-0">${escapeHTML(
