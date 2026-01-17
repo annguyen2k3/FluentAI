@@ -14,7 +14,7 @@ block main-content
     - const timeText = typeof lv?.time === 'number' && lv.time > 0 ? `${lv.time} phút` : ''
 
     .row.g-4
-        .col-lg-7
+        .col-lg-7.col-md-5
             .practice-content
                 if youtubeEmbedUrl
                     .sv-video
@@ -75,9 +75,13 @@ block main-content
                             h3.fs-6.text-uppercase.text-muted.mb-2
                                 i.fas.fa-book-open.me-2
                                 | Mô tả bài nghe
-                            pre.lv-ci__description !{lv.description}
+                            .lv-ci__description-wrapper
+                                pre.lv-ci__description.lv-ci__description--collapsed !{lv.description}
+                                button.lv-ci__description-toggle.btn.btn-link.btn-sm.p-0.mt-2(type="button")
+                                    span.lv-ci__description-toggle-text Xem thêm
+                                    i.fas.fa-chevron-down.lv-ci__description-toggle-icon.ms-1
 
-        .col-lg-5
+        .col-lg-5.col-md-7
             .practice-sidebar#lv-ci-sidebar
                 .practice-sidebar__header
                     h3.practice-sidebar__title Transcript
@@ -540,6 +544,29 @@ block scripts
                         }
                     })
                 }
+            }
+
+            const descriptionEl = document.querySelector('.lv-ci__description')
+            const descriptionToggle = document.querySelector('.lv-ci__description-toggle')
+            if (descriptionEl && descriptionToggle) {
+                const toggleText = descriptionToggle.querySelector('.lv-ci__description-toggle-text')
+                const toggleIcon = descriptionToggle.querySelector('.lv-ci__description-toggle-icon')
+                let isExpanded = false
+
+                descriptionToggle.addEventListener('click', function () {
+                    isExpanded = !isExpanded
+                    if (isExpanded) {
+                        descriptionEl.classList.remove('lv-ci__description--collapsed')
+                        if (toggleText) toggleText.textContent = 'Thu gọn'
+                        if (toggleIcon) toggleIcon.classList.remove('fa-chevron-down')
+                        if (toggleIcon) toggleIcon.classList.add('fa-chevron-up')
+                    } else {
+                        descriptionEl.classList.add('lv-ci__description--collapsed')
+                        if (toggleText) toggleText.textContent = 'Xem thêm'
+                        if (toggleIcon) toggleIcon.classList.remove('fa-chevron-up')
+                        if (toggleIcon) toggleIcon.classList.add('fa-chevron-down')
+                    }
+                })
             }
         })
 

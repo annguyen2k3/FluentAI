@@ -77,7 +77,11 @@ block main-content
                                 h3.fs-6.text-uppercase.text-muted.mb-2
                                     i.fas.fa-book-open.me-2
                                     | Mô tả bài nghe
-                                pre.lv-aln__description !{lv.description}
+                                .lv-aln__description-wrapper
+                                    pre.lv-aln__description.lv-aln__description--collapsed !{lv.description}
+                                    button.lv-aln__description-toggle.btn.btn-link.btn-sm.p-0.mt-2(type="button")
+                                        span.lv-aln__description-toggle-text Xem thêm
+                                        i.fas.fa-chevron-down.lv-aln__description-toggle-icon.ms-1
 
                 .lv-aln-quiz-view.d-none
                     if lv && Array.isArray(lv.questions) && lv.questions.length
@@ -614,6 +618,29 @@ block scripts
                         }
                     })
                 }
+            }
+
+            const descriptionEl = document.querySelector('.lv-aln__description')
+            const descriptionToggle = document.querySelector('.lv-aln__description-toggle')
+            if (descriptionEl && descriptionToggle) {
+                const toggleText = descriptionToggle.querySelector('.lv-aln__description-toggle-text')
+                const toggleIcon = descriptionToggle.querySelector('.lv-aln__description-toggle-icon')
+                let isExpanded = false
+
+                descriptionToggle.addEventListener('click', function () {
+                    isExpanded = !isExpanded
+                    if (isExpanded) {
+                        descriptionEl.classList.remove('lv-aln__description--collapsed')
+                        if (toggleText) toggleText.textContent = 'Thu gọn'
+                        if (toggleIcon) toggleIcon.classList.remove('fa-chevron-down')
+                        if (toggleIcon) toggleIcon.classList.add('fa-chevron-up')
+                    } else {
+                        descriptionEl.classList.add('lv-aln__description--collapsed')
+                        if (toggleText) toggleText.textContent = 'Xem thêm'
+                        if (toggleIcon) toggleIcon.classList.remove('fa-chevron-up')
+                        if (toggleIcon) toggleIcon.classList.add('fa-chevron-down')
+                    }
+                })
             }
         })
 
