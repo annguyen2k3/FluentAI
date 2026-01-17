@@ -117,9 +117,10 @@ block main-content
 
         .col-lg-4
             .practice-sidebar#sentence-sidebar
-                .practice-sidebar__header
+                .practice-sidebar__header(id="practice-sidebar-toggle")
                     h3.practice-sidebar__title Danh sách câu
-                .practice-sidebar__content
+                    i.fas.fa-chevron-down.practice-sidebar__toggle-icon.d-lg-none
+                .practice-sidebar__content.d-lg-block(id="practice-sidebar-content")
                     .practice-sidebar__list#practice-sidebar-list
                         p.mb-0 Chưa có dữ liệu câu luyện tập
                 .practice-sidebar__actions
@@ -941,6 +942,35 @@ block scripts
 
             renderPracticeSentence();
             renderSidebar();
+
+            const sidebarToggle = document.getElementById('practice-sidebar-toggle');
+            const sidebarContent = document.getElementById('practice-sidebar-content');
+            const sidebarToggleIcon = document.querySelector('.practice-sidebar__toggle-icon');
+
+            if (sidebarToggle && sidebarContent && sidebarToggleIcon) {
+                const handleToggle = function() {
+                    if (window.innerWidth > 1024) {
+                        return;
+                    }
+                    const isExpanded = sidebarContent.classList.contains('practice-sidebar__content--expanded');
+                    if (isExpanded) {
+                        sidebarContent.classList.remove('practice-sidebar__content--expanded');
+                        sidebarToggleIcon.classList.remove('practice-sidebar__toggle-icon--expanded');
+                    } else {
+                        sidebarContent.classList.add('practice-sidebar__content--expanded');
+                        sidebarToggleIcon.classList.add('practice-sidebar__toggle-icon--expanded');
+                    }
+                };
+
+                sidebarToggle.addEventListener('click', handleToggle);
+
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 1024) {
+                        sidebarContent.classList.remove('practice-sidebar__content--expanded');
+                        sidebarToggleIcon.classList.remove('practice-sidebar__toggle-icon--expanded');
+                    }
+                });
+            }
 
             //- Handle recording audio for user
             const recordBtn = document.getElementById('practice-record-btn');

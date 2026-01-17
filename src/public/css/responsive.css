@@ -362,4 +362,341 @@
     flex: 0 1 auto;
     min-width: 0;
   }
+
+  .speaking-choose__custom-topic {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .speaking-choose__custom-topic-label {
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  .speaking-choose__custom-topic-group {
+    width: 100%;
+    flex: none;
+  }
+
+  .speaking-card__meta {
+    gap: var(--spacing-sm);
+  }
+
+  .speaking-choose__pagination {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: stretch;
+  }
+
+  .speaking-choose__pagination-info {
+    width: 100%;
+    text-align: center;
+    font-size: var(--font-size-sm);
+  }
+
+  .speaking-choose__pagination-controls {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .speaking-choose__pagination-btn {
+    min-width: 40px;
+    height: 40px;
+    font-size: var(--font-size-sm);
+  }
+
+  .practice-sentence__btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    gap: 6px;
+    min-height: 36px;
+  }
+
+  .practice-sentence__btn-icon {
+    font-size: 12px;
+  }
+
+  .practice-sentence__btn-text {
+    font-size: 12px;
+  }
+
+  .practice-sentence__btn--submit {
+    font-size: 12px;
+    padding: 8px 12px;
+    min-height: 36px;
+  }
+
+  .practice-sentence__attempt {
+    font-size: 11px;
+  }
+
+  .practice-sentence__nav-btn {
+    padding: 8px 10px;
+    font-size: 11px;
+    min-width: 70px;
+    gap: 4px;
+    min-height: 32px;
+  }
+
+  .practice-sentence__nav-btn i {
+    font-size: 11px;
+  }
+
+  .practice-sidebar__action-btn {
+    padding: 8px 10px;
+    font-size: 11px;
+    gap: 4px;
+    min-height: 32px;
+  }
+
+  .practice-sidebar__action-btn i {
+    font-size: 11px;
+  }
+
+  .practice-sentence__navigation {
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .practice-sentence__nav-btn {
+    order: 2;
+  }
+
+  .practice-sentence__preview-audio {
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 100%;
+    order: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__container {
+    width: auto;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__clear-btn {
+    margin-left: 4px;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__clear-btn i {
+    font-size: var(--font-size-xs);
+  }
+
+  .practice-sentence__preview-audio .practice-recording__player {
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs);
+  }
+
+  .practice-sentence__preview-audio .practice-recording__play-btn {
+    width: 28px;
+    height: 28px;
+    font-size: var(--font-size-xs);
+    flex-shrink: 0;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__time {
+    font-size: var(--font-size-xs);
+    min-width: 50px;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__progress {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__volume-btn {
+    width: 28px;
+    height: 28px;
+    padding: var(--spacing-xs);
+    flex-shrink: 0;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__volume-btn i {
+    font-size: var(--font-size-xs);
+  }
+
+  .practice-sentence__preview-hint {
+    font-size: var(--font-size-xs);
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 4px;
+    white-space: nowrap;
+    width: max-content;
+  }
+}
+
+@media (max-width: 1024px) {
+  .row .col-lg-8 {
+    width: 100%;
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .row .col-lg-4 {
+    width: 100%;
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .row .col-lg-8:has(.practice-sentence__actions) {
+    order: 2;
+  }
+
+  .row .col-lg-4:has(.practice-sidebar__list) {
+    order: 1;
+  }
+
+  .row .col-lg-8:has(.practice-input),
+  .row .col-lg-8:has(.practice-display) {
+    order: 1;
+  }
+
+  .row .col-lg-4:has(.practice-sidebar__evaluation) {
+    order: 2;
+  }
+
+  .practice-header {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .practice-title-section {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .col-lg-8 .practice-content {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .practice-sidebar {
+    height: auto;
+    position: relative;
+    top: 0;
+    margin-bottom: var(--spacing-lg);
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .practice-sidebar__content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+  }
+
+  .practice-sidebar__content.practice-sidebar__content--expanded {
+    max-height: 500px;
+  }
+
+  .practice-sidebar__list {
+    max-height: 320px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .practice-sidebar__list::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .practice-sidebar__list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  .practice-sidebar__list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+  }
+
+  .practice-sidebar__list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  .practice-sidebar__header {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .practice-sidebar__header:hover {
+    background-color: #f9fafb;
+  }
+
+  .practice-sidebar__toggle-icon {
+    transition: transform 0.3s ease-out;
+    font-size: var(--font-size-sm);
+    color: #6b7280;
+  }
+
+  .practice-sidebar__toggle-icon--expanded {
+    transform: rotate(180deg);
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1110px) {
+  .practice-sentence__navigation {
+    gap: var(--spacing-sm);
+  }
+
+  .practice-sentence__preview-audio {
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 auto;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__container {
+    gap: var(--spacing-xs);
+    min-width: 0;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__player {
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs);
+    min-width: 0;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__play-btn {
+    width: 24px;
+    height: 24px;
+    font-size: var(--font-size-xs);
+    flex-shrink: 0;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__time {
+    font-size: var(--font-size-xs);
+    min-width: 45px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__progress {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__volume-btn {
+    padding: var(--spacing-xs);
+    flex-shrink: 0;
+  }
+
+  .practice-sentence__preview-audio .practice-recording__volume-btn i {
+    font-size: var(--font-size-xs);
+  }
 }
