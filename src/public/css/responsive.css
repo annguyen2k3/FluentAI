@@ -258,4 +258,108 @@
     gap: var(--spacing-xs);
     padding: var(--spacing-sm);
   }
+
+  .wp-choose__pagination {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: stretch;
+  }
+
+  .wp-choose__pagination-info {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .wp-choose__pagination-text {
+    text-align: center;
+    font-size: var(--font-size-sm);
+  }
+
+  .wp-choose__pagination .d-flex {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .wp-choose__pagination .wp-choose__page {
+    min-width: 40px;
+    height: 40px;
+    font-size: var(--font-size-sm);
+  }
+
+  .practice-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .practice-header__info {
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .practice-header__info::-webkit-scrollbar {
+    display: none;
+  }
+
+  .practice-header__credits,
+  .practice-header__points,
+  .practice-header__progress {
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .practice-header__icon {
+    font-size: var(--font-size-sm);
+  }
+
+  .practice-header__divider {
+    width: 1px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .practice-actions {
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--spacing-xs);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: var(--spacing-xs);
+  }
+
+  .practice-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .practice-actions__btn {
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xs);
+  }
+
+  .practice-actions__btn--submit {
+    font-size: var(--font-size-sm);
+  }
+
+  .practice-actions__group {
+    flex-wrap: nowrap !important;
+    align-items: center;
+    gap: var(--spacing-xs);
+    flex: 0 1 auto;
+    min-width: 0;
+  }
 }

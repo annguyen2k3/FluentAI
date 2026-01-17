@@ -962,6 +962,29 @@ if (wsPractice) {
         return
       }
 
+      const isTabletOrMobile = window.innerWidth <= 1024
+      const isMobile = window.innerWidth <= 768
+      if (isTabletOrMobile) {
+        const evaluationSection = document.getElementById('practice-evaluation')
+        if (evaluationSection) {
+          setTimeout(() => {
+            if (isMobile) {
+              const rect = evaluationSection.getBoundingClientRect()
+              const scrollOffset = 120
+              window.scrollTo({
+                top: window.pageYOffset + rect.top - scrollOffset,
+                behavior: 'smooth'
+              })
+            } else {
+              evaluationSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+              })
+            }
+          }, 100)
+        }
+      }
+
       const requestUrl = `${ApiBreakpoint.POST_PRACTICE_WS}/${practiceSlug}`
       fetch(requestUrl, {
         method: 'POST',
