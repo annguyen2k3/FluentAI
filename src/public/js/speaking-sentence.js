@@ -207,7 +207,6 @@ if (cardsContainer) {
       .then((response) => response.json())
       .then((data) => {
         if (data.status === 200) {
-          console.log('data', data)
           renderCards(data.data || [])
           if (data.pagination) {
             renderPagination(data.pagination)

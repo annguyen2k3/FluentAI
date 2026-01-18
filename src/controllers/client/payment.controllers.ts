@@ -74,7 +74,6 @@ export const paymentCodController = async (req: Request, res: Response) => {
 
 export const checkPaymentController = async (req: Request, res: Response) => {
   const data = req.query
-  console.log(data)
   const walletId = data.orderInfo?.toString().split('-')[1]
   const transactionId = data.orderInfo?.toString().split('-')[2]
   if (data.resultCode === '0') {

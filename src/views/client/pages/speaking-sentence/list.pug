@@ -224,7 +224,6 @@ block scripts
         if (previewStartBtn) {
             previewStartBtn.addEventListener('click', function () {
                 if (currentPreviewData && currentPreviewData.list && currentPreviewData.list.length > 0) {
-                    console.log('Bắt đầu luyện tập với data:', currentPreviewData)
                     sessionStorage.setItem('preview-ss-data', JSON.stringify(currentPreviewData))
                     sessionStorage.setItem('preview-ss-history', JSON.stringify([]))
                     hidePreviewModal()
@@ -265,7 +264,6 @@ block scripts
                     })
 
                     const data = await response.json()
-                    console.log('Preview SS Topic Result:', data)
                     
                     if (data.status === 200 && data.previewResult) {
                         renderPreviewModal(data)

@@ -115,7 +115,6 @@ import { ApiBreakpoint } from './api_breakpoint.js'
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data)
         if (data.status === 200) {
           document.cookie = `emailRegister=${encodeURIComponent(email)}; Path=/; Max-Age=900; SameSite=Lax`
           document.cookie = `passwordRegister=${encodeURIComponent(password)}; Path=/; Max-Age=900; SameSite=Lax`
@@ -230,7 +229,6 @@ import { ApiBreakpoint } from './api_breakpoint.js'
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log(data)
           if (data.status === 200) {
             window.location.href = '/'
           } else if (data.status === 422) {
@@ -304,7 +302,6 @@ import { ApiBreakpoint } from './api_breakpoint.js'
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data)
         if (data.status === 200) {
           window.location.href = '/users/forgot-password/otp'
         } else if (data.status === 422) {
@@ -416,7 +413,6 @@ import { ApiBreakpoint } from './api_breakpoint.js'
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log(data)
           if (data.status === 200) {
             window.location.href = '/users/forgot-password/reset'
           } else if (data.status === 422) {

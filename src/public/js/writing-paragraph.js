@@ -86,7 +86,6 @@ if (wpSetup) {
         .then((response) => response.json())
         .then((data) => {
           hideLoading()
-          console.log(data)
           if (data.status === 200) {
             const previewResult = data.previewResult || {}
             const modalEl = document.getElementById('wpPreviewModal')
@@ -200,7 +199,6 @@ if (wpSetup) {
 
         showLoading()
         const requestUrl = `${ApiBreakpoint.POST_CUSTOM_TOPIC_PREVIEW_WP}`
-        console.log('requestUrl', requestUrl)
         fetch(requestUrl, {
           method: 'POST',
           headers: {
@@ -212,7 +210,6 @@ if (wpSetup) {
           .then((response) => response.json())
           .then((data) => {
             hideLoading()
-            console.log(data)
             if (data.status === 200) {
               const previewResult = data.previewResult || {}
               const modalEl = document.getElementById('wpPreviewModal')
@@ -995,7 +992,6 @@ if (wpPractice) {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log(data)
           if (wpLoadingEl) {
             wpLoadingEl.style.display = 'none'
           }

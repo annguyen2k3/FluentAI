@@ -789,8 +789,7 @@ if (wsPractice) {
     }
 
     const sentence = listSentences[index - 1]
-    if (sentence) {
-      console.log(sentence)
+    if (sentence) { 
       const sentenceContent = document.querySelector('[sentence_vi]')
       sentenceContent.textContent = sentence.content
 
@@ -1051,7 +1050,6 @@ if (wsPractice) {
               buttonSubmit.classList.remove('d-none')
             }
           } else {
-            console.log(data)
             alertError(data.message)
           }
         })

@@ -126,8 +126,6 @@ export const renderSVPracticeController = async (
     CreditUsageType.speaking_shadowing_evaluate
   )
 
-  console.log(practiceCost)
-
   res.render('client/pages/speaking-shadowing/practice.pug', {
     pageTitle: 'Luyện tập Shadowing',
     user,

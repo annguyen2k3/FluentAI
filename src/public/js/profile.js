@@ -41,7 +41,6 @@ import {
         })
           .then((response) => response.json())
           .then((data) => {
-            console.log(data)
             if (data.status === 200) {
               avatarPreview.src = data.avatar_url
               alertSuccess(data.message)
@@ -151,7 +150,6 @@ import {
       const phone = editPhoneNumber.value.trim()
       const gender = editGender.value
 
-      console.log(username, dateOfBirth, phone, gender)
 
       // Normalize data for API
       const isoDateOfBirth = new Date(dateOfBirth).toISOString()
@@ -177,7 +175,6 @@ import {
             loadData()
             exitEditMode()
           } else if (data.status === 422) {
-            console.log(data)
             const errors = data.errors
             for (const key in errors) {
               const errorElement = profileForm.querySelector(

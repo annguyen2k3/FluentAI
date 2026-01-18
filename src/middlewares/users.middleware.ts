@@ -464,7 +464,6 @@ export const changePasswordValidator = validate(
       confirmPassword: {
         custom: {
           options: (value, { req }) => {
-            console.log(value, req.body.newPassword)
             if (value !== req.body.newPassword) {
               throw new Error(USER_MESSAGES.PASSWORD_NOT_MATCH)
             }

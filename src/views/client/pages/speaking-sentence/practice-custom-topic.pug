@@ -249,8 +249,6 @@ block scripts
                 try {
                     const historyJson = JSON.stringify(dataHisSS);
                     sessionStorage.setItem(HISTORY_STORAGE_KEY, historyJson);
-                    console.log('Đã lưu lịch sử vào sessionStorage:', dataHisSS);
-                    console.log('Key:', HISTORY_STORAGE_KEY);
                 } catch (error) {
                     console.error('Lỗi khi lưu lịch sử vào sessionStorage:', error);
                 }
@@ -761,7 +759,6 @@ block scripts
             };
 
             const renderAISuggestions = (evaluate) => {
-                console.log('renderAISuggestions được gọi với evaluate:', evaluate);
                 
                 if (!aiTranscriptEl || !aiSuggestionsEl || !aiGeneralFeedbackEl) {
                     console.warn('Thiếu các element cần thiết để render feedback');
@@ -944,9 +941,6 @@ block scripts
             };
 
             const updateHisSSUser = (evaluate) => {
-                console.log('updateHisSSUser được gọi với evaluate:', evaluate);
-                console.log('state.sentences:', state.sentences);
-                console.log('state.currentIndex:', state.currentIndex);
                 
                 if (!evaluate || !state.sentences.length) {
                     console.warn('updateHisSSUser: Thiếu evaluate hoặc sentences');
@@ -957,8 +951,6 @@ block scripts
                     console.warn('updateHisSSUser: Không tìm thấy currentSentence');
                     return;
                 }
-                
-                console.log('currentSentence:', currentSentence);
 
                 const evaluateData = {
                     passed: evaluate.passed,
@@ -989,17 +981,13 @@ block scripts
 
                 if (existingIndex >= 0) {
                     dataHisSS[existingIndex] = evaluateData;
-                    console.log('Cập nhật lịch sử cho câu:', currentSentence.enSentence);
                 } else {
                     dataHisSS.push(evaluateData);
-                    console.log('Thêm mới lịch sử cho câu:', currentSentence.enSentence);
                 }
 
-                console.log('Lịch sử trước khi lưu:', dataHisSS);
                 saveHistoryToSession();
                 
                 const savedHistory = sessionStorage.getItem(HISTORY_STORAGE_KEY);
-                console.log('Lịch sử đã lưu trong sessionStorage:', savedHistory);
                 
                 renderSidebar();
                 updateProgress();
@@ -1494,10 +1482,8 @@ block scripts
                         }
                         
                         const payload = await response.json();
-                        console.log('Kết quả đánh giá speaking:', payload);
                         
                         if (payload && payload.evaluate) {
-                            console.log('Nhận được evaluate từ server:', payload.evaluate);
                             renderAISuggestions(payload.evaluate);
                             updateHisSSUser(payload.evaluate);
                             

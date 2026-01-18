@@ -6,7 +6,6 @@ const projectId = process.env.GOOGLE_PROJECT_ID
 
 const client = new MetricServiceClient()
 
-console.log(new Date().toISOString())
 
 function buildInterval(
   daysAgo: number
