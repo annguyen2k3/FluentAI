@@ -63,6 +63,11 @@ html(lang="vi")
     script(src="/admin/assets/js/core/bootstrap.min.js")
     script(src="/admin/assets/js/plugin/sweetalert/sweetalert.min.js")
     script(src="/admin/assets/js/kaiadmin.min.js")
+    script.
+          window.APP_CONFIG = {
+              apiUrl: "#{apiUrl}",
+              prefixAdmin: "#{prefixAdmin}"
+          }
     script(type="module").
       import { AdminApiBreakpoint } from '/js/api_breakpoint.js'
       document.getElementById('loginForm').addEventListener('submit', function (e) {

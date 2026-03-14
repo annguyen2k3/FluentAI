@@ -1,4 +1,6 @@
-const apiUrl = 'http://localhost:3000'
+const apiUrl = typeof window !== 'undefined' && window.APP_CONFIG?.apiUrl
+const prefixAdmin =
+  typeof window !== 'undefined' && window.APP_CONFIG?.prefixAdmin
 
 export const ApiBreakpoint = {
   // Authentication API
@@ -148,7 +150,8 @@ export const ApiBreakpoint = {
   GET_USER_BOOKMARKS_LIST: `${apiUrl}/users/bookmarks/list`
 }
 
-const adminApiUrl = 'http://localhost:3000/admin'
+const adminApiUrl = `${apiUrl}${prefixAdmin}`
+console.log(adminApiUrl)
 export const AdminApiBreakpoint = {
   // POST /admin/auth/login
   // Description: Login admin

@@ -52,6 +52,7 @@ app.set('view engine', 'pug')
 app.set('views', path.join(__dirname, '/views'))
 
 app.locals.prefixAdmin = process.env.PREFIX_ADMIN
+app.locals.apiUrl = process.env.SERVER_URL
 
 // GET /info-website
 async function getInfoWebsite() {
