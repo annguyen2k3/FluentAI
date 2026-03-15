@@ -20,6 +20,34 @@ jobs:
         run: echo "${{ secrets.ENV_PRODUCTION }}" > .env
       - run: npm i --force
       - run: npm run build
+      - name: send telegram message after build
+        if: success()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO_PRODUCTION }}
+          token: ${{ secrets.TELEGRAM_TOKEN_PRODUCTION }}
+          message: |
+            ✅ Build completed successfully
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}
+
+            Repository: ${{ github.repository }}
+
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+      - name: send telegram message after build
+        if: failure()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO_PRODUCTION }}
+          token: ${{ secrets.TELEGRAM_TOKEN_PRODUCTION }}
+          message: |
+            ❌ Build completed with errors
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}
+
+            Repository: ${{ github.repository }}
+
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -41,3 +69,31 @@ jobs:
             npm i --force
             npm run build
             pm2 restart fluentai
+      - name: send telegram message after deploy
+        if: success()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO_PRODUCTION }}
+          token: ${{ secrets.TELEGRAM_TOKEN_PRODUCTION }}
+          message: |
+            ✅ DEPLOY completed successfully
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}
+
+            Repository: ${{ github.repository }}
+
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+      - name: send telegram message after deploy
+        if: failure()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO_PRODUCTION }}
+          token: ${{ secrets.TELEGRAM_TOKEN_PRODUCTION }}
+          message: |
+            ❌ DEPLOY completed with errors
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}
+
+            Repository: ${{ github.repository }}
+
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
