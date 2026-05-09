@@ -16,7 +16,13 @@ export class ErrorWithStatus {
 export class EntityError extends ErrorWithStatus {
   errors: ErrorsType
 
-  constructor({ message = COMMON_MESSAGES.VALIDATION_ERROR, errors }: { message?: string; errors: ErrorsType }) {
+  constructor({
+    message = COMMON_MESSAGES.VALIDATION_ERROR,
+    errors
+  }: {
+    message?: string
+    errors: ErrorsType
+  }) {
     super(message, HttpStatus.UNPROCESSABLE_ENTITY)
     this.errors = errors
   }

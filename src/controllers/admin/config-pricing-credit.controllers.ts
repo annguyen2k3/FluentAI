@@ -49,4 +49,3 @@ export const updateConfigPricingCreditController = async (
     message: 'Cập nhật cấu hình gói credit thành công'
   })
 }
-

@@ -28,7 +28,9 @@ export default class Admin {
     this.email = admin.email
     this.password = admin.password
     this.role = admin.role
-    this.avatar = admin.avatar || 'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar.png'
+    this.avatar =
+      admin.avatar ||
+      'https://fluent-ai-bucket.s3.ap-southeast-1.amazonaws.com/avatar.png'
     this.create_at = admin.create_at || new Date()
     this.update_at = admin.update_at || new Date()
   }

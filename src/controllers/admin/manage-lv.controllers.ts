@@ -345,10 +345,12 @@ export const importLVListController = async (req: Request, res: Response) => {
           if (typeof listeningVideo.videoUrl === 'string') {
             videoUrlStr = normalizeYouTubeUrl(listeningVideo.videoUrl.trim())
           } else {
-            videoUrlStr = normalizeYouTubeUrl(String(listeningVideo.videoUrl).trim())
+            videoUrlStr = normalizeYouTubeUrl(
+              String(listeningVideo.videoUrl).trim()
+            )
           }
         }
-        
+
         let thumbnailUrlStr: string | undefined = undefined
         if (listeningVideo.thumbnailUrl) {
           if (typeof listeningVideo.thumbnailUrl === 'string') {
@@ -380,7 +382,10 @@ export const importLVListController = async (req: Request, res: Response) => {
           description: listeningVideo.description,
           slug: listeningVideo.slug,
           pos: listeningVideo.pos || 1,
-          isActive: listeningVideo.isActive !== undefined ? listeningVideo.isActive : true,
+          isActive:
+            listeningVideo.isActive !== undefined
+              ? listeningVideo.isActive
+              : true,
           level: {
             _id: level._id?.toString(),
             title: level.title
@@ -449,7 +454,7 @@ export const saveImportedLVListController = async (
         } else if (videoUrl) {
           videoUrl = normalizeYouTubeUrl(String(videoUrl).trim())
         }
-        
+
         if (!videoUrl) {
           throw new Error('Video URL không hợp lệ')
         }
@@ -476,9 +481,7 @@ export const saveImportedLVListController = async (
           slug: lvVideoData.slug,
           pos: lvVideoData.pos || 1,
           isActive:
-            lvVideoData.isActive !== undefined
-              ? lvVideoData.isActive
-              : true
+            lvVideoData.isActive !== undefined ? lvVideoData.isActive : true
         })
 
         const level = await databaseService.levels.findOne({

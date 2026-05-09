@@ -862,10 +862,12 @@ body:not(.login-page__body) {
   cursor: pointer;
 }
 
-.import-ws__preview-card .btn[data-bs-toggle="collapse"] {
+.import-ws__preview-card .btn[data-bs-toggle='collapse'] {
   transition: transform 0.3s ease;
 }
 
-.import-ws__preview-card .btn[data-bs-toggle="collapse"][aria-expanded="true"] i {
+.import-ws__preview-card
+  .btn[data-bs-toggle='collapse'][aria-expanded='true']
+  i {
   transform: rotate(180deg);
 }

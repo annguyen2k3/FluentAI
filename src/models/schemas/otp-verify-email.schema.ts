@@ -10,11 +10,11 @@ interface OTPVerifyEmailType {
 }
 
 export default class OTPVerifyEmail {
-    _id?: ObjectId
-    email: string
-    type: VerifyEmailType
-    otp: string
-    expires_at: Date
+  _id?: ObjectId
+  email: string
+  type: VerifyEmailType
+  otp: string
+  expires_at: Date
 
   constructor({ _id, email, type, otp, expires_at }: OTPVerifyEmailType) {
     this._id = _id || new ObjectId()

@@ -789,7 +789,7 @@ if (wsPractice) {
     }
 
     const sentence = listSentences[index - 1]
-    if (sentence) { 
+    if (sentence) {
       const sentenceContent = document.querySelector('[sentence_vi]')
       sentenceContent.textContent = sentence.content
 

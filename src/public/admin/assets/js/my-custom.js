@@ -20,7 +20,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Sidebar toggle functionality
 function initializeSidebarToggle() {
-  const toggleButtons = document.querySelectorAll('.toggle-sidebar, .sidenav-toggler')
+  const toggleButtons = document.querySelectorAll(
+    '.toggle-sidebar, .sidenav-toggler'
+  )
   const sidebar = document.querySelector('.sidebar')
   const mainPanel = document.querySelector('.main-panel')
 
@@ -59,7 +61,9 @@ function initializeSidebarActive() {
 
 // Initialize Bootstrap tooltips
 function initializeTooltips() {
-  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  const tooltipTriggerList = [].slice.call(
+    document.querySelectorAll('[data-bs-toggle="tooltip"]')
+  )
   tooltipTriggerList.map(function (tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl)
   })
@@ -67,7 +71,9 @@ function initializeTooltips() {
 
 // Initialize Bootstrap dropdowns
 function initializeDropdowns() {
-  const dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
+  const dropdownElementList = [].slice.call(
+    document.querySelectorAll('.dropdown-toggle')
+  )
   dropdownElementList.map(function (dropdownToggleEl) {
     return new bootstrap.Dropdown(dropdownToggleEl)
   })
@@ -77,7 +83,12 @@ function initializeDropdowns() {
 function showNotification(type, message, duration = 3000) {
   if (typeof swal !== 'undefined') {
     swal({
-      title: type === 'success' ? 'Thành công!' : type === 'error' ? 'Lỗi!' : 'Thông báo',
+      title:
+        type === 'success'
+          ? 'Thành công!'
+          : type === 'error'
+            ? 'Lỗi!'
+            : 'Thông báo',
       text: message,
       icon: type,
       button: 'OK'
@@ -86,7 +97,8 @@ function showNotification(type, message, duration = 3000) {
     // Fallback to Bootstrap alert
     const notification = document.createElement('div')
     notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`
-    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;'
+    notification.style.cssText =
+      'top: 20px; right: 20px; z-index: 9999; min-width: 300px;'
     notification.innerHTML = `
             ${message}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>

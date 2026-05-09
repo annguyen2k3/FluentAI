@@ -91,8 +91,7 @@ export const getStatisticsReportingRevenueController = async (
   req: Request,
   res: Response
 ) => {
-  const { startDate = '', endDate = '' } =
-    req.query as Partial<RevenueParams>
+  const { startDate = '', endDate = '' } = req.query as Partial<RevenueParams>
 
   const data = await getRevenueStatisticsService({
     startDate,

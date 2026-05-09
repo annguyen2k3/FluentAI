@@ -150,7 +150,6 @@ import {
       const phone = editPhoneNumber.value.trim()
       const gender = editGender.value
 
-
       // Normalize data for API
       const isoDateOfBirth = new Date(dateOfBirth).toISOString()
 

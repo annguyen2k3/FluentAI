@@ -30,7 +30,11 @@ const manageCategoryRoutes = Router()
 
 // GET /admin/categories/levels
 // Description: Render page manage categories levels
-manageCategoryRoutes.get('/levels', requireAdminAuth, wrapRequestHandler(renderLevelsController))
+manageCategoryRoutes.get(
+  '/levels',
+  requireAdminAuth,
+  wrapRequestHandler(renderLevelsController)
+)
 
 // POST /admin/categories/levels
 // Description: Create level
@@ -64,7 +68,11 @@ manageCategoryRoutes.delete(
 
 // GET /admin/categories/types
 // Description: Render page manage categories types
-manageCategoryRoutes.get('/types', requireAdminAuth, wrapRequestHandler(renderTypesController))
+manageCategoryRoutes.get(
+  '/types',
+  requireAdminAuth,
+  wrapRequestHandler(renderTypesController)
+)
 
 // POST /admin/categories/types
 // Description: Create type
@@ -98,7 +106,11 @@ manageCategoryRoutes.delete(
 
 // GET /admin/categories/topics
 // Description: Render page manage categories topics
-manageCategoryRoutes.get('/topics', requireAdminAuth, wrapRequestHandler(renderTopicsController))
+manageCategoryRoutes.get(
+  '/topics',
+  requireAdminAuth,
+  wrapRequestHandler(renderTopicsController)
+)
 
 // POST /admin/categories/topics
 // Description: Create topic

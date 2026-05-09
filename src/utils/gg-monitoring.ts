@@ -6,7 +6,6 @@ const projectId = process.env.GOOGLE_PROJECT_ID
 
 const client = new MetricServiceClient()
 
-
 function buildInterval(
   daysAgo: number
 ): protos.google.monitoring.v3.ITimeInterval {

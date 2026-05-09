@@ -50,4 +50,3 @@ export const updateConfigCreditUsageController = async (
     message: 'Cập nhật cấu hình credit sử dụng thành công'
   })
 }
-

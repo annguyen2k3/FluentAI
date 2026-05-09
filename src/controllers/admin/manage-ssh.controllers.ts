@@ -179,7 +179,10 @@ export const deleteSVListController = async (req: Request, res: Response) => {
   })
 }
 
-export const renderImportSshController = async (req: Request, res: Response) => {
+export const renderImportSshController = async (
+  req: Request,
+  res: Response
+) => {
   const admin = req.admin as Admin
   const topics = (await categoriesServices.getTopics()).map((topic) => ({
     _id: topic._id?.toString() || '',
@@ -313,10 +316,12 @@ export const importSVListController = async (req: Request, res: Response) => {
           if (typeof svShadowing.videoUrl === 'string') {
             videoUrlStr = normalizeYouTubeUrl(svShadowing.videoUrl.trim())
           } else {
-            videoUrlStr = normalizeYouTubeUrl(String(svShadowing.videoUrl).trim())
+            videoUrlStr = normalizeYouTubeUrl(
+              String(svShadowing.videoUrl).trim()
+            )
           }
         }
-        
+
         let thumbnailUrlStr: string | undefined = undefined
         if (svShadowing.thumbnailUrl) {
           if (typeof svShadowing.thumbnailUrl === 'string') {
@@ -335,7 +340,8 @@ export const importSVListController = async (req: Request, res: Response) => {
           transcript: svShadowing.transcript || [],
           slug: svShadowing.slug,
           pos: svShadowing.pos || 1,
-          isActive: svShadowing.isActive !== undefined ? svShadowing.isActive : true,
+          isActive:
+            svShadowing.isActive !== undefined ? svShadowing.isActive : true,
           topic: {
             _id: topic._id?.toString(),
             title: topic.title
@@ -407,7 +413,7 @@ export const saveImportedSVListController = async (
         } else if (videoUrl) {
           videoUrl = normalizeYouTubeUrl(String(videoUrl).trim())
         }
-        
+
         if (!videoUrl) {
           throw new Error('Video URL không hợp lệ')
         }
